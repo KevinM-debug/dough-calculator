@@ -6,6 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Dough">
+<meta name="theme-color" content="#3E6B48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
 <title>Dough Calculator</title>
 <script>try{var t=localStorage.getItem("dough-calc-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -218,6 +222,32 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
 .check2 input{width:18px; height:18px; accent-color:var(--basil)}
 .banner{background:var(--semolina); color:#1F2A2E; border-radius:12px; padding:10px 14px; margin-top:12px; font-weight:600; display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap}
 .banner .linkbtn{color:#1F2A2E}
+.seg.sub{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:100%}
+.seg.sub button{padding:8px 4px}
+.zrow{display:grid; grid-template-columns:1fr auto; gap:4px 12px; padding:12px 18px; border-bottom:1px solid var(--line); align-items:center}
+.zrow:last-child{border-bottom:0}
+.zrow .big{font-size:1.4rem; font-weight:800; font-variant-numeric:tabular-nums; text-align:right}
+.zrow .hint.warn{color:var(--tomato); font-weight:600}
+.zrow .actions{grid-column:1 / -1; margin-top:0; justify-content:flex-start; gap:14px}
+.zrow .actions .linkbtn + .linkbtn{margin-left:0}
+.pstats{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); text-align:center; padding:12px 6px; gap:6px}
+.pstats b{display:block; font-size:1.5rem; font-variant-numeric:tabular-nums}
+.pstats span{font-size:.8rem; color:var(--muted)}
+.spark{display:block; width:100%; height:56px; padding:0 18px 12px}
+.fav{color:var(--semolina)}
+#printArea{display:none}
+@media print{
+  body.print-one .wrap, body.print-one .toast{display:none !important}
+  body.print-one #printArea{display:block; color:#000; background:#fff; font-size:12pt}
+  #printArea h1{font-size:20pt; margin:0 0 4pt}
+  #printArea table{border-collapse:collapse; width:100%; margin:8pt 0}
+  #printArea td,#printArea th{border-bottom:1px solid #999; padding:4pt; text-align:left}
+  #printArea td:last-child{text-align:right; white-space:nowrap}
+  #printArea img{max-width:100%; max-height:3in; object-fit:cover}
+  #printArea .pre{white-space:pre-wrap}
+  #printArea .hint{color:#444}
+  @page{margin:0.6in}
+}
 .prog{height:6px; border-radius:3px; background:var(--line); overflow:hidden; margin-top:6px}
 .prog span{display:block; height:100%; background:var(--basil); width:0}
 @media (max-width:520px){
@@ -255,6 +285,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
   </section>
 
   <div id="doughView">
+  <div class="banner" id="fzBanner" hidden><span id="fzBannerText"></span><span><button type="button" class="linkbtn" id="fzBannerGo">See freezer</button> <button type="button" class="linkbtn" id="fzBannerX" style="margin-left:12px">Dismiss</button></span></div>
   <div class="banner" id="linkBanner" hidden><span id="linkBannerText"></span><span><button type="button" class="linkbtn" id="linkSave">Save it</button> <button type="button" class="linkbtn" id="linkDismiss" style="margin-left:12px">Dismiss</button></span></div>
   <section>
     <div id="savedWrap" hidden>
@@ -353,6 +384,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
       <button type="button" class="btn ghost" id="shareDough">Share recipe</button>
       <button type="button" class="btn ghost" id="logThis">Log this bake</button>
       <button type="button" class="btn ghost" id="linkFormula">Send formula link</button>
+      <button type="button" class="btn ghost" id="printDough">Print</button>
     </div>
   </section>
 
@@ -384,7 +416,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
       <div class="field"><label for="fzKeep">Keep frozen up to</label><select id="fzKeep"><option value="1">1 month (best)</option><option value="2">2 months</option><option value="3">3 months</option></select></div>
     </div>
     <div class="card result" id="freeze"></div>
-    <div class="actions"><span class="hint" id="freezeHint"></span><button type="button" class="linkbtn" id="shareFreeze">Share freeze plan</button></div>
+    <div class="actions"><span class="hint" id="freezeHint"></span><span><button type="button" class="linkbtn" id="toFreezer">Add to freezer list</button><button type="button" class="linkbtn" id="shareFreeze" style="margin-left:14px">Share freeze plan</button></span></div>
   </section>
   </div>
 
@@ -516,6 +548,9 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
 
   <div id="logView" hidden>
     <section>
+      <div class="seg sub" id="logTabs" role="group" aria-label="Bake log sections"><button type="button" data-ltab="bakes" aria-pressed="true">Bakes</button><button type="button" data-ltab="freezer" aria-pressed="false">Freezer</button><button type="button" data-ltab="practice" aria-pressed="false">Practice</button></div>
+    </section>
+    <section id="lt-bakes">
       <h2>Bake log</h2>
       <div class="card editor">
         <div class="two">
@@ -534,6 +569,58 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
         <div class="field"><label for="logSort">Sort</label><select id="logSort"><option value="new">Newest first</option><option value="best">Best rated first</option></select></div>
       </div>
       <div id="logList"></div>
+    </section>
+
+    <section id="lt-freezer" hidden>
+      <h2>In the freezer</h2>
+      <p class="hint" style="margin-top:0">Add dough when it goes in the freezer. Tap <b>Take one out</b> when you thaw one. The dough page reminds you a week before the use-by date.</p>
+      <div class="card editor" id="zEditor">
+        <div class="field"><label for="zStyle">Dough</label><select id="zStyle"></select></div>
+        <div class="qty">
+          <div class="field"><label for="zCount">How many</label><input id="zCount" type="number" inputmode="numeric" min="1" max="99" value="4"></div>
+          <div class="field"><label for="zUnit">Grams each</label><input id="zUnit" type="number" inputmode="numeric" min="20" max="5000" step="5" value="250"></div>
+          <div class="field"><label for="zKeep">Keep up to</label><select id="zKeep"><option value="1">1 month</option><option value="2">2 months</option><option value="3">3 months</option></select></div>
+        </div>
+        <div class="two">
+          <div class="field"><label for="zDate">Frozen on</label><input id="zDate" type="date"></div>
+          <div class="field"><label for="zNotes">Notes</label><input id="zNotes" type="text" placeholder="0.25% yeast, one night in the fridge"></div>
+        </div>
+        <div class="btnrow"><button type="button" class="btn" id="zSave">Add to freezer</button></div>
+      </div>
+      <div id="zList"></div>
+    </section>
+
+    <section id="lt-practice" hidden>
+      <h2>Stretching practice</h2>
+      <p class="hint" style="margin-top:0">Snap a photo of each pizza you stretch and rate it. Over a few weeks you'll see the shapes get rounder and the rims more even.</p>
+      <div class="card" id="pSummary"></div>
+      <div class="card editor" style="margin-top:12px">
+        <div class="two">
+          <div class="field"><label for="pDate">Date</label><input id="pDate" type="date"></div>
+          <div class="field"><label>How it went</label><div class="stars" id="pStars"><button type="button" data-s="1" aria-label="1 star">★</button><button type="button" data-s="2" aria-label="2 stars">★</button><button type="button" data-s="3" aria-label="3 stars">★</button><button type="button" data-s="4" aria-label="4 stars">★</button><button type="button" data-s="5" aria-label="5 stars">★</button></div></div>
+        </div>
+        <div class="field"><label for="pWhat">What you stretched</label><input id="pWhat" type="text" placeholder="Neapolitan, 250 g ball"></div>
+        <div class="field"><label for="pNotes">Notes</label><textarea id="pNotes" rows="3" placeholder="Thin spot in the middle, rim too thick on one side…"></textarea></div>
+        <div class="field"><label>Photo</label><div class="photoedit"><img id="pPhotoPrev" alt="" hidden><label class="btn ghost small" for="pPhoto" id="pPhotoLbl">Add photo</label><button type="button" class="linkbtn danger" id="pPhotoDel" hidden>Remove photo</button></div><input type="file" id="pPhoto" accept="image/*" hidden></div>
+        <div class="btnrow"><button type="button" class="btn" id="pSave">Save practice</button><button type="button" class="btn ghost" id="pCancel" hidden>Cancel edit</button></div>
+      </div>
+      <details class="size">
+        <summary>Stretching tips ›</summary>
+        <div class="notes" style="margin-top:8px">
+          <ol>
+            <li><b>Room-temperature dough.</b> Cold dough fights back and tears. Give fridge dough its full warm-up; it should feel soft and puffy.</li>
+            <li><b>Flour both sides well</b> (semolina or flour), and shake off the extra before it goes on the peel.</li>
+            <li><b>Press, don't pull, at first.</b> With your fingertips, press from the center outward, leaving a 1 cm band untouched all around. That band becomes the rim.</li>
+            <li><b>Turn and press.</b> Rotate the dough a quarter turn between presses so it stays round.</li>
+            <li><b>Knuckle stretch.</b> Drape it over the backs of both hands (fists, not fingertips) and rotate, letting gravity do the work. Keep your hands under the rim, not the middle.</li>
+            <li><b>Thin spot or tear?</b> Pinch it closed, or push dough in from the thicker parts. Holes usually mean the dough is too cold, under-rested, or stretched in the middle.</li>
+            <li><b>Springs back?</b> Stop, cover it, and let it rest 10 minutes. The gluten relaxes and it stretches easily after.</li>
+            <li><b>No rolling pin</b> for Neapolitan or New York: it presses the air out of the rim.</li>
+          </ol>
+          <p class="bake"><button type="button" class="linkbtn" id="pVideos">Watch your stretching videos ›</button></p>
+        </div>
+      </details>
+      <div id="pList"></div>
     </section>
   </div>
 
@@ -557,6 +644,12 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
   </div>
 
   <div id="syncView" hidden>
+    <section id="favSec">
+      <h2>Family favorites</h2>
+      <p class="hint" style="margin-top:0">Pick your best formulas, recipes, and videos, then send them to the girls in one go. They open the link and everything lands in their app. Star recipes in <b>My recipes</b> and videos in <b>Videos</b>; star formulas here.</p>
+      <div class="card" id="favFormulas"></div>
+      <div class="actions"><span class="hint" id="favCount"></span><button type="button" class="btn" id="favSend" disabled>Send favorites</button></div>
+    </section>
     <section>
       <h2>Sync &amp; backup</h2>
       <p class="hint" style="margin-top:0">Everything lives on this device only. To move it to another phone or computer, send a sync file and open it there. Opening a sync file merges it: new things get added, newer edits win, and anything you deleted stays deleted.</p>
@@ -590,6 +683,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
   </div>
 </div>
 <div class="toast" id="toast" hidden role="status"></div>
+<div id="printArea" aria-hidden="true"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
@@ -1020,7 +1114,7 @@ function updateSize(){
 function renderSaved(){
   $("savedWrap").hidden = !state.saved.length;
   $("saved").innerHTML = state.saved.map((f, i) =>
-    `<span class="savedchip"><button type="button" data-load="${i}">${esc(f.name)}</button><button type="button" class="x" data-del="${i}" aria-label="Delete ${esc(f.name)}">×</button></span>`).join("");
+    `<span class="savedchip"><button type="button" data-load="${i}">${f.fav ? "★ " : ""}${esc(f.name)}</button><button type="button" class="x" data-del="${i}" aria-label="Delete ${esc(f.name)}">×</button></span>`).join("");
 }
 function doughText(){
   const st = style();
@@ -1058,7 +1152,7 @@ function recipeBody(r){
     <h3>Ingredients</h3><ul>${ing}</ul>
     <h3>Steps</h3><ol>${r.steps.map(s => `<li>${s}</li>`).join("")}</ol>
     ${r.tips.length ? `<h3>Tips</h3><ul>${r.tips.map(s => `<li>${s}</li>`).join("")}</ul>` : ""}
-    <div class="actions"><button type="button" class="linkbtn" data-share>Share recipe</button></div>`;
+    <div class="actions"><button type="button" class="linkbtn" data-share>Share recipe</button><button type="button" class="linkbtn" data-print>Print</button></div>`;
 }
 function renderRecipes(){
   const q = $("recSearch").value.trim().toLowerCase();
@@ -1117,13 +1211,13 @@ function renderMine(){
     const src = r.source ? (/^https?:\/\//i.test(r.source) ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source.replace(/^https?:\/\/(www\.)?/, "").split("/")[0])}</a>` : esc(r.source)) : "";
     const stars = +r.rating > 0 ? `<span class="starsview">${"★".repeat(+r.rating)}</span>` : "";
     const meta = [stars, r.servings && `Serves ${esc(r.servings)}`, r.time && esc(r.time), src].filter(Boolean).join(" · ");
-    return `<details class="rec" data-mine="${esc(r.id)}"><summary><span class="nm">${r.photo ? `<img class="thumb" data-pk="r:${esc(r.id)}" alt="">` : ""}<span>${esc(r.name || "Untitled")}</span></span><span class="tag">${esc(r.categories || "")}</span></summary><div class="recbody">
+    return `<details class="rec" data-mine="${esc(r.id)}"><summary><span class="nm">${r.photo ? `<img class="thumb" data-pk="r:${esc(r.id)}" alt="">` : ""}<span>${r.fav ? `<span class="fav" aria-label="Favorite">★</span> ` : ""}${esc(r.name || "Untitled")}</span></span><span class="tag">${esc(r.categories || "")}</span></summary><div class="recbody">
       ${r.photo ? `<img class="hero" data-hero="r:${esc(r.id)}" alt="">` : ""}
       ${meta ? `<p class="hint">${meta}</p>` : ""}
       ${r.ingredients ? `<h3>Ingredients</h3><div class="pre">${esc(r.ingredients)}</div>` : ""}
       ${r.directions ? `<h3>Directions</h3><div class="pre">${esc(r.directions)}</div>` : ""}
       ${r.notes ? `<h3>Notes</h3><div class="pre">${esc(r.notes)}</div>` : ""}
-      <div class="actions"><button type="button" class="linkbtn" data-edit>Edit</button><button type="button" class="linkbtn" data-mshare>Share</button><button type="button" class="linkbtn" data-mlink>Send as link</button><button type="button" class="linkbtn danger" data-mdel>Delete</button></div>
+      <div class="actions"><button type="button" class="linkbtn" data-edit>Edit</button><button type="button" class="linkbtn" data-mshare>Share</button><button type="button" class="linkbtn" data-mlink>Send as link</button><button type="button" class="linkbtn${r.fav ? " fav" : ""}" data-mfav>${r.fav ? "★ Favorite" : "☆ Favorite"}</button><button type="button" class="linkbtn" data-print>Print</button><button type="button" class="linkbtn danger" data-mdel>Delete</button></div>
     </div></details>`;
   }).join("") : `<p class="empty">${mine.length ? "No recipes match that search." : "No recipes yet. Add one, paste one, or import from Paprika."}</p>`;
   hydratePhotos($("mineList"));
@@ -1331,7 +1425,7 @@ function resetLogForm(){
   $("logSave").textContent = "Save entry"; $("logCancel").hidden = true;
   logPhoto.reset(null); renderSnap(); renderStars();
 }
-function renderLog(){
+function renderBakes(){
   if(!$("lDate").value) $("lDate").value = todayISO();
   renderStars(); renderSnap();
   const names = [...new Set(state.log.map(l => l.f && l.f.name).filter(Boolean))].sort();
@@ -1498,7 +1592,7 @@ function renderVideos(){
     .sort((a, b) => (b.t || 0) - (a.t || 0));
   $("vList").innerHTML = list.length ? list.map(v => `<div class="vcard" data-vid="${esc(v.id)}">
       <div class="vrow">${v.yt ? `<img src="https://i.ytimg.com/vi/${esc(v.yt)}/mqdefault.jpg" alt="" loading="lazy" data-vplay>` : `<span class="plthumb" data-vplay>▶︎<br>Playlist</span>`}<div><b>${esc(v.title || (v.yt ? "YouTube video" : "YouTube playlist"))}</b><span class="hint">${v.yt ? "" : "Playlist · "}${esc(vforLabel(v.for))}</span>${v.notes ? `<div class="pre hint">${esc(v.notes)}</div>` : ""}</div></div>
-      <div class="actions"><button type="button" class="linkbtn" data-vplay>Watch here</button><a class="linkbtn" href="${esc(v.yt ? v.url : "https://www.youtube.com/playlist?list=" + v.list)}" target="_blank" rel="noopener">Open in YouTube</a><button type="button" class="linkbtn" data-vedit>Edit</button><button type="button" class="linkbtn danger" data-vdel>Delete</button></div>
+      <div class="actions"><button type="button" class="linkbtn" data-vplay>Watch here</button><a class="linkbtn" href="${esc(v.yt ? v.url : "https://www.youtube.com/playlist?list=" + v.list)}" target="_blank" rel="noopener">Open in YouTube</a><button type="button" class="linkbtn${v.fav ? " fav" : ""}" data-vfav>${v.fav ? "★ Favorite" : "☆ Favorite"}</button><button type="button" class="linkbtn" data-vedit>Edit</button><button type="button" class="linkbtn danger" data-vdel>Delete</button></div>
     </div>`).join("") : `<p class="empty">${state.videos.length ? "No videos match." : "No videos yet. Paste a YouTube link above."}</p>`;
 }
 let titleReq = 0;
@@ -1545,14 +1639,14 @@ function openVideo(id){
 
 /* ---------- Sync & backup ---------- */
 let syncFile = null, syncBuilding = 0;
-const nPhotos = () => mine.filter(r => r.photo).length + state.log.filter(l => l.photo).length;
+const nPhotos = () => mine.filter(r => r.photo).length + state.log.filter(l => l.photo).length + state.practice.filter(p => p.photo).length;
 const mb = n => n >= 1e6 ? (n / 1e6).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1e3)) + " KB";
 async function buildBackup(withPhotos){
   const b = {app:"dough-calculator", version:2, exported:new Date().toISOString(), saved:state.saved, recipes:mine, log:state.log,
-    jar:state.starter.jar, gone:state.gone, videos:state.videos};
+    jar:state.starter.jar, gone:state.gone, videos:state.videos, freezer:state.freezer, practice:state.practice};
   if(withPhotos){
     b.photos = {};
-    const keys = mine.filter(r => r.photo).map(r => "r:" + r.id).concat(state.log.filter(l => l.photo).map(l => "l:" + l.id));
+    const keys = LISTS().filter(L => PHOTO_PRE.includes(L[0])).flatMap(L => L[2]().filter(x => x.photo).map(x => L[0] + L[4](x)));
     for(const k of keys){ try{ const bl = await PDB.get(k); if(bl) b.photos[k] = await blobToDataURL(bl); }catch(e){} }
   }
   return JSON.stringify(b);
@@ -1572,53 +1666,62 @@ async function prepareSync(){
   $("syncSendMsg").textContent = `File size: ${mb(syncFile.size)}.`;
 }
 function markSent(){ state.lastSync = Date.now(); save(); renderSyncHint(); }
+const LISTS = () => [
+  ["r:", "recipe", () => mine, v => { mine = v; }, x => x.id],
+  ["l:", "bake", () => state.log, v => { state.log = v; }, x => x.id],
+  ["f:", "formula", () => state.saved, v => { state.saved = v; }, x => x.name],
+  ["v:", "video", () => state.videos, v => { state.videos = v; }, x => x.id],
+  ["z:", "freezer entry", () => state.freezer, v => { state.freezer = v; }, x => x.id],
+  ["p:", "practice entry", () => state.practice, v => { state.practice = v; }, x => x.id]
+];
+const PHOTO_PRE = ["r:", "l:", "p:"];
+function itemForKey(k){ const L = LISTS().find(x => x[0] === k.slice(0, 2)); return L ? L[2]().find(x => L[4](x) === k.slice(2)) : null; }
+async function syncPhotoFlags(){
+  const have = new Set(await PDB.keys().catch(() => []));
+  LISTS().filter(L => PHOTO_PRE.includes(L[0])).forEach(L => L[2]().forEach(x => { x.photo = have.has(L[0] + L[4](x)); }));
+}
 async function mergeBackup(b){
-  const n = {radd:0, rupd:0, rdel:0, ladd:0, lupd:0, ldel:0, fadd:0, fupd:0, vadd:0, vupd:0, vdel:0, pics:0};
+  const n = {pics:0};
   const inGone = b.gone || {};
   for(const k in inGone) if(!(state.gone[k] >= inGone[k])) state.gone[k] = inGone[k];
-  const changed = new Set();
-  const mergeList = (local, incoming, pre, key, ver) => {
-    const idx = new Map(local.map((x, i) => [key(x), i]));
-    for(const x of incoming || []){
+  const changed = new Set(), ver = x => x.u || x.t || 0;
+  const incoming = {"r:":(b.recipes || []).map(r => Object.assign({}, r, {categories:cleanCats(r.categories)})), "l:":b.log, "f:":b.saved, "v:":b.videos, "z:":b.freezer, "p:":b.practice};
+  for(const [pre, , get, set, key] of LISTS()){
+    const local = get(), idx = new Map(local.map((x, i) => [key(x), i]));
+    n[pre] = {add:0, upd:0, del:0};
+    for(const x of incoming[pre] || []){
       if(!x || state.gone[pre + key(x)]) continue;
       const i = idx.get(key(x));
-      if(i == null){ local.push(x); idx.set(key(x), local.length - 1); changed.add(pre + key(x)); n[{"r:":"radd", "l:":"ladd", "f:":"fadd", "v:":"vadd"}[pre]]++; }
-      else if(ver(x) > ver(local[i])){ local[i] = x; changed.add(pre + key(x)); n[{"r:":"rupd", "l:":"lupd", "f:":"fupd", "v:":"vupd"}[pre]]++; }
+      if(i == null){ local.push(x); idx.set(key(x), local.length - 1); changed.add(pre + key(x)); n[pre].add++; }
+      else if(ver(x) > ver(local[i])){ local[i] = x; changed.add(pre + key(x)); n[pre].upd++; }
     }
-  };
-  const ver = x => x.u || x.t || 0;
-  mergeList(mine, (b.recipes || []).map(r => Object.assign({}, r, {categories:cleanCats(r.categories)})), "r:", x => x.id, ver);
-  mergeList(state.log, b.log, "l:", x => x.id, ver);
-  mergeList(state.saved, b.saved, "f:", x => x.name, ver);
-  mergeList(state.videos, b.videos, "v:", x => x.id, ver);
-  const before = [mine.length, state.log.length];
-  mine = mine.filter(r => { if(state.gone["r:" + r.id]){ if(r.photo) setPhoto("r:" + r.id, null).catch(() => {}); return false; } return true; });
-  state.log = state.log.filter(l => { if(state.gone["l:" + l.id]){ if(l.photo) setPhoto("l:" + l.id, null).catch(() => {}); return false; } return true; });
-  state.saved = state.saved.filter(f => !state.gone["f:" + f.name]);
-  const vb = state.videos.length; state.videos = state.videos.filter(v => !state.gone["v:" + v.id]); n.vdel = vb - state.videos.length;
-  n.rdel = before[0] - mine.length; n.ldel = before[1] - state.log.length;
+    const kept = local.filter(x => {
+      if(!state.gone[pre + key(x)]) return true;
+      if(x.photo) setPhoto(pre + key(x), null).catch(() => {});
+      return false;
+    });
+    n[pre].del = local.length - kept.length; set(kept);
+  }
   if(Array.isArray(b.jar)){ const ds = new Set(state.starter.jar.map(e => e.d)); b.jar.forEach(e => { if(e && e.d && !ds.has(e.d)){ state.starter.jar.push(e); ds.add(e.d); } }); state.starter.jar.sort((x, y) => x.d.localeCompare(y.d)); }
   if(b.photos){
     const have = new Set(await PDB.keys().catch(() => []));
     const put = [];
     for(const k in b.photos){
-      const item = k[0] === "r" ? mine.find(r => "r:" + r.id === k) : state.log.find(l => "l:" + l.id === k);
-      if(!item || (have.has(k) && !changed.has(k))) continue;
+      if(!itemForKey(k) || (have.has(k) && !changed.has(k))) continue;
       const bl = dataURLToBlob(b.photos[k]); if(!bl) continue;
-      forgetURL(k); put.push([k, bl]); item.photo = true;
+      forgetURL(k); put.push([k, bl]);
     }
     for(let i = 0; i < put.length; i += 25){ try{ await PDB.putMany(put.slice(i, i + 25)); n.pics += Math.min(25, put.length - i); }catch(e){} }
   }
-  // Items whose photo wasn't sent: keep the flag only if we still have the photo here
-  if(!b.photos){ const have = new Set(await PDB.keys().catch(() => [])); mine.forEach(r => { if(r.photo && !have.has("r:" + r.id)) r.photo = false; }); state.log.forEach(l => { if(l.photo && !have.has("l:" + l.id)) l.photo = false; }); }
+  await syncPhotoFlags();
   saveMine(); save(); renderSaved();
   if(state.view === "mine") renderMine();
   if(state.view === "log") renderLog();
   if(state.view === "videos") renderVideos();
-  if(state.view === "dough") update();
-  const pl = (k, w) => `${k} ${w}${k === 1 ? "" : "s"}`;
-  const say = (a, u, d, what) => [a && `${pl(a, "new " + what)}`, u && `${pl(u, what)} updated`, d && `${pl(d, what)} deleted`].filter(Boolean).join(", ");
-  const parts = [say(n.radd, n.rupd, n.rdel, "recipe"), say(n.ladd, n.lupd, n.ldel, "bake"), say(n.fadd, n.fupd, 0, "formula"), say(n.vadd, n.vupd, n.vdel, "video"), n.pics && pl(n.pics, "photo")].filter(Boolean);
+  if(state.view === "dough"){ update(); freezerBanner(); }
+  const pl = (k, w) => `${k} ${k === 1 ? w : w.endsWith("entry") ? w.slice(0, -1) + "ies" : w + "s"}`;
+  const parts = LISTS().map(([pre, w]) => { const c = n[pre]; return [c.add && pl(c.add, "new " + w), c.upd && `${pl(c.upd, w)} updated`, c.del && `${pl(c.del, w)} deleted`].filter(Boolean).join(", "); })
+    .concat(n.pics ? [pl(n.pics, "photo")] : []).filter(Boolean);
   return parts.length ? "Merged: " + parts.join("; ") + "." : "Everything in that file was already here.";
 }
 function renderSyncHint(){
@@ -1630,7 +1733,7 @@ function renderSyncHint(){
 }
 async function renderSync(){
   const c = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
-  $("syncCounts").innerHTML = [["My recipes", c(mine.length, "recipe")], ["Saved formulas", c(state.saved.length, "formula")], ["Bake log", c(state.log.length, "bake")], ["Videos", c(state.videos.length, "video")], ["Photos", c(nPhotos(), "photo")], ["Discard jar", c(state.starter.jar.length, "entry").replace("entrys", "entries")]]
+  $("syncCounts").innerHTML = [["My recipes", c(mine.length, "recipe")], ["Saved formulas", c(state.saved.length, "formula")], ["Bake log", c(state.log.length, "bake")], ["Videos", c(state.videos.length, "video")], ["Freezer", c(state.freezer.length, "entry").replace("entrys", "entries")], ["Practice", c(state.practice.length, "pizza")], ["Photos", c(nPhotos(), "photo")], ["Discard jar", c(state.starter.jar.length, "entry").replace("entrys", "entries")]]
     .map(([a, b]) => `<div class="tidyrow"><span>${a}</span><b>${b}</b></div>`).join("") +
     `<div class="total"><span>Last sync file sent</span><b>${state.lastSync ? new Date(state.lastSync).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}) : "never"}</b></div>`;
   prepareSync();
@@ -1662,7 +1765,7 @@ document.addEventListener("visibilitychange", () => { if(wantWake && document.vi
 const YEAST_MULT = {instant:1, active:1.25, fresh:3};
 const YEAST_NAME = {instant:"Instant yeast", active:"Active dry yeast", fresh:"Fresh yeast"};
 
-let state = {cat:"pizza", styleId:"neapolitan", count:4, unit:250, waste:2, yeast:"instant", discard:0, people:0, oven:"electric", view:"dough", lastLevain:0, starter:null, units:"g", saved:[], log:[], plan:null, pcts:{}, gone:{}, lastSync:0, videos:[], freeze:null};
+let state = {cat:"pizza", styleId:"neapolitan", count:4, unit:250, waste:2, yeast:"instant", discard:0, people:0, oven:"electric", view:"dough", lastLevain:0, starter:null, units:"g", saved:[], log:[], plan:null, pcts:{}, gone:{}, lastSync:0, videos:[], freeze:null, freezer:[], practice:[], ltab:"bakes"};
 const STARTER_DEFAULTS = () => ({keep:20, ratio:1, need:0, lratio:1, revive:[], jar:[]});
 const $ = id => document.getElementById(id);
 const style = () => STYLES[state.cat].find(s => s.id === state.styleId) || STYLES[state.cat][0];
@@ -1681,6 +1784,8 @@ function load(){
   state.saved = state.saved || []; state.log = state.log || [];
   if(!state.gone || typeof state.gone !== "object") state.gone = {};
   if(!Array.isArray(state.videos)) state.videos = [];
+  if(!Array.isArray(state.freezer)) state.freezer = [];
+  if(!Array.isArray(state.practice)) state.practice = [];
   state.freeze = Object.assign({mix:"", thaw:"fridge", keep:1, fridge:"14"}, state.freeze || {});
   if(state.freeze.mix && new Date(state.freeze.mix).getTime() < Date.now() - 7 * 864e5) state.freeze.mix = "";
   if(state.view === "sync") state.view = "dough";
@@ -1847,8 +1952,9 @@ function showView(){
   if(state.view === "recipes") renderRecipes();
   if(state.view === "mine") renderMine();
   if(state.view === "log") renderLog();
-  if(state.view === "sync") renderSync();
+  if(state.view === "sync"){ renderSync(); renderFavorites(); }
   if(state.view === "videos") renderVideos();
+  if(state.view === "dough") freezerBanner();
   $("syncBtn").setAttribute("aria-pressed", state.view === "sync");
   const active = document.querySelector('.seg button[aria-pressed="true"]');
   if(active && active.scrollIntoView) active.scrollIntoView({block:"nearest", inline:"nearest"});
@@ -2038,7 +2144,7 @@ $("logThis").addEventListener("click", () => {
   resetLogForm();
   logSnap = doughSnapshot();
   $("lWhat").value = snapText(logSnap);
-  state.view = "log"; showView(); save(); $("lNotes").focus();
+  state.view = "log"; state.ltab = "bakes"; showView(); save(); $("lNotes").focus();
 });
 
 $("recSearch").addEventListener("input", renderRecipes);
@@ -2096,6 +2202,7 @@ $("mineList").addEventListener("click", e => {
   const r = mine.find(x => x.id === d.dataset.mine); if(!r) return;
   if(e.target.closest("[data-edit]")) openEditor(r);
   else if(e.target.closest("[data-mshare]")) shareText(r.name, [r.name, r.servings && "Serves " + r.servings, r.time, "", r.ingredients && "Ingredients:\n" + r.ingredients, "", r.directions && "Directions:\n" + r.directions, r.notes && "\nNotes:\n" + r.notes, r.source && "\nSource: " + r.source].filter(x => x !== undefined && x !== null && x !== false).join("\n").replace(/\n{3,}/g, "\n\n").trim());
+  else if(e.target.closest("[data-mfav]")){ r.fav = !r.fav; r.u = Date.now(); saveMine(); const b = e.target.closest("[data-mfav]"); b.textContent = r.fav ? "★ Favorite" : "☆ Favorite"; b.classList.toggle("fav", r.fav); toast(r.fav ? "Added to family favorites." : "Removed from favorites."); }
   else if(e.target.closest("[data-mlink]")){
     if(d.dataset.link) shareLink(r.name, d.dataset.link); else toast("Getting the link ready. Tap again.");
   }
@@ -2232,6 +2339,8 @@ $("vList").addEventListener("click", e => {
     if(open){ open.remove(); c.querySelector("button[data-vplay]").textContent = "Watch here"; return; }
     c.insertAdjacentHTML("afterbegin", `<div class="vembed"><iframe src="https://www.youtube-nocookie.com/embed/${v.yt ? esc(v.yt) + "?" : "videoseries?list=" + esc(v.list) + "&"}playsinline=1&rel=0${v.start ? "&start=" + v.start : ""}" title="${esc(v.title || "YouTube video")}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`);
     c.querySelector("button[data-vplay]").textContent = "Close player";
+  } else if(e.target.closest("[data-vfav]")){
+    v.fav = !v.fav; v.u = Date.now(); save(); renderVideos(); toast(v.fav ? "Added to family favorites." : "Removed from favorites.");
   } else if(e.target.closest("[data-vedit]")){
     editingVid = v.id; $("vUrl").value = v.url; $("vTitle").value = v.title || ""; $("vFor").value = v.for || ""; $("vNotes").value = v.notes || ""; $("vUrlMsg").textContent = "";
     $("vEditTitle").textContent = "Edit video"; $("vSave").textContent = "Save changes"; $("vCancel").hidden = false;
@@ -2241,15 +2350,219 @@ $("vList").addEventListener("click", e => {
   }
 });
 
+/* ---------- Bake log tabs ---------- */
+function renderLog(){
+  const t = ["bakes", "freezer", "practice"].includes(state.ltab) ? state.ltab : "bakes";
+  $("logTabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.ltab === t));
+  $("lt-bakes").hidden = t !== "bakes"; $("lt-freezer").hidden = t !== "freezer"; $("lt-practice").hidden = t !== "practice";
+  if(t === "bakes") renderBakes(); else if(t === "freezer") renderFreezer(); else renderPractice();
+}
+function openLogTab(t){ state.ltab = t; state.view = "log"; showView(); save(); window.scrollTo(0, 0); }
+$("logTabs").addEventListener("click", e => { const b = e.target.closest("[data-ltab]"); if(b){ state.ltab = b.dataset.ltab; save(); renderLog(); } });
+
+/* ---------- Freezer tracker ---------- */
+const allStyles = () => STYLES.pizza.map(s => ["pizza", s]).concat(STYLES.bread.map(s => ["bread", s]));
+const styleById = id => (allStyles().find(([, s]) => s.id === id) || [])[1];
+const dayISO = d => localISO(d).slice(0, 10);
+const fmtDate = iso => new Date(iso + "T12:00").toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+const daysUntil = iso => Math.round((new Date(iso + "T12:00").getTime() - new Date(todayISO() + "T12:00").getTime()) / 864e5);
+function useByOf(z){ const d = new Date(z.frozen + "T12:00"); d.setMonth(d.getMonth() + (+z.keep || 1)); return dayISO(d); }
+function fillFreezerForm(o){
+  if(!$("zStyle").options.length) $("zStyle").innerHTML = `<optgroup label="Pizza">${STYLES.pizza.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup><optgroup label="Bread">${STYLES.bread.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup>`;
+  $("zStyle").value = o.styleId; $("zCount").value = o.count; $("zUnit").value = o.unit; $("zKeep").value = String(o.keep || 1);
+  $("zDate").value = o.frozen || todayISO(); $("zNotes").value = o.notes || "";
+}
+function renderFreezer(){
+  if(!$("zStyle").options.length) fillFreezerForm({styleId:state.styleId, count:state.count, unit:state.unit, keep:state.freeze.keep});
+  const list = state.freezer.slice().sort((a, b) => useByOf(a).localeCompare(useByOf(b)));
+  const total = list.reduce((a, z) => a + (z.count || 0), 0);
+  $("zList").innerHTML = list.length ? `<div class="card result">${list.map(z => {
+      const ub = useByOf(z), d = daysUntil(ub), st = styleById(z.styleId);
+      const word = st ? (z.count === 1 ? st.unitWord : st.unitName.toLowerCase()) : "pieces";
+      const when = d < 0 ? `Past its use-by date (${fmtDate(ub)})` : d <= 7 ? `Use by ${fmtDate(ub)}, ${d === 0 ? "today" : `in ${d} day${d === 1 ? "" : "s"}`}` : `Use by ${fmtDate(ub)}`;
+      return `<div class="zrow" data-zid="${esc(z.id)}"><div><b>${esc(z.name || (st && st.name) || "Dough")}</b> · ${fmt(z.unit)} g each<br><span class="hint${d <= 7 ? " warn" : ""}">Frozen ${fmtDate(z.frozen)} · ${when}</span>${z.notes ? `<br><span class="hint">${esc(z.notes)}</span>` : ""}</div><div class="big">${z.count}<small style="font-size:.55em;font-weight:600"> ${esc(word)}</small></div>
+        <div class="actions"><button type="button" class="linkbtn" data-ztake>Take one out</button><button type="button" class="linkbtn" data-zplus>+1</button><button type="button" class="linkbtn" data-zthaw>How to thaw</button><button type="button" class="linkbtn danger" data-zdel>Remove</button></div></div>`;
+    }).join("")}<div class="total"><span>In the freezer</span><b>${total} piece${total === 1 ? "" : "s"}</b></div></div>`
+    : `<p class="empty">Nothing in the freezer yet. Use the form above, or tap <b>Add to freezer list</b> under Make ahead &amp; freeze on the dough page.</p>`;
+}
+function freezerBanner(){
+  if(sessionStorageGet("fzDismiss") === todayISO()) { $("fzBanner").hidden = true; return; }
+  const soon = state.freezer.filter(z => z.count > 0 && daysUntil(useByOf(z)) <= 7);
+  $("fzBanner").hidden = !soon.length;
+  if(!soon.length) return;
+  const n = soon.reduce((a, z) => a + z.count, 0);
+  const first = soon.map(useByOf).sort()[0], d = daysUntil(first);
+  $("fzBannerText").textContent = `${n} piece${n === 1 ? "" : "s"} of frozen dough ${d < 0 ? "are past their use-by date" : `should be used by ${fmtDate(first)}`}.`;
+}
+function sessionStorageGet(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }
+function sessionStorageSet(k, v){ try{ sessionStorage.setItem(k, v); }catch(e){} }
+$("zSave").addEventListener("click", () => {
+  const st = styleById($("zStyle").value), count = Math.max(1, parseInt($("zCount").value) || 1), unit = Math.max(1, parseFloat($("zUnit").value) || 250);
+  state.freezer.push({id:uid(), t:Date.now(), u:Date.now(), styleId:$("zStyle").value, name:st ? st.name : "", count, unit, frozen:$("zDate").value || todayISO(), keep:+$("zKeep").value || 1, notes:$("zNotes").value.trim()});
+  $("zNotes").value = ""; save(); renderFreezer(); toast(`Added ${count} to the freezer.`);
+});
+$("zList").addEventListener("click", e => {
+  const row = e.target.closest(".zrow"); if(!row) return;
+  const z = state.freezer.find(x => x.id === row.dataset.zid); if(!z) return;
+  const gone = () => { state.freezer = state.freezer.filter(x => x.id !== z.id); state.gone["z:" + z.id] = Date.now(); };
+  if(e.target.closest("[data-ztake]")){
+    z.count--; z.u = Date.now();
+    if(z.count <= 0){ gone(); toast("That was the last one."); } else toast(`${z.count} left.`);
+  } else if(e.target.closest("[data-zplus]")){ z.count++; z.u = Date.now(); }
+  else if(e.target.closest("[data-zthaw]")){ toast("Best: move it, still wrapped, to the fridge the day before, then 1–3 hours on the counter before shaping."); return; }
+  else if(e.target.closest("[data-zdel]")){ if(!confirm("Remove this from the freezer list?")) return; gone(); }
+  else return;
+  save(); renderFreezer();
+});
+$("toFreezer").addEventListener("click", () => {
+  const t0 = new Date($("fzMix").value).getTime() || Date.now();
+  const p = freezePlan(style());
+  const fz = new Date(t0 + (p.R + p.F) * HR);
+  fillFreezerForm({styleId:state.styleId, count:state.count, unit:state.unit, keep:state.freeze.keep, frozen:dayISO(fz < new Date() ? new Date() : fz),
+    notes:`${(state.pcts.yeast || 0).toFixed(2)}% yeast, ${hrs(p.R)} counter, ${hrs(p.F)} fridge`});
+  openLogTab("freezer"); toast("Check it and tap Add to freezer.");
+});
+$("fzBannerGo").addEventListener("click", () => openLogTab("freezer"));
+$("fzBannerX").addEventListener("click", () => { sessionStorageSet("fzDismiss", todayISO()); $("fzBanner").hidden = true; });
+
+/* ---------- Stretching practice ---------- */
+let pRating = 0, editingP = null, pPhoto = null;
+function renderPStars(){ $("pStars").querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.s <= pRating)); }
+function resetPractice(){
+  editingP = null; pRating = 0; $("pDate").value = todayISO(); $("pNotes").value = "";
+  const st = style(); $("pWhat").value = `${st.name}, ${state.unit} g ${st.unitWord}`;
+  $("pSave").textContent = "Save practice"; $("pCancel").hidden = true; pPhoto.reset(null); renderPStars();
+}
+function sparkSVG(vals){
+  if(vals.length < 2) return "";
+  const W = 300, H = 44, n = vals.length, x = i => 6 + i * (W - 12) / (n - 1), y = v => H - 4 - (v - 1) / 4 * (H - 8);
+  const avg = vals.map((_, i) => { const w = vals.slice(Math.max(0, i - 2), i + 1); return w.reduce((a, b) => a + b, 0) / w.length; });
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Ratings over time">
+    <polyline fill="none" stroke="var(--line)" stroke-width="1.5" points="${vals.map((v, i) => `${x(i)},${y(v)}`).join(" ")}"/>
+    <polyline fill="none" stroke="var(--basil)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${avg.map((v, i) => `${x(i)},${y(v)}`).join(" ")}"/>
+    ${vals.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="2.5" fill="var(--semolina)"/>`).join("")}</svg>`;
+}
+function renderPractice(){
+  if(!$("pDate").value) resetPractice();
+  renderPStars();
+  const list = state.practice.slice().sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.t || 0) - (b.t || 0));
+  const rated = list.filter(p => p.rating > 0).map(p => p.rating);
+  const avg = a => a.length ? (a.reduce((x, y) => x + y, 0) / a.length) : 0;
+  const first = avg(rated.slice(0, 5)), last = avg(rated.slice(-5));
+  $("pSummary").innerHTML = `<div class="pstats"><div><b>${list.length}</b><span>pizzas practiced</span></div><div><b>${rated.length ? first.toFixed(1) : "–"}</b><span>first 5 average</span></div><div><b>${rated.length ? last.toFixed(1) : "–"}</b><span>last 5 average</span></div></div>` +
+    (rated.length >= 2 ? sparkSVG(rated) : `<p class="empty" style="padding-top:0">${list.length ? "Rate a couple more to see your progress line." : "Your progress line shows up after a few rated pizzas."}</p>`);
+  $("pList").innerHTML = list.length ? list.slice().reverse().map(p => `<div class="logcard" data-pid="${esc(p.id)}">
+      <div class="loghead"><b>${esc(fmtDate(p.date))}</b><span class="starsview">${"★".repeat(p.rating || 0)}<span class="dim">${"★".repeat(5 - (p.rating || 0))}</span></span><button type="button" class="x" data-pdel aria-label="Delete">×</button></div>
+      ${p.what ? `<div>${esc(p.what)}</div>` : ""}
+      ${p.photo ? `<img class="logphoto" data-pk="p:${esc(p.id)}" alt="Practice pizza">` : ""}
+      ${p.notes ? `<div class="pre hint">${esc(p.notes)}</div>` : ""}
+      <div class="actions"><button type="button" class="linkbtn" data-pedit>Edit</button></div></div>`).join("")
+    : `<p class="empty">No practice logged yet.</p>`;
+  hydratePhotos($("pList"));
+}
+$("pStars").addEventListener("click", e => { const b = e.target.closest("[data-s]"); if(!b) return; pRating = +b.dataset.s === pRating ? 0 : +b.dataset.s; renderPStars(); });
+$("pSave").addEventListener("click", async () => {
+  const fields = {date:$("pDate").value || todayISO(), what:$("pWhat").value.trim(), notes:$("pNotes").value.trim(), rating:pRating, u:Date.now()};
+  if(!fields.rating && !fields.notes && pPhoto.blob == null && !editingP){ toast("Add a rating, a note, or a photo."); return; }
+  let p = editingP && state.practice.find(x => x.id === editingP);
+  if(p) Object.assign(p, fields); else { p = Object.assign({id:uid(), t:Date.now()}, fields); state.practice.push(p); }
+  try{ const r = await pPhoto.commit("p:" + p.id); if(r !== null) p.photo = r; }catch(e){ toast("The photo couldn't be saved on this device."); }
+  const was = !!editingP; resetPractice(); save(); renderPractice(); toast(was ? "Updated." : "Practice saved.");
+});
+$("pCancel").addEventListener("click", resetPractice);
+$("pList").addEventListener("click", e => {
+  const c = e.target.closest(".logcard"); if(!c) return;
+  const p = state.practice.find(x => x.id === c.dataset.pid); if(!p) return;
+  if(e.target.closest("[data-pdel]")){
+    if(confirm("Delete this practice entry?")){ state.practice = state.practice.filter(x => x.id !== p.id); state.gone["p:" + p.id] = Date.now(); if(p.photo) setPhoto("p:" + p.id, null).catch(() => {}); save(); renderPractice(); }
+  } else if(e.target.closest("[data-pedit]")){
+    editingP = p.id; pRating = p.rating || 0; $("pDate").value = p.date; $("pWhat").value = p.what || ""; $("pNotes").value = p.notes || "";
+    $("pSave").textContent = "Save changes"; $("pCancel").hidden = false; pPhoto.reset(p.photo ? "p:" + p.id : null); renderPStars();
+    $("lt-practice").scrollIntoView({behavior:"smooth", block:"start"});
+  } else if(e.target.matches("img.logphoto")) e.target.classList.toggle("big");
+});
+$("pVideos").addEventListener("click", () => { state.view = "videos"; $("vSearch").value = ""; showView(); $("vFilter").value = state.videos.some(v => v.for === "shaping") ? "shaping" : "*"; renderVideos(); save(); window.scrollTo(0, 0); });
+
+/* ---------- Family favorites ---------- */
+let favLink = "", favBuilding = 0;
+function favBundle(){
+  const strip = r => { const o = Object.assign({}, r); delete o.photo; return o; };
+  return {app:"dough-calculator", version:2, kind:"favorites", exported:new Date().toISOString(),
+    saved:state.saved.filter(f => f.fav), recipes:mine.filter(r => r.fav).map(strip), videos:state.videos.filter(v => v.fav)};
+}
+async function renderFavorites(){
+  $("favFormulas").innerHTML = state.saved.length ? state.saved.map((f, i) => `<div class="tidyrow"><span>${esc(f.name)}</span><button type="button" class="linkbtn${f.fav ? " fav" : ""}" data-ffav="${i}" aria-pressed="${!!f.fav}">${f.fav ? "★ Favorite" : "☆ Add"}</button></div>`).join("")
+    : `<p class="empty">No saved formulas yet. Tap ★ Save formula on the dough page first.</p>`;
+  const b = favBundle(), n = b.saved.length + b.recipes.length + b.videos.length;
+  const pl = (k, w) => `${k} ${w}${k === 1 ? "" : "s"}`;
+  $("favCount").textContent = n ? `${pl(b.saved.length, "formula")}, ${pl(b.recipes.length, "recipe")}, ${pl(b.videos.length, "video")} starred.` : "Nothing starred yet.";
+  const my = ++favBuilding; favLink = ""; $("favSend").disabled = true;
+  if(!n) return;
+  const code = await packLink(b);
+  if(my !== favBuilding) return;
+  favLink = appURL() + "#b=" + code; $("favSend").disabled = false;
+  $("favSend").textContent = favLink.length > 30000 ? "Send favorites (long link)" : "Send favorites";
+}
+$("favFormulas").addEventListener("click", e => {
+  const b = e.target.closest("[data-ffav]"); if(!b) return;
+  const f = state.saved[+b.dataset.ffav]; f.fav = !f.fav; f.u = Date.now(); save(); renderSaved(); renderFavorites();
+});
+$("favSend").addEventListener("click", () => { if(favLink) shareLink("Dad's dough calculator favorites", favLink); });
+
+/* ---------- Print ---------- */
+function printHTML(html){
+  $("printArea").innerHTML = html;
+  document.body.classList.add("print-one");
+  const done = () => { document.body.classList.remove("print-one"); window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  setTimeout(() => { window.print(); setTimeout(done, 1000); }, 50);
+}
+$("printDough").addEventListener("click", () => {
+  const st = style();
+  const rows = [`<tr><td>${esc(st.flour)}</td><td>${esc(fmtW(lastCalc.grams.flour))}</td></tr>`];
+  document.querySelectorAll("#rows .row").forEach(r => {
+    if(r.classList.contains("hide")) return;
+    rows.push(`<tr><td>${esc(r.querySelector(".name").firstChild.textContent.trim())}</td><td>${esc(r.querySelector(".grams").textContent.replace(/\s+/g, " ").trim())}</td></tr>`);
+  });
+  const notes = $("notes").cloneNode(true); notes.querySelectorAll(".chips, .tablewrap, button").forEach(x => x.remove());
+  notes.querySelectorAll("p.bake").forEach(pb => { if(/Recipes for this|videos for this/i.test(pb.textContent)) pb.remove(); });
+  printHTML(`<h1>${esc(st.name)}</h1><p class="hint">${state.count} × ${state.unit} g · hydration ${esc($("hyd").textContent)} · total ${esc($("total").textContent)}</p>
+    <table>${rows.join("")}</table><h2>Method</h2>${notes.innerHTML}`);
+});
+document.addEventListener("click", e => {
+  const pb = e.target.closest("[data-print]"); if(!pb) return;
+  const d = pb.closest("details.rec"); if(!d) return;
+  if(d.dataset.mine){
+    const r = mine.find(x => x.id === d.dataset.mine); if(!r) return;
+    const hero = d.querySelector("img.hero");
+    printHTML(`<h1>${esc(r.name)}</h1>${[r.servings && "Serves " + r.servings, r.time, r.source].filter(Boolean).map(esc).join(" · ") ? `<p class="hint">${[r.servings && "Serves " + r.servings, r.time, r.source].filter(Boolean).map(esc).join(" · ")}</p>` : ""}
+      ${hero && hero.src ? `<img src="${hero.src}" alt="">` : ""}
+      ${r.ingredients ? `<h2>Ingredients</h2><div class="pre">${esc(r.ingredients)}</div>` : ""}
+      ${r.directions ? `<h2>Directions</h2><div class="pre">${esc(r.directions)}</div>` : ""}
+      ${r.notes ? `<h2>Notes</h2><div class="pre">${esc(r.notes)}</div>` : ""}`);
+  } else {
+    const body = d.querySelector(".recbody").cloneNode(true); body.querySelectorAll(".scale, .actions, button").forEach(x => x.remove());
+    printHTML(`<h1>${esc(d.querySelector("summary span").textContent)}</h1>${body.innerHTML}`);
+  }
+});
+
 /* ---------- Opening a shared link ---------- */
 let linkFormulaData = null;
 async function openSharedLink(){
-  const m = /^#([fr])=([A-Za-z0-9_-]+)$/.exec(location.hash); if(!m) return;
+  const m = /^#([frb])=([A-Za-z0-9_-]+)$/.exec(location.hash); if(!m) return;
   history.replaceState(null, "", appURL());
   try{
     const o = await unpackLink(m[2]);
-    if(m[1] === "f"){
+    if(m[1] === "b"){
+      const n = (o.saved || []).length + (o.recipes || []).length + (o.videos || []).length;
+      if(!n || o.app !== "dough-calculator"){ toast("That link is empty."); return; }
+      if(!confirm(`Add ${n} favorite${n === 1 ? "" : "s"} from this link to your app?`)) return;
+      const msg = await mergeBackup(o);
+      $("linkBannerText").textContent = msg.replace(/^Merged: /, "Added: ").replace("Everything in that file was already here.", "You already had all of these.");
+      $("linkSave").hidden = true; $("linkBanner").hidden = false; state.view = "dough"; showView();
+    } else if(m[1] === "f"){
       if(!applyFormula(o)) return;
+      $("linkSave").hidden = false;
       linkFormulaData = o;
       $("linkBannerText").textContent = `Formula from a link: ${o.name}, ${o.count} × ${o.unit} g`;
       $("linkBanner").hidden = false;
@@ -2267,7 +2580,7 @@ $("linkSave").addEventListener("click", () => {
 $("linkDismiss").addEventListener("click", () => { $("linkBanner").hidden = true; });
 window.addEventListener("hashchange", openSharedLink);
 
-recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); initTidy(); renderVideoForm();
+recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); pPhoto = photoPicker("p"); initTidy(); renderVideoForm();
 loadMine(); load(); renderChips(); renderForm(); showView(); openSharedLink();
 if(navigator.storage && navigator.storage.persist && (mine.length || state.log.length)) navigator.storage.persist().catch(() => {});
 </script>
