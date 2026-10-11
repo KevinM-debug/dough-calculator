@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dough">
 <title>Dough Calculator</title>
+<script>try{var t=localStorage.getItem("dough-calc-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
@@ -13,21 +17,22 @@
   --basil:#3E6B48; --basil-soft:#E3ECE2; --semolina:#E8C547; --tomato:#B8432F;
   --c-flour:#D9CBA3; --c-water:#6F9FB8; --c-salt:#9AA5A0; --c-yeast:#C9A227; --c-oil:#8C9A3A;
   --c-sugar:#E2B4A6; --c-discard:#8E7CB0; --c-yogurt:#CFC8B8; --c-honey:#D49A1E; --c-butter:#E8C547; --c-milk:#B9CFDA; --c-eggs:#E39A3B; --c-levain:#A88A6A;
-  box-sizing:border-box;
+  box-sizing:border-box; color-scheme:light;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#152024; --surface:#1E2B30; --ink:#E8EEE6; --muted:#9DAAA4; --line:#33444A;
-    --basil:#86B892; --basil-soft:#24382C; --c-flour:#B8AA82;
+    --basil:#86B892; --basil-soft:#24382C; --c-flour:#B8AA82; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#152024; --surface:#1E2B30; --ink:#E8EEE6; --muted:#9DAAA4; --line:#33444A;
-  --basil:#86B892; --basil-soft:#24382C; --c-flour:#B8AA82;
+  --basil:#86B892; --basil-soft:#24382C; --c-flour:#B8AA82; color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none !important}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{
   margin:0; background:var(--bg); color:var(--ink);
@@ -87,7 +92,10 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .row.hide{display:none}
 .field .help{font-size:.82rem; color:var(--muted); margin-top:4px}
 .field .help.warn{color:var(--tomato)}
-.two{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.two{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+.two > *{min-width:0}
+.field input,.field select{min-width:0; max-width:100%}
+.field input[type=datetime-local],.field input[type=date]{-webkit-appearance:none; appearance:none; display:block}
 .result{margin-top:10px}
 .check{display:flex; gap:12px; align-items:flex-start; padding:12px 18px; border-bottom:1px solid var(--line); cursor:pointer}
 .check:last-child{border-bottom:0}
@@ -105,6 +113,112 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .btn{font:inherit; font-weight:600; border:0; border-radius:12px; padding:10px 18px; background:var(--basil); color:var(--bg); cursor:pointer}
 .btn:disabled{opacity:.45; cursor:default}
 .hint.warn{color:var(--tomato); font-weight:600}
+.nav{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-radius:18px; width:100%}
+.nav button{white-space:nowrap; padding:9px 4px; border-radius:14px; text-align:center}
+@media (max-width:479px){ .nav button{font-size:.88rem; padding:9px 2px} }
+@media (max-width:359px){ .nav button{font-size:.8rem; white-space:normal; line-height:1.15} }
+@media (min-width:640px){ .nav{grid-template-columns:repeat(7,minmax(0,1fr))} }
+.toprow{display:flex; justify-content:space-between; align-items:flex-start; gap:12px}
+.pill{font:inherit; font-size:.85rem; font-weight:600; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:999px; padding:8px 12px; cursor:pointer; white-space:nowrap; margin-top:10px}
+.pill[aria-pressed="true"]{background:var(--semolina); color:#1F2A2E; border-color:var(--semolina)}
+.h2row{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px}
+.h2row h2{margin:0}
+select.mini{font:inherit; font-size:.9rem; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); padding:5px 8px}
+.row .grams .vol{display:block; font-size:.72rem; font-weight:600; color:var(--muted); letter-spacing:0}
+.btnrow{display:flex; flex-wrap:wrap; gap:8px}
+.btn.ghost{background:var(--surface); color:var(--ink); border:1px solid var(--line); display:inline-flex; align-items:center}
+.btn.small{padding:6px 12px; font-size:.9rem; border-radius:10px}
+.linkbtn.danger{color:var(--tomato)}
+.actions .linkbtn + .linkbtn{margin-left:14px}
+.savedrow{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px}
+.savedchip{display:inline-flex; align-items:center; border:1px solid var(--semolina); border-radius:10px; background:var(--surface)}
+.savedchip button:first-child{font:inherit; font-size:.95rem; font-weight:600; border:0; background:none; color:var(--ink); padding:8px 2px 8px 12px; cursor:pointer}
+.savedchip .x{font-size:1.15rem; padding:0 10px}
+details.size{margin-top:10px}
+details.size > summary, details.size > summary:focus{cursor:pointer; color:var(--basil); font-weight:600; list-style:none; padding:4px 0}
+details.size > summary::-webkit-details-marker{display:none}
+.dims{display:flex; align-items:center; gap:6px}
+.dims input{min-width:0}
+.tablewrap{overflow-x:auto}
+.tt{width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; margin:4px 0 6px}
+.tt th,.tt td{padding:6px 4px; border-bottom:1px solid var(--line); text-align:left}
+.tt th{font-size:.82rem; color:var(--muted); font-weight:600}
+.tt td:not(:first-child),.tt th:not(:first-child){text-align:right; white-space:nowrap}
+.reclinks{margin-top:4px}
+.prow{display:grid; grid-template-columns:8.6em 1fr; gap:12px; padding:10px 18px; border-bottom:1px solid var(--line); align-items:baseline}
+.prow time{font-weight:700; font-variant-numeric:tabular-nums}
+.prow.past time{color:var(--tomato)}
+#plan .total{align-items:center; gap:10px; flex-wrap:wrap}
+.catlabel{margin:22px 0 0; font-size:.8rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--muted)}
+details.rec{background:var(--surface); border:1px solid var(--line); border-radius:14px; margin-top:10px; overflow:hidden}
+details.rec > summary{list-style:none; cursor:pointer; padding:14px 18px; display:flex; justify-content:space-between; gap:12px; align-items:baseline; font-weight:600}
+details.rec > summary::-webkit-details-marker{display:none}
+details.rec[open] > summary{border-bottom:1px solid var(--line)}
+summary .tag{font-weight:400; color:var(--muted); font-size:.82rem; text-align:right}
+.recbody{padding:4px 18px 14px}
+.recbody h3{font-size:.95rem; margin:16px 0 6px}
+.recbody ul,.recbody ol{margin:0; padding-left:1.25em}
+.recbody li{margin:4px 0}
+.recbody li.ih{list-style:none; margin-left:-1.25em; margin-top:12px; font-weight:700}
+.pre{white-space:pre-wrap; overflow-wrap:anywhere}
+.scale{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:8px}
+.scale span{color:var(--muted); font-size:.9rem}
+.scale button[data-sc]{width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit; font-size:1.1rem; cursor:pointer}
+.scale b{min-width:3.2em; text-align:center; font-variant-numeric:tabular-nums}
+.editor{padding:14px; display:grid; gap:10px; margin-top:12px}
+.editor h3{margin:0; font-size:1rem}
+.field textarea{width:100%; min-height:110px; font:inherit; font-size:1rem; border:0; background:transparent; color:var(--ink); padding:0; resize:vertical}
+.field input[type=text],.field input[type=search],.field input[type=date],.field input[type=datetime-local]{font-size:1rem}
+.search{margin-top:12px}
+.logcard{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:12px 16px; margin-top:10px}
+.loghead{display:flex; align-items:center; gap:10px; margin-bottom:4px}
+.loghead .x{margin-left:auto}
+.starsview{color:var(--semolina); letter-spacing:1px}
+.starsview .dim{color:var(--line)}
+.stars{display:flex; gap:2px}
+.stars{flex-wrap:nowrap}
+.stars button{font-size:1.7rem; line-height:1; background:none; border:0; cursor:pointer; color:var(--line); padding:0 1px; min-width:0}
+@media (max-width:400px){ .stars button{font-size:1.45rem} }
+.stars button.on{color:var(--semolina)}
+.toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px; font-weight:600; z-index:20; max-width:90vw; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.notes .hint{margin:0 0 10px}
+.pills{display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex:none; margin-top:10px}
+.pills .pill{margin-top:0}
+@media (max-width:379px){ .toprow{flex-wrap:wrap} .pills{flex:1 1 100%; flex-direction:row; flex-wrap:wrap; align-items:center; margin-top:0} }
+.vcard{background:var(--surface); border:1px solid var(--line); border-radius:14px; margin-top:10px; overflow:hidden}
+.vrow{display:grid; grid-template-columns:120px 1fr; gap:12px; padding:12px}
+.vrow img{width:120px; aspect-ratio:16/9; object-fit:cover; border-radius:8px; background:var(--line); cursor:pointer}
+.vrow b{display:block; overflow-wrap:anywhere}
+.vrow .hint{overflow-wrap:anywhere}
+.vcard .actions{padding:0 12px 10px; margin-top:0; justify-content:flex-start; gap:14px}
+.vcard .actions .linkbtn + .linkbtn{margin-left:0}
+.vembed{position:relative; width:100%; aspect-ratio:16/9; background:#000}
+.vembed iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+@media (max-width:420px){ .vrow{grid-template-columns:96px 1fr} .vrow img{width:96px} }
+.thumb{flex:none; width:44px; height:44px; border-radius:8px; object-fit:cover; background:var(--line)}
+details.rec > summary .nm{display:flex; align-items:center; gap:12px; min-width:0}
+details.rec > summary .nm span{overflow-wrap:anywhere}
+.hero{display:block; width:calc(100% + 36px); margin:0 -18px 6px; max-height:300px; object-fit:cover; background:var(--line)}
+.photoedit{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+.photoedit img{width:88px; height:88px; border-radius:10px; object-fit:cover}
+.logcard .logphoto{display:block; width:100%; max-height:260px; object-fit:cover; border-radius:10px; margin:8px 0 4px; cursor:zoom-in}
+.logcard .logphoto.big{max-height:none; object-fit:contain; cursor:zoom-out}
+.logcard .actions{margin-top:6px; justify-content:flex-start; gap:14px}
+.logcard .actions .linkbtn + .linkbtn{margin-left:0}
+.snap{background:var(--basil-soft); border-radius:10px; padding:8px 12px; font-size:.92rem; display:flex; justify-content:space-between; gap:10px; align-items:center}
+.tidyrow{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 18px; border-bottom:1px solid var(--line)}
+.tidyrow:last-child{border-bottom:0}
+.tidyrow small{color:var(--muted)}
+.dupgroup{border-bottom:1px solid var(--line); padding:10px 18px}
+.dupgroup:last-child{border-bottom:0}
+.dupitem{display:grid; grid-template-columns:1fr auto; gap:4px 10px; padding:6px 0; align-items:start}
+.dupitem .hint{grid-column:1 / 2; overflow-wrap:anywhere}
+.check2{display:flex; gap:10px; align-items:center; margin:8px 0}
+.check2 input{width:18px; height:18px; accent-color:var(--basil)}
+.banner{background:var(--semolina); color:#1F2A2E; border-radius:12px; padding:10px 14px; margin-top:12px; font-weight:600; display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap}
+.banner .linkbtn{color:#1F2A2E}
+.prog{height:6px; border-radius:3px; background:var(--line); overflow:hidden; margin-top:6px}
+.prog span{display:block; height:100%; background:var(--basil); width:0}
 @media (max-width:520px){
   .qty{grid-template-columns:1fr 1fr}
   .qty .field:last-child{grid-column:1 / 3}
@@ -116,20 +230,36 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 <body>
 <div class="wrap">
   <header>
-    <h1>Dough calculator</h1>
-    <p>Pick a pizza or bread style, set how much you want, and get the gram weights to mix. Every percentage is relative to the flour.</p>
+    <div class="toprow">
+      <h1>Dough calculator</h1>
+      <div class="pills">
+        <button type="button" class="pill" id="wake" aria-pressed="false">☀︎ Keep screen on</button>
+        <button type="button" class="pill" id="syncBtn" aria-pressed="false">⇄ Sync &amp; backup</button>
+        <button type="button" class="pill" id="themeBtn" aria-label="Color theme">◐ Auto</button>
+      </div>
+    </div>
+    <p>Doughs, sauces, toppings, schedules, and your own recipes. Every dough percentage is relative to the flour.</p>
   </header>
 
   <section>
-    <div class="seg" role="group" aria-label="Category">
+    <div class="seg nav" role="group" aria-label="Sections">
       <button type="button" data-cat="pizza" aria-pressed="true">Pizza</button>
       <button type="button" data-cat="bread" aria-pressed="false">Bread</button>
       <button type="button" data-view="starter" aria-pressed="false">Starter</button>
+      <button type="button" data-view="recipes" aria-pressed="false">Recipes</button>
+      <button type="button" data-view="mine" aria-pressed="false">My recipes</button>
+      <button type="button" data-view="videos" aria-pressed="false">Videos</button>
+      <button type="button" data-view="log" aria-pressed="false">Bake log</button>
     </div>
   </section>
 
   <div id="doughView">
+  <div class="banner" id="linkBanner" hidden><span id="linkBannerText"></span><span><button type="button" class="linkbtn" id="linkSave">Save it</button> <button type="button" class="linkbtn" id="linkDismiss" style="margin-left:12px">Dismiss</button></span></div>
   <section>
+    <div id="savedWrap" hidden>
+      <h2>My saved formulas</h2>
+      <div class="savedrow" id="saved"></div>
+    </div>
     <h2>Style</h2>
     <div class="chips" id="styles" role="group" aria-label="Style"></div>
   </section>
@@ -160,6 +290,14 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
         </select>
       </div>
     </div>
+    <details class="size" id="sizeHelp">
+      <summary>Size by pizza diameter or pan size ›</summary>
+      <div class="two" style="margin-top:8px">
+        <div class="field"><label for="szShape">Shape</label><select id="szShape"><option value="r">Round</option><option value="rect">Rectangle</option></select></div>
+        <div class="field"><label id="szLabel" for="szA">Size (inches)</label><div class="dims"><input id="szA" type="number" inputmode="decimal" min="4" max="30" step="0.5"><span id="szX">×</span><input id="szB" type="number" inputmode="decimal" min="4" max="30" step="0.5"></div></div>
+      </div>
+      <div class="actions"><span class="hint" id="szHint"></span><button type="button" class="btn small" id="szUse">Use this size</button></div>
+    </details>
     <div class="two" style="margin-top:10px">
       <div class="field">
         <label for="people">People to feed</label>
@@ -187,7 +325,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
   </section>
 
   <section>
-    <h2>What to weigh</h2>
+    <div class="h2row"><h2>What to weigh</h2>
+      <select id="units" class="mini" aria-label="Units"><option value="g">Grams</option><option value="gv">Grams + cups &amp; spoons</option><option value="oz">Ounces</option></select></div>
     <div class="card">
       <div class="flourhead">
         <div>
@@ -207,11 +346,43 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
       <span class="hint">Drag a slider or type a percentage to tweak the formula.</span>
       <button type="button" class="linkbtn" id="reset">Reset to style defaults</button>
     </div>
+    <p class="hint" id="unitHint"></p>
+    <div class="btnrow" style="margin-top:10px">
+      <button type="button" class="btn ghost" id="saveFormula">★ Save formula</button>
+      <button type="button" class="btn ghost" id="shareDough">Share recipe</button>
+      <button type="button" class="btn ghost" id="logThis">Log this bake</button>
+      <button type="button" class="btn ghost" id="linkFormula">Send formula link</button>
+    </div>
   </section>
 
   <section>
     <h2>Method</h2>
     <div class="notes" id="notes"></div>
+  </section>
+
+  <section>
+    <h2>Plan &amp; schedule</h2>
+    <div class="two">
+      <div class="field" style="grid-column:1 / -1"><label for="eatAt">Ready to eat</label><input id="eatAt" type="datetime-local"></div>
+      <div class="field"><label for="ferm">Fermentation</label>
+        <select id="ferm"><option value="0">Same day</option><option value="24">24 h in the fridge</option><option value="48">48 h in the fridge</option><option value="72">72 h in the fridge</option></select></div>
+      <div class="field"><label for="tk">Kitchen temp (°F)</label><input id="tk" type="number" inputmode="numeric" min="55" max="95"></div>
+      <div class="field"><label for="tf">Fridge temp (°F)</label><input id="tf" type="number" inputmode="numeric" min="33" max="45"></div>
+    </div>
+    <div class="card result" id="plan"></div>
+    <div class="actions"><span class="hint" id="planHint"></span><button type="button" class="linkbtn" id="sharePlan">Share schedule</button></div>
+  </section>
+
+  <section id="freezeSec">
+    <h2>Make ahead &amp; freeze</h2>
+    <p class="hint" style="margin-top:0">How long the dough sits on the counter, then in the fridge, before it goes in the freezer, so it still has rise left when you thaw it. Uses the kitchen and fridge temperatures above.</p>
+    <div class="two">
+      <div class="field" style="grid-column:1 / -1"><label for="fzMix">Mixing at</label><input id="fzMix" type="datetime-local"></div>
+      <div class="field"><label for="fzThaw">Thaw</label><select id="fzThaw"><option value="fridge">Fridge overnight</option><option value="counter">Counter, same day</option></select></div>
+      <div class="field"><label for="fzKeep">Keep frozen up to</label><select id="fzKeep"><option value="1">1 month (best)</option><option value="2">2 months</option><option value="3">3 months</option></select></div>
+    </div>
+    <div class="card result" id="freeze"></div>
+    <div class="actions"><span class="hint" id="freezeHint"></span><button type="button" class="linkbtn" id="shareFreeze">Share freeze plan</button></div>
   </section>
   </div>
 
@@ -255,10 +426,171 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
         <button type="button" class="btn" id="useJar">Use it in a pizza dough</button>
         <button type="button" class="linkbtn" id="emptyJar">Empty the jar</button>
       </div>
+      <p class="hint" style="margin-top:14px">Other ways to use discard:</p>
+      <div class="chips reclinks" id="discardRecs"><button type="button" data-rec="discard-crackers">Discard crackers</button><button type="button" data-rec="discard-pancakes">Discard pancakes</button></div>
+    </section>
+  </div>
+
+  <div id="recipesView" hidden>
+    <section>
+      <h2>Recipes</h2>
+      <p class="hint">Sauces, toppings, and fillings that go with the doughs. Tap one to open it, then scale the batch.</p>
+      <div class="field search"><label for="recSearch">Search</label><input id="recSearch" type="search" placeholder="sauce, lahmacun, pide…"></div>
+      <div id="recList"></div>
+    </section>
+  </div>
+
+  <div id="mineView" hidden>
+    <section>
+      <h2>My recipes</h2>
+      <div class="btnrow">
+        <button type="button" class="btn" id="newRec">+ New recipe</button>
+        <button type="button" class="btn ghost" id="pasteRec">Paste a recipe</button>
+        <label class="btn ghost" for="impFile">Import from Paprika</label>
+        <input type="file" id="impFile" accept=".paprikarecipes,.paprikarecipe,.zip,.json" hidden>
+      </div>
+      <p class="hint" id="impMsg"></p>
+
+      <div class="card editor" id="pasteBox" hidden>
+        <h3>Paste a recipe</h3>
+        <p class="hint" style="margin:0">Paste the whole recipe. Put the title on the first line; lines that say Ingredients, Directions, or Notes split it into sections.</p>
+        <div class="field"><label for="pasteText">Recipe text</label><textarea id="pasteText" rows="10"></textarea></div>
+        <div class="btnrow"><button type="button" class="btn" id="pasteFill">Fill in the form</button><button type="button" class="btn ghost" id="pasteCancel">Cancel</button></div>
+      </div>
+
+      <div class="card editor" id="editor" hidden>
+        <h3 id="editTitle">New recipe</h3>
+        <div class="field"><label for="rName">Name</label><input id="rName" type="text"></div>
+        <div class="two">
+          <div class="field"><label for="rServ">Servings</label><input id="rServ" type="text"></div>
+          <div class="field"><label for="rTime">Time</label><input id="rTime" type="text" placeholder="Total 1 hr"></div>
+        </div>
+        <div class="field"><label for="rCats">Categories</label><input id="rCats" type="text" placeholder="Pizza, Turkish"></div>
+        <div class="field"><label for="rIng">Ingredients</label><textarea id="rIng" rows="8"></textarea></div>
+        <div class="field"><label for="rDir">Directions</label><textarea id="rDir" rows="8"></textarea></div>
+        <div class="field"><label for="rNotes">Notes</label><textarea id="rNotes" rows="3"></textarea></div>
+        <div class="field"><label for="rSource">Source or link</label><input id="rSource" type="text"></div>
+        <div class="field"><label>Photo</label><div class="photoedit"><img id="rPhotoPrev" alt="" hidden><label class="btn ghost small" for="rPhoto" id="rPhotoLbl">Add photo</label><button type="button" class="linkbtn danger" id="rPhotoDel" hidden>Remove photo</button></div><input type="file" id="rPhoto" accept="image/*" hidden></div>
+        <div class="btnrow"><button type="button" class="btn" id="editSave">Save recipe</button><button type="button" class="btn ghost" id="editCancel">Cancel</button></div>
+      </div>
+
+      <div class="field search"><label for="mineSearch">Search my recipes</label><input id="mineSearch" type="search" placeholder="name, ingredient, category"></div>
+      <div class="field" style="margin-top:10px"><label for="mineCat">Category</label><select id="mineCat"><option value="">All categories</option></select></div>
+      <p class="hint" id="mineCount"></p>
+      <div id="mineList"></div>
+      <div class="actions">
+        <span class="hint" id="mineSyncHint">Recipes are saved in this browser only.</span>
+        <button type="button" class="linkbtn" data-goto="sync">Sync &amp; backup ›</button>
+      </div>
+    </section>
+
+    <section>
+      <details class="size" id="tidy">
+        <summary>Tidy up: categories and look-alike recipes ›</summary>
+        <h2 style="margin-top:12px">Categories</h2>
+        <p class="hint" style="margin-top:0">Rename a category to fix a typo. Renaming it to one that already exists merges the two.</p>
+        <div class="card" id="catList"></div>
+        <h2 style="margin-top:18px">Look-alike recipes</h2>
+        <p class="hint" style="margin-top:0">Recipes with the same name, or the same ingredients under different names. Delete the copies you don't want.</p>
+        <div class="card" id="dupList"></div>
+      </details>
+    </section>
+
+    <section>
+      <h2>Bringing recipes over from Paprika</h2>
+      <div class="notes">
+        <p><b>Your whole collection (best on the Mac):</b></p>
+        <ol>
+          <li>In Paprika, select the recipes you want (Command-A selects all).</li>
+          <li>Choose <b>File → Export</b> and pick <b>Paprika Recipe Format</b>. You get a file ending in <b>.paprikarecipes</b>.</li>
+          <li>Send that file to the device you'll cook with (AirDrop, iCloud Drive, or email).</li>
+          <li>Here, tap <b>Import from Paprika</b> and choose the file. Recipes that are already here get skipped.</li>
+        </ol>
+        <p class="bake"><b>One recipe at a time:</b> open it in Paprika, use Share to copy it as text, then tap <b>Paste a recipe</b> here.</p>
+        <p class="hint">Paprika doesn't export CSV; its own format is what keeps the ingredients, directions, notes, and photos together. Already imported your recipes before photos were supported? Import the same file again: the recipes get skipped as duplicates and their photos get added.</p>
+      </div>
+    </section>
+  </div>
+
+  <div id="logView" hidden>
+    <section>
+      <h2>Bake log</h2>
+      <div class="card editor">
+        <div class="two">
+          <div class="field"><label for="lDate">Date</label><input id="lDate" type="date"></div>
+          <div class="field"><label>Rating</label><div class="stars" id="stars">
+            <button type="button" data-s="1" aria-label="1 star">★</button><button type="button" data-s="2" aria-label="2 stars">★</button><button type="button" data-s="3" aria-label="3 stars">★</button><button type="button" data-s="4" aria-label="4 stars">★</button><button type="button" data-s="5" aria-label="5 stars">★</button></div></div>
+        </div>
+        <div class="field"><label for="lWhat">What you made</label><input id="lWhat" type="text" placeholder="Neapolitan, 4 × 250 g, 62%"></div>
+        <div class="snap" id="lSnap" hidden><span id="lSnapText"></span><button type="button" class="x" id="lSnapDel" aria-label="Don't attach the formula">×</button></div>
+        <div class="field"><label for="lNotes">Notes</label><textarea id="lNotes" rows="4" placeholder="How it turned out, what to change next time"></textarea></div>
+        <div class="field"><label>Photo</label><div class="photoedit"><img id="lPhotoPrev" alt="" hidden><label class="btn ghost small" for="lPhoto" id="lPhotoLbl">Add photo</label><button type="button" class="linkbtn danger" id="lPhotoDel" hidden>Remove photo</button></div><input type="file" id="lPhoto" accept="image/*" hidden></div>
+        <div class="btnrow"><button type="button" class="btn" id="logSave">Save entry</button><button type="button" class="btn ghost" id="logCancel" hidden>Cancel edit</button></div>
+      </div>
+      <div class="two" style="margin-top:12px">
+        <div class="field"><label for="logStyle">Show</label><select id="logStyle"><option value="">All bakes</option></select></div>
+        <div class="field"><label for="logSort">Sort</label><select id="logSort"><option value="new">Newest first</option><option value="best">Best rated first</option></select></div>
+      </div>
+      <div id="logList"></div>
+    </section>
+  </div>
+
+  <div id="videosView" hidden>
+    <section>
+      <h2>Videos</h2>
+      <p class="hint" style="margin-top:0">Keep the YouTube videos worth watching again. In the YouTube app, tap <b>Share → Copy link</b>, then paste it here.</p>
+      <div class="card editor" id="vEditor">
+        <h3 id="vEditTitle">Add a video</h3>
+        <div class="addrow"><div class="field"><label for="vUrl">YouTube link</label><input id="vUrl" type="url" inputmode="url" placeholder="https://youtu.be/…" autocomplete="off"></div><button type="button" class="btn ghost" id="vPaste">Paste</button></div>
+        <p class="hint" id="vUrlMsg" style="margin:0"></p>
+        <div class="field"><label for="vTitle">Title</label><input id="vTitle" type="text" placeholder="Filled in from YouTube when it can be"></div>
+        <div class="field"><label for="vFor">About</label><select id="vFor"></select></div>
+        <div class="field"><label for="vNotes">Notes</label><textarea id="vNotes" rows="3" placeholder="Why it's worth keeping, the minute that matters…"></textarea></div>
+        <div class="btnrow"><button type="button" class="btn" id="vSave">Save video</button><button type="button" class="btn ghost" id="vCancel" hidden>Cancel edit</button></div>
+      </div>
+      <div class="field search"><label for="vSearch">Search videos</label><input id="vSearch" type="search" placeholder="title, notes, style"></div>
+      <div class="field" style="margin-top:10px"><label for="vFilter">Show</label><select id="vFilter"></select></div>
+      <div id="vList"></div>
+    </section>
+  </div>
+
+  <div id="syncView" hidden>
+    <section>
+      <h2>Sync &amp; backup</h2>
+      <p class="hint" style="margin-top:0">Everything lives on this device only. To move it to another phone or computer, send a sync file and open it there. Opening a sync file merges it: new things get added, newer edits win, and anything you deleted stays deleted.</p>
+      <div class="card" id="syncCounts"></div>
+    </section>
+    <section>
+      <h2>1. Send from this device</h2>
+      <label class="check2"><input type="checkbox" id="syncPhotos" checked> Include photos <span class="hint" id="syncPhotoSize"></span></label>
+      <div class="btnrow"><button type="button" class="btn" id="syncSend" disabled>Preparing…</button><button type="button" class="btn ghost" id="syncDownload" disabled>Save file</button></div>
+      <p class="hint" id="syncSendMsg"></p>
+    </section>
+    <section>
+      <h2>2. Open it on the other device</h2>
+      <div class="btnrow"><label class="btn" for="syncFile">Open sync file</label></div>
+      <input type="file" id="syncFile" accept=".json,application/json,text/plain" hidden>
+      <p class="hint" id="syncMsg"></p>
+    </section>
+    <section>
+      <h2>How to</h2>
+      <div class="notes">
+        <p><b>iPhone or iPad → Mac:</b> tap <b>Send sync file</b>, choose <b>AirDrop</b> and your Mac. On the Mac, open this site, tap <b>Open sync file</b>, and pick it from Downloads.</p>
+        <p><b>Mac → iPhone:</b> click <b>Save file</b>, AirDrop it to the phone and choose <b>Save to Files</b>. On the phone, open this site, tap <b>Open sync file</b>, and pick it in Files.</p>
+        <p><b>To the girls (Messages, WhatsApp, email):</b> send the file. On iPhone, tap it, then the share button, then <b>Save to Files</b>. On Android it lands in Downloads. Then open this site and tap <b>Open sync file</b>.</p>
+        <p class="bake"><b>Just one formula or recipe?</b> Use <b>Send formula link</b> on the dough page, or <b>Send as link</b> on a recipe. Whoever taps the link gets it in their app.</p>
+      </div>
+    </section>
+    <section>
+      <h2>Keep your data safe</h2>
+      <div class="notes" id="storageInfo"></div>
     </section>
   </div>
 </div>
+<div class="toast" id="toast" hidden role="status"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 <script>
 const ING = {
   water:{label:"Water", color:"var(--c-water)"},
@@ -403,10 +735,891 @@ const STYLES = {
   ]
 };
 const PE = {"neapolitan": "Stone 750–850°F, top heat on high (most electric ovens top out around 850°F). Bake 60–90 seconds, turning once halfway if one side browns faster.", "neap-home": "Stone 700–750°F, top heat high. Bake 90–120 seconds, turning once. For true Neapolitan, switch to the Neapolitan style.", "ny": "Stone 600–650°F, top heat medium. Bake 3–5 min, turning once or twice. If your oven has a New York preset, start there.", "detroit": "Only if the pan fits: stone 500–550°F, top heat low–medium, 10–14 min, turning the pan once or twice. If your oven has a Pan preset, use it.", "pide": "Stone 650–700°F, top heat medium. Bake 3–4 min, turning once so the long ends cook evenly.", "tavern": "Stone 550–600°F, top heat low–medium. Bake 5–7 min, turning once or twice. A Thin & Crispy preset, if you have one, fits this style.", "pinsa": "Stone 650–700°F, top heat medium. Bake 3–4 min total, turning once.", "lahmacun": "Stone 700–750°F, top heat high. Bake 1–2 min until the edges crisp and the meat is cooked, turning once if needed.", "pita": "Stone 700–750°F, top heat low. Bake 60–90 seconds until puffed.", "naan": "Stone 750°F, top heat high. Bake 60–90 seconds until puffed and spotted, then brush with garlic butter.", "bazlama": "Stone 550–600°F, top heat low. Bake 2–3 min, flipping once halfway."};
+const RECIPES = [{"id": "sauce-neap", "cat": "Sauces", "name": "Neapolitan pizza sauce (no-cook)", "makes": "About 3 cups, enough for 8–9 Neapolitan pizzas", "yld": 9, "yw": "pizzas", "ing": [[1, "can (28 oz)", "whole peeled San Marzano or plum tomatoes"], [1.5, "tsp", "fine sea salt"], [4, "", "fresh basil leaves, torn (optional)"], [1, "tbsp", "olive oil (optional)"]], "steps": ["Pour the tomatoes into a bowl and tip off the thin, watery juice at the top of the can.", "Crush the tomatoes by hand or pass them through a food mill. Leave the sauce a little chunky.", "Stir in the salt, basil, and olive oil. Taste: it should taste like bright, fresh tomato, lightly salted.", "Don't cook it. It cooks on the pizza in the oven.", "Use about 80 g (⅓ cup) per 11-inch pizza. Spread it thin with the back of a spoon in a spiral, leaving the rim bare."], "tips": ["Why homemade sauce often turns out bad: it's cooked too long (tastes like paste), loaded with dried herbs or garlic powder, sweetened to hide sour tomatoes, or blended, which whips in air and grinds the seeds so it turns pale orange and bitter.", "Too much sauce is the main cause of a soggy center. Less is more.", "Keeps 5 days in the fridge or 3 months in the freezer."], "for": ["neapolitan", "neap-home", "pinsa", "roman"]}, {"id": "sauce-ny", "cat": "Sauces", "name": "New York pizza sauce", "makes": "About 3 cups, enough for 4 pizzas (14-inch)", "yld": 4, "yw": "pizzas", "ing": [[1, "can (28 oz)", "crushed tomatoes"], [2, "tbsp", "olive oil"], [1, "tbsp", "butter (optional, rounds out the flavor)"], [3, "clove", "garlic, finely grated"], [1, "tsp", "dried oregano"], [0.5, "tsp", "red pepper flakes"], [1, "tsp", "salt"], [1, "tsp", "sugar, only if the tomatoes taste sharp"], [1, "sprig", "fresh basil"]], "steps": ["Warm the oil and butter over low heat. Add the garlic, oregano, and pepper flakes and cook 1–2 minutes until fragrant. Don't let the garlic brown.", "Add the tomatoes, salt, and basil sprig. Simmer gently, uncovered, for 15–20 minutes until slightly thickened.", "Remove the basil. Taste and adjust the salt; add sugar only if it tastes sour.", "Cool completely before using. Use about 170 g (⅔ cup) per 14-inch pizza."], "tips": ["Warm sauce makes the dough sticky and hard to launch. Always use it cool.", "It should be spoonable, not runny. If it's watery, simmer 5 more minutes."], "for": ["ny", "tavern", "sicilian"]}, {"id": "sauce-detroit", "cat": "Sauces", "name": "Detroit red stripe sauce", "makes": "About 2 cups, enough for 2 pans (10×14)", "yld": 2, "yw": "pans", "ing": [[1, "can (28 oz)", "crushed tomatoes"], [2, "tbsp", "butter"], [2, "clove", "garlic, minced"], [1, "tsp", "dried oregano"], [0.5, "tsp", "dried basil"], [0.5, "tsp", "onion powder"], [1, "tsp", "sugar"], [0.75, "tsp", "salt"], [0.25, "tsp", "black pepper"], [2, "tbsp", "grated Parmesan"]], "steps": ["Melt the butter over medium-low heat and cook the garlic for 1 minute.", "Add everything except the Parmesan. Simmer 30–40 minutes, stirring often, until thick and reduced by about a third.", "Stir in the Parmesan.", "Ladle 2–3 stripes of warm sauce across the pizza after it comes out of the oven."], "tips": ["This sauce is thicker than the others because it goes on top after baking."], "for": ["detroit"]}, {"id": "sauce-deep", "cat": "Sauces", "name": "Chicago deep-dish chunky sauce", "makes": "Enough for one 12-inch deep dish", "yld": 1, "yw": "pans", "ing": [[1, "can (28 oz)", "whole peeled tomatoes"], [2, "clove", "garlic, grated"], [1, "tsp", "dried oregano"], [0.5, "tsp", "sugar"], [0.5, "tsp", "salt"], [1, "tbsp", "olive oil"], [2, "tbsp", "grated Parmesan, for the top"]], "steps": ["Drain the tomatoes well in a sieve for 10 minutes. Save the juice for soup.", "Crush the tomatoes by hand into chunks.", "Mix in the garlic, oregano, sugar, salt, and oil. Don't cook it.", "Spread over the cheese layer in the pan and sprinkle with Parmesan."], "tips": ["Draining is the key step. Undrained tomatoes make the deep dish soupy."], "for": ["deepdish", "sicilian"]}, {"id": "margherita", "cat": "Pizza toppings", "name": "Margherita", "makes": "Per pizza (11-inch)", "yld": 1, "yw": "pizzas", "ing": [[80, "g", "Neapolitan pizza sauce"], [100, "g", "fior di latte or fresh mozzarella"], [3, "", "fresh basil leaves"], [1, "tsp", "olive oil"], [1, "tbsp", "grated Pecorino or Parmesan (optional)"]], "steps": ["2–3 hours ahead, tear the mozzarella into bite-size pieces and let it drain on paper towels in the fridge.", "Stretch the dough and spread the sauce in a thin spiral, leaving the rim bare.", "Sprinkle the grated cheese, scatter the mozzarella, and drizzle with the oil.", "Bake. Add the basil right after baking; at 850°F it can scorch if added before."], "tips": ["Wet mozzarella is the number one cause of a soupy center. Buffalo mozzarella is even wetter, so drain it longer."], "for": ["neapolitan", "neap-home", "pinsa"]}, {"id": "ny-cheese", "cat": "Pizza toppings", "name": "New York cheese or pepperoni", "makes": "Per pizza (14-inch)", "yld": 1, "yw": "pizzas", "ing": [[170, "g", "New York pizza sauce"], [200, "g", "low-moisture whole-milk mozzarella, shredded from a block"], [10, "g", "grated Parmesan"], [60, "g", "pepperoni, about 30 slices (optional)"], [1, "pinch", "dried oregano"]], "steps": ["Shred the mozzarella yourself. Pre-shredded cheese has anti-caking starch that melts grainy.", "Spread the sauce to about ½ inch from the edge.", "Add the mozzarella, then the pepperoni.", "Bake, then finish with the Parmesan and a pinch of oregano."], "tips": ["For pepperoni that curls into crispy cups, buy a small-diameter natural-casing pepperoni."], "for": ["ny", "tavern"]}, {"id": "detroit-top", "cat": "Pizza toppings", "name": "Detroit-style toppings", "makes": "Per pan (10×14)", "yld": 1, "yw": "pans", "ing": [[250, "g", "brick cheese, or half Monterey Jack and half low-moisture mozzarella, in ½-inch cubes"], [60, "g", "pepperoni"], [180, "g", "Detroit red stripe sauce, warm"]], "steps": ["After the dough proofs in the pan, press the pepperoni onto the dough.", "Scatter the cheese cubes all the way to the edges so the cheese touches the pan walls. That's what makes the crispy, lacy cheese crust.", "Bake until the edges are dark brown.", "Run a thin spatula around the edges, slide the pizza out, and ladle 2–3 stripes of warm sauce across the top."], "tips": [], "for": ["detroit"]}, {"id": "bianca", "cat": "Pizza toppings", "name": "White pizza with garlic oil", "makes": "Per pizza (11–12 inch)", "yld": 1, "yw": "pizzas", "ing": [[2, "tbsp", "olive oil"], [2, "clove", "garlic, thinly sliced"], [80, "g", "fresh mozzarella, torn and drained"], [3, "tbsp", "whole-milk ricotta"], [1, "tbsp", "grated Parmesan"], [1, "pinch", "red pepper flakes"], [1, "handful", "arugula, after baking (optional)"]], "steps": ["Warm the oil and garlic on the lowest heat for 5 minutes, then let it cool.", "Brush the garlic oil over the stretched dough, garlic slices too.", "Scatter the mozzarella and add small dollops of ricotta.", "Bake, then finish with Parmesan, pepper flakes, arugula, and a squeeze of lemon."], "tips": [], "for": ["neapolitan", "neap-home", "ny", "pinsa", "roman"]}, {"id": "lahmacun-top", "cat": "Turkish", "name": "Lahmacun topping", "makes": "Enough for 8 lahmacuns", "yld": 8, "yw": "lahmacuns", "ing": [[250, "g", "ground lamb or beef, about 20% fat"], [1, "", "medium onion"], [1, "", "small green bell pepper, or 2 Turkish sivri peppers"], [1, "", "medium tomato"], [1, "bunch", "flat-leaf parsley (small)"], [2, "clove", "garlic"], [1, "tbsp", "tomato paste"], [1, "tbsp", "Turkish red pepper paste (biber salçası), or another tbsp tomato paste"], [1, "tsp", "pul biber (Aleppo pepper)"], [0.5, "tsp", "ground cumin"], [0.5, "tsp", "black pepper"], [1, "tsp", "salt"], [1, "tbsp", "olive oil"], [null, "h", "To serve"], [1, "", "lemon, in wedges"], [1, "", "small red onion, sliced and tossed with sumac"]], "steps": ["Pulse the onion, pepper, tomato, garlic, and parsley in a food processor until very fine, or chop them by hand.", "Press out the extra juice in a sieve. A wet topping makes soggy lahmacun.", "Add the meat, both pastes, the spices, and the oil. Knead with your hands for 2 minutes until it's a smooth paste. Rest 30 minutes in the fridge.", "Roll each dough ball very thin, about 10 inches across.", "With wet fingers, spread about 60 g of topping in a thin, even layer right to the edge. The meat goes on raw.", "Bake (see the oven settings on the Lahmacun dough). Stack the baked lahmacuns on top of each other so they stay soft.", "Serve with lemon, parsley, and the sumac onions, rolled up."], "tips": ["Thin is the whole point: a thin crust and a thin layer of meat that cooks through in a couple of minutes."], "for": ["lahmacun"]}, {"id": "pide-fillings", "cat": "Turkish", "name": "Pide fillings", "makes": "Enough for 4 pides", "yld": 4, "yw": "pides", "ing": [[null, "h", "Kıymalı (ground beef)"], [250, "g", "ground beef"], [1, "", "onion, finely chopped"], [1, "", "green pepper, finely chopped"], [1, "", "tomato, grated"], [1, "tbsp", "tomato paste"], [1, "tsp", "salt"], [0.5, "tsp", "black pepper"], [0.5, "tsp", "pul biber"], [null, "h", "Kaşarlı (cheese and egg)"], [200, "g", "kaşar cheese (or mozzarella), shredded"], [4, "", "eggs, one per pide (optional)"], [null, "h", "Sucuklu (sucuk and cheese)"], [150, "g", "sucuk, thinly sliced"], [150, "g", "kaşar cheese, shredded"], [null, "h", "For all"], [30, "g", "butter, melted, for brushing"]], "steps": ["Kıymalı: brown the beef and onion until dry. Add the pepper, tomato, paste, and spices and cook 5–8 minutes until no liquid is left. Cool completely.", "Roll each dough ball into a long oval. Spread the filling down the middle, leaving a 1-inch border.", "Fold the long edges over the filling and pinch the ends into a boat shape.", "Kaşarlı: fill with cheese, bake 2 minutes, crack an egg into the center, and bake until the egg is just set.", "Brush the crust with melted butter as soon as it comes out of the oven."], "tips": ["Filling must be cool and dry, or the bottom turns soggy."], "for": ["pide"]}, {"id": "focaccia-top", "cat": "Bread toppings", "name": "Focaccia brine and toppings", "makes": "Per half-sheet pan", "yld": 1, "yw": "pans", "ing": [[60, "g", "olive oil, for the pan"], [2, "tbsp", "olive oil, for the brine"], [2, "tbsp", "water"], [0.5, "tsp", "salt"], [2, "sprig", "rosemary, leaves picked"], [1, "tsp", "flaky salt"], [null, "h", "Optional"], [1, "cup", "cherry tomatoes, halved"], [0.5, "cup", "olives"], [0.5, "", "red onion, thinly sliced"]], "steps": ["Oil the pan generously before the dough goes in.", "After dimpling, whisk the brine (oil, water, salt) and pour it over. It pools in the dimples and gives the classic crisp, salty top.", "Add the rosemary and any optional toppings, pressing them in lightly.", "Sprinkle with flaky salt and bake."], "tips": [], "for": ["focaccia"]}, {"id": "garlic-butter", "cat": "Bread toppings", "name": "Garlic butter for naan, bazlama, and pita", "makes": "Enough for 6 breads", "yld": 6, "yw": "breads", "ing": [[4, "tbsp", "butter"], [3, "clove", "garlic, grated"], [2, "tbsp", "chopped cilantro or parsley"], [0.25, "tsp", "flaky salt"], [1, "pinch", "nigella seeds (optional)"]], "steps": ["Melt the butter over low heat. Add the garlic and cook 1 minute without browning.", "Take it off the heat and stir in the herbs, salt, and seeds.", "Brush on the bread right after it comes off the stone or skillet."], "tips": [], "for": ["naan", "bazlama", "pita"]}, {"id": "simit-dip", "cat": "Turkish", "name": "Simit molasses dip and sesame", "makes": "Enough for 8 simits", "yld": 8, "yw": "simits", "ing": [[0.5, "cup", "grape molasses (pekmez) or carob molasses"], [0.5, "cup", "water"], [1.5, "cup", "sesame seeds"]], "steps": ["Toast the sesame in a dry pan over medium heat for 4–5 minutes until light gold. Spread on a plate to cool.", "Whisk the molasses and water in a wide bowl.", "Dip each shaped ring in the molasses, let it drip, then press both sides into the sesame.", "Twist the ring gently to stretch it a little, then bake."], "tips": ["The molasses is what gives simit its deep mahogany color and crisp shell."], "for": ["simit"]}, {"id": "discard-crackers", "cat": "Using sourdough discard", "name": "Sourdough discard crackers", "makes": "One sheet pan", "yld": null, "yw": "", "ing": [[200, "g", "sourdough discard"], [100, "g", "flour"], [40, "g", "olive oil or melted butter"], [1, "tsp", "salt"], [1, "tsp", "dried herbs (rosemary, oregano) or everything bagel seasoning"], [1, "tsp", "flaky salt, for the top"]], "steps": ["Mix everything except the flaky salt into a firm dough. Rest 30 minutes, or overnight in the fridge.", "Roll it paper-thin directly on parchment.", "Brush lightly with oil, sprinkle the flaky salt, and cut into squares with a pizza cutter.", "Bake at 350°F for 20–25 minutes, rotating once, until golden. Cool on the pan; they crisp as they cool."], "tips": ["Older, more sour discard makes tangier crackers."], "for": []}, {"id": "discard-pancakes", "cat": "Using sourdough discard", "name": "Sourdough discard pancakes", "makes": "About 10 pancakes", "yld": null, "yw": "", "ing": [[250, "g", "sourdough discard"], [1, "", "egg"], [2, "tbsp", "sugar"], [2, "tbsp", "melted butter"], [60, "g", "flour (½ cup)"], [0.25, "tsp", "salt"], [0.5, "tsp", "baking soda"], [0.25, "cup", "milk, more to thin"]], "steps": ["Whisk the discard, egg, sugar, butter, flour, and salt.", "Add milk until it's a thick, pourable batter.", "Stir in the baking soda last. The batter will puff up.", "Cook on a buttered griddle over medium heat until bubbles form, then flip."], "tips": [], "for": []}];
+const TOP = {"neapolitan": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "neap-home": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "ny": [["Sauce", 170], ["Low-moisture mozzarella", 200], ["Parmesan", 10], ["Pepperoni (optional)", 60]], "detroit": [["Brick or Jack + mozzarella cubes", 250], ["Pepperoni (optional)", 60], ["Sauce stripes, after baking", 180]], "sicilian": [["Sauce", 250], ["Low-moisture mozzarella", 300], ["Parmesan", 15]], "roman": [["Sauce", 200], ["Mozzarella", 250]], "tavern": [["Sauce", 140], ["Low-moisture mozzarella", 180], ["Italian sausage, raw (optional)", 150]], "deepdish": [["Sliced low-moisture mozzarella", 350], ["Italian sausage (optional)", 250], ["Chunky sauce", 350], ["Parmesan", 15]], "pinsa": [["Sauce", 70], ["Fresh mozzarella", 90]], "pide": [["Filling", 120]], "lahmacun": [["Meat topping", 60]], "focaccia": [["Olive oil in the pan", 60]], "naan": [["Garlic butter", 10]], "bazlama": [["Garlic butter", 10]]};
+const REF = {"neapolitan": {"r": 11}, "neap-home": {"r": 11}, "ny": {"r": 14}, "tavern": {"r": 14}, "deepdish": {"r": 12}, "lahmacun": {"r": 10}, "detroit": {"w": 10, "h": 14}, "sicilian": {"w": 13, "h": 18}, "roman": {"w": 12, "h": 16}, "focaccia": {"w": 13, "h": 18}};
+const PROFILE = {"ball": ["neapolitan", "neap-home", "ny", "pide", "tavern", "pinsa", "lahmacun", "pita", "naan", "bazlama"], "pan": ["detroit", "sicilian", "roman", "deepdish", "focaccia"], "loaf": ["sandwich", "baguette", "rustic", "ciabatta", "wholewheat", "simit"], "enriched": ["brioche", "rolls", "challah"], "sour": ["sourdough"], "bagel": ["bagel"]};
+const BAKE_MIN = {"neapolitan": 2, "neap-home": 7, "ny": 6, "pide": 8, "tavern": 12, "pinsa": 8, "lahmacun": 6, "pita": 4, "naan": 3, "bazlama": 6, "detroit": 14, "sicilian": 20, "roman": 17, "deepdish": 35, "focaccia": 25, "sandwich": 35, "baguette": 25, "rustic": 45, "ciabatta": 25, "wholewheat": 40, "simit": 20, "brioche": 35, "rolls": 18, "challah": 35, "sourdough": 45, "bagel": 22};
+const COOL_MIN = {"detroit": 5, "sicilian": 5, "roman": 5, "deepdish": 10, "focaccia": 10, "sandwich": 60, "baguette": 30, "rustic": 60, "ciabatta": 30, "wholewheat": 60, "simit": 10, "brioche": 60, "rolls": 10, "challah": 30, "sourdough": 60, "bagel": 15};
+/* ---------- Helpers: units, sharing, toast ---------- */
+const GPT = {flour:2.6, water:4.93, milk:5, salt:6, yeast:3.1, sugar:4.2, oil:4.5, butter:4.7, honey:7, yogurt:5.1, levain:5, discard:5};
+const FR = {1:"⅛", 2:"¼", 3:"⅜", 4:"½", 5:"⅝", 6:"¾", 7:"⅞"};
+function frac(x, den){
+  const e = Math.round(x * den) * (8 / den);
+  const w = Math.floor(e / 8 + 1e-9), r = Math.round(e - w * 8);
+  return ((w ? String(w) : "") + (r ? FR[r] : "")) || "0";
+}
+function vol(g, gpt){
+  const tsp = g / gpt;
+  if(tsp < 0.125) return "a pinch";
+  if(tsp >= 12){ const c = tsp / 48; return `${frac(c, c < 2 ? 8 : 4)} cup${c > 1.06 ? "s" : ""}`; }
+  if(tsp >= 3) return `${frac(tsp / 3, 2)} tbsp`;
+  return `${frac(tsp, 4)} tsp`;
+}
+const fmtOz = g => { const o = g / 28.3495; return o < 10 ? o.toFixed(2) : o.toFixed(1); };
+const fmtW = g => state.units === "oz" ? `${fmtOz(g)} oz` : `${fmt(g)} g`;
+function amtHTML(k, g){
+  const main = state.units === "oz" ? `${fmtOz(g)}<small> oz</small>` : `${fmt(g)}<small> g</small>`;
+  let sub = "";
+  if(k === "eggs") sub = `≈ ${(g / 50).toFixed(1)} eggs`;
+  else if(k === "yeast" && state.yeast === "fresh") sub = "";
+  else if((state.units === "gv" || k === "yeast" || k === "salt") && GPT[k]) sub = "≈ " + vol(g, GPT[k]);
+  return main + (sub ? `<span class="vol">${sub}</span>` : "");
+}
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+let toastTimer;
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600);
+}
+function shareText(title, text){
+  if(navigator.share){ navigator.share({title, text}).catch(() => {}); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => toast("Copied. Paste it into a message.")).catch(() => window.prompt("Copy this:", text));
+  } else window.prompt("Copy this:", text);
+}
+let lastCalc = null;
+
+/* ---------- Photo store (IndexedDB; keys "r:<recipe id>" and "l:<log id>") ---------- */
+const PDB = (() => {
+  let dbp = null;
+  const db = () => dbp || (dbp = new Promise((res, rej) => {
+    if(!window.indexedDB){ rej(new Error("no IndexedDB")); return; }
+    const r = indexedDB.open("dough-calc-photos", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("p");
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => { dbp = null; rej(r.error); };
+  }));
+  async function run(mode, fn){
+    const d = await db();
+    return new Promise((res, rej) => {
+      const t = d.transaction("p", mode), req = fn(t.objectStore("p"));
+      t.oncomplete = () => res(req ? req.result : undefined);
+      t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error("aborted"));
+    });
+  }
+  return {
+    get: k => run("readonly", s => s.get(k)),
+    put: (k, v) => run("readwrite", s => { s.put(v, k); }),
+    putMany: list => run("readwrite", s => { list.forEach(([k, v]) => s.put(v, k)); }),
+    del: k => run("readwrite", s => { s.delete(k); }),
+    keys: () => run("readonly", s => s.getAllKeys())
+  };
+})();
+const purls = {};
+async function photoURL(k){
+  if(purls[k]) return purls[k];
+  try{ const b = await PDB.get(k); if(b) return (purls[k] = URL.createObjectURL(b)); }catch(e){}
+  return "";
+}
+function forgetURL(k){ if(purls[k]){ URL.revokeObjectURL(purls[k]); delete purls[k]; } }
+async function setPhoto(k, blob){ forgetURL(k); if(blob) await PDB.put(k, blob); else await PDB.del(k); }
+let photoObs = null;
+function hydratePhotos(root){
+  const imgs = root.querySelectorAll("img[data-pk]:not([src])");
+  const load = img => photoURL(img.dataset.pk).then(u => { if(u) img.src = u; else img.hidden = true; });
+  if(!("IntersectionObserver" in window)){ imgs.forEach(load); return; }
+  if(!photoObs) photoObs = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ photoObs.unobserve(e.target); load(e.target); } }), {rootMargin:"300px"});
+  imgs.forEach(i => photoObs.observe(i));
+}
+// Shrink a camera photo to at most `max` px on the long side, as JPEG
+async function shrinkPhoto(file, max = 1200, q = 0.8){
+  if(file.size < 150e3 && /jpe?g/i.test(file.type)) return file;
+  let src, w, h;
+  try{ src = await createImageBitmap(file); w = src.width; h = src.height; }
+  catch(e){
+    src = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("That image couldn't be read.")); i.src = URL.createObjectURL(file); });
+    w = src.naturalWidth; h = src.naturalHeight;
+  }
+  const f = Math.min(1, max / Math.max(w, h));
+  const c = document.createElement("canvas"); c.width = Math.round(w * f); c.height = Math.round(h * f);
+  c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+  return new Promise(res => c.toBlob(b => res(b || file), "image/jpeg", q));
+}
+const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
+function dataURLToBlob(u){
+  const m = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(u || ""); if(!m) return null;
+  const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]);
+  const a = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  return new Blob([a], {type:m[1] || "image/jpeg"});
+}
+// Photo picker shared by the recipe editor and the bake log
+function photoPicker(prefix){
+  const P = {blob:undefined, key:null}; // blob: undefined = unchanged, null = remove, Blob = new
+  const prev = $(prefix + "PhotoPrev"), lbl = $(prefix + "PhotoLbl"), del = $(prefix + "PhotoDel");
+  function show(url){ prev.hidden = !url; if(url) prev.src = url; else prev.removeAttribute("src"); del.hidden = !url; lbl.textContent = url ? "Change photo" : "Add photo"; }
+  P.reset = async key => { P.blob = undefined; P.key = key; show(""); if(key){ const u = await photoURL(key); if(P.key === key && P.blob === undefined) show(u); } };
+  $(prefix + "Photo").addEventListener("change", async e => {
+    const f = e.target.files[0]; e.target.value = ""; if(!f) return;
+    try{ P.blob = await shrinkPhoto(f); show(URL.createObjectURL(P.blob)); }catch(err){ toast(err.message || "That image couldn't be read."); }
+  });
+  del.addEventListener("click", () => { P.blob = null; show(""); });
+  P.commit = async key => { if(P.blob === undefined) return null; await setPhoto(key, P.blob); return !!P.blob; };
+  return P;
+}
+
+/* ---------- Links that carry a formula or recipe ---------- */
+const b64u = bytes => { let s = ""; for(let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+const unb64u = s => { const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/")); const a = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; };
+async function packLink(obj){
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  if(window.CompressionStream){
+    try{ const z = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer()); return "z" + b64u(z); }catch(e){}
+  }
+  return "j" + b64u(bytes);
+}
+async function unpackLink(s){
+  let bytes = unb64u(s.slice(1));
+  if(s[0] === "z"){
+    if(!window.DecompressionStream) throw new Error("This browser is too old to open that link. Update it and try again.");
+    bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+  }
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+const appURL = () => location.href.split("#")[0];
+function shareLink(title, url){
+  if(navigator.share){ navigator.share({title, url}).catch(() => {}); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(() => toast("Link copied. Paste it into a message.")).catch(() => window.prompt("Copy this link:", url));
+  } else window.prompt("Copy this link:", url);
+}
+
+/* ---------- Toppings and recipe links in the Method section ---------- */
+function extrasHTML(st){
+  let html = "";
+  const tp = TOP[st.id];
+  if(tp){
+    const f = state.unit / st.unit, n = state.count;
+    html += `<p class="bake"><b>Toppings</b> per ${st.unitWord}, scaled to your ${fmt(state.unit)} g size:</p>
+      <div class="tablewrap"><table class="tt"><tr><th></th><th>Each</th><th>All ${n}</th></tr>` +
+      tp.map(([l, g]) => { const e = Math.max(5, Math.round(g * f / 5) * 5); return `<tr><td>${l}</td><td>${fmtW(e)}</td><td>${fmtW(e * n)}</td></tr>`; }).join("") +
+      `</table></div>`;
+  }
+  const recs = RECIPES.filter(r => r.for.includes(st.id));
+  if(recs.length) html += `<p class="bake"><b>Recipes for this</b></p><div class="chips reclinks">${recs.map(r => `<button type="button" data-rec="${r.id}">${r.name}</button>`).join("")}</div>`;
+  return html + videoChips(st);
+}
+
+/* ---------- Schedule planner ---------- */
+const HR = 3600e3, MN = 60e3;
+const profileOf = id => Object.keys(PROFILE).find(k => PROFILE[k].includes(id)) || "loaf";
+const pad2 = n => String(n).padStart(2, "0");
+const localISO = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+const fmtTime = t => new Date(t).toLocaleString("en-US", {weekday:"short", hour:"numeric", minute:"2-digit", hour12:true});
+function defaultEat(){
+  const d = new Date();
+  d.setDate(d.getDate() + Math.ceil((+state.plan.ferm || 0) / 24));
+  d.setHours(18, 0, 0, 0);
+  while(d.getTime() < Date.now() + ((+state.plan.ferm || 0) + 6) * HR) d.setDate(d.getDate() + 1);
+  return localISO(d);
+}
+function buildPlan(st){
+  const pl = state.plan;
+  const T = new Date(pl.eat || defaultEat()).getTime();
+  const prof = profileOf(st.id);
+  let Hc = +pl.ferm || 0, note = "";
+  if(prof === "sour" && Hc > 16){ Hc = 16; note = "Shaped sourdough shouldn't sit in the fridge much longer than a day, so this plan uses a 16-hour cold proof."; }
+  const bakeM = BAKE_MIN[st.id] || 30, coolM = COOL_MIN[st.id] || 0;
+  const pizzaOven = state.oven === "electric" ? !!PE[st.id] : state.oven === "gas" ? typeof st.po === "string" : false;
+  const B = prof === "ball" ? T - 10 * MN : T - (bakeM + coolM) * MN;
+  const preM = pizzaOven ? 30 : (prof === "ball" || prof === "pan" ? 60 : 45);
+  const steps = [], add = (t, s) => steps.push([t, s]);
+  const pieces = `${state.count} ${state.count === 1 ? st.unitWord : st.unitName.toLowerCase()}`;
+  let mix;
+  if(prof === "ball"){
+    const out = B - 3 * HR;
+    if(Hc){ const fin = out - Hc * HR; mix = fin - HR; add(fin, `Divide and shape into ${pieces}. Cover and refrigerate.`); add(out, "Take the dough out of the fridge to warm up."); }
+    else { mix = out - 2 * HR; add(out, `Divide and shape into ${pieces}. Cover and let them proof.`); }
+  } else if(prof === "pan"){
+    const pan = B - 2 * HR;
+    if(Hc){ const fin = pan - Hc * HR; mix = fin - HR; add(fin, "Cover the dough and refrigerate."); add(pan, "Take the dough out, press it into the oiled pan, and let it proof."); }
+    else { mix = pan - 1.5 * HR; add(pan, "Press the dough into the oiled pan and let it proof."); }
+  } else if(prof === "loaf" || prof === "enriched"){
+    const shape = B - (prof === "enriched" ? (st.id === "brioche" ? 2.5 : 2) : 1.5) * HR;
+    if(Hc){ const fin = shape - Hc * HR; mix = fin - 1.5 * HR; add(fin, "Cover the dough and refrigerate."); add(shape, "Take the dough out, shape it cold, and let it proof."); }
+    else { mix = shape - 1.5 * HR; add(shape, "Shape the dough and let it proof."); }
+  } else if(prof === "sour"){
+    const shape = Hc ? B - Hc * HR : B - 2.5 * HR;
+    mix = shape - 5.5 * HR;
+    add(mix - 6 * HR, "Build the levain (see the Starter tab).");
+    add(shape, Hc ? "Shape the loaf, put it in a floured basket, and refrigerate." : "Shape the loaf and let it proof in a floured basket.");
+  } else {
+    const boil = B - 30 * MN;
+    const shape = Hc ? boil - Hc * HR : boil - HR;
+    mix = shape - 30 * MN;
+    add(shape, Hc ? "Shape the bagels and refrigerate them on an oiled tray." : "Shape the bagels and let them proof.");
+    add(boil, "Boil the bagels 1 minute per side, then add toppings.");
+  }
+  if(st.ing.yeast) add(mix - 10 * MN, st.ing.milk ? "Warm the milk and bloom the yeast." : `Bloom the yeast in warm water with ${st.ing.honey ? "the honey" : st.ing.sugar ? "the sugar" : "a pinch of sugar"}.`);
+  add(mix, "Mix the dough.");
+  add(B - preM * MN, pizzaOven ? "Turn on the pizza oven so the stone heats through." : "Preheat the oven.");
+  add(B, prof === "ball" ? `Start baking. ${state.oven === "electric" && PE[st.id] ? "Give the stone 5–10 minutes to recover between pieces." : ""}` : "Into the oven.");
+  if(coolM) add(B + bakeM * MN, `Out of the oven. Cool ${coolM >= 60 ? "at least an hour" : coolM + " minutes"} before slicing.`);
+  add(T, "Eat!");
+  steps.sort((a, b) => a[0] - b[0]);
+  const roomH = Math.max(0.5, (B - mix) / HR - Hc);
+  return {steps, mix, roomH, fridgeH:Hc, note, prof};
+}
+function suggestYeast(plan){
+  const f = t => Math.pow(2, (t - 75) / 12);
+  const E = plan.roomH * f(+state.plan.tk || 72) + plan.fridgeH * f(+state.plan.tf || 38);
+  let y = 2 / E;
+  if(plan.prof === "enriched") y *= 1.5;
+  y = Math.min(2, Math.max(0.05, y));
+  return Math.round(y * 20) / 20;
+}
+let lastPlan = null;
+function renderPlan(st, flour){
+  if(!$("eatAt").value) $("eatAt").value = state.plan.eat || defaultEat();
+  const plan = buildPlan(st); lastPlan = plan;
+  const now = Date.now();
+  let html = plan.steps.map(([t, s]) => `<div class="prow${t < now ? " past" : ""}"><time>${fmtTime(t)}</time><span>${s}</span></div>`).join("");
+  if(st.ing.yeast){
+    const y = suggestYeast(plan);
+    const g = flour * y / 100 * YEAST_MULT[state.yeast];
+    const cur = state.pcts.yeast || 0;
+    html += `<div class="total"><span>Yeast for this timing: <b>${y.toFixed(2)}%</b> instant (${fmt(g)} g of ${YEAST_NAME[state.yeast].toLowerCase()})${Math.abs(cur - y) < 0.001 ? " ✓" : ""}</span>${Math.abs(cur - y) < 0.001 ? "" : `<button type="button" class="btn small" id="applyYeast" data-y="${y}">Use it</button>`}</div>`;
+  }
+  $("plan").innerHTML = html;
+  const hint = $("planHint");
+  hint.classList.toggle("warn", plan.mix < now);
+  hint.textContent = plan.mix < now ? "The first steps are already past. Pick a later time or a shorter fermentation." : (plan.note || "Yeast estimate assumes your kitchen and fridge temperatures. Times are approximate; watch the dough.");
+}
+
+/* ---------- Size helper ---------- */
+const area = s => s.r ? Math.PI * (s.r / 2) ** 2 : s.w * s.h;
+function sizeDims(){
+  const shape = $("szShape").value, a = parseFloat($("szA").value) || 0, b = parseFloat($("szB").value) || 0;
+  return shape === "r" ? {r:a} : {w:a, h:b};
+}
+function refLabel(ref){ return ref.r ? `${ref.r}-inch round` : `${ref.w}×${ref.h} inch pan`; }
+function renderSize(st){
+  const ref = REF[st.id];
+  $("sizeHelp").hidden = !ref;
+  if(!ref) return;
+  $("szShape").value = ref.r ? "r" : "rect";
+  $("szA").value = ref.r || ref.w;
+  $("szB").value = ref.h || "";
+  updateSize();
+}
+function updateSize(){
+  const st = style(), ref = REF[st.id]; if(!ref) return;
+  const isR = $("szShape").value === "r";
+  $("szB").hidden = isR; $("szX").hidden = isR;
+  $("szLabel").textContent = isR ? "Diameter (inches)" : "Width × length (inches)";
+  const d = sizeDims(), ar = area(d);
+  const g = ar > 0 ? Math.round(st.unit * ar / area(ref) / 5) * 5 : 0;
+  $("szHint").textContent = g ? `≈ ${g} g per ${st.unitWord}. Default is ${st.unit} g for a ${refLabel(ref)}.` : "Enter a size.";
+  $("szUse").dataset.g = g;
+}
+
+/* ---------- Saved formulas ---------- */
+function renderSaved(){
+  $("savedWrap").hidden = !state.saved.length;
+  $("saved").innerHTML = state.saved.map((f, i) =>
+    `<span class="savedchip"><button type="button" data-load="${i}">${esc(f.name)}</button><button type="button" class="x" data-del="${i}" aria-label="Delete ${esc(f.name)}">×</button></span>`).join("");
+}
+function doughText(){
+  const st = style();
+  const lines = [`${st.name}: ${state.count} × ${state.unit} g`, "", `Flour: ${fmtW(lastCalc.grams.flour)} (${st.flour})`];
+  document.querySelectorAll("#rows .row").forEach(r => {
+    if(r.classList.contains("hide")) return;
+    const name = r.querySelector(".name").firstChild.textContent.trim();
+    const amt = r.querySelector(".grams").textContent.replace(/\s+/g, " ").replace(/≈/, " ≈ ").replace(/\s+/g, " ").trim();
+    lines.push(`${name}: ${amt}`);
+  });
+  lines.push("", "Method:");
+  document.querySelectorAll("#notes li").forEach((li, i) => lines.push(`${i + 1}. ${li.textContent}`));
+  document.querySelectorAll("#notes p.bake").forEach(p => { if(/oven:/i.test(p.textContent)) lines.push("", p.textContent); });
+  return lines.join("\n");
+}
+
+/* ---------- Built-in recipes ---------- */
+const recScale = {};
+const SCALES = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20];
+function fmtQty(q, unit){
+  if(unit === "g") return `${q >= 10 ? Math.round(q) : +q.toFixed(1)} g`;
+  if(unit === "pinch") return q <= 1 ? "a pinch" : `${frac(q, 2)} pinches`;
+  const n = q >= 5 && !["tsp", "tbsp", "cup"].includes(unit) ? String(Math.round(q)) : frac(q, unit === "" || unit === "clove" ? 2 : 4);
+  if(!unit) return n;
+  const plural = q > 1.01;
+  const u = unit === "cup" && plural ? "cups" : unit === "clove" && plural ? "cloves" : unit === "sprig" && plural ? "sprigs" : unit === "bunch" && plural ? "bunches" : unit === "handful" && plural ? "handfuls" : unit === "can (28 oz)" && plural ? "cans (28 oz)" : unit;
+  return `${n} ${u}`;
+}
+function recipeBody(r){
+  const f = recScale[r.id] || 1;
+  const ing = r.ing.map(([q, u, t]) => u === "h" ? `<li class="ih">${t}</li>` : `<li>${q == null ? "" : `<b>${fmtQty(q * f, u)}</b> `}${t}</li>`).join("");
+  const match = r.yld && r.for.includes(state.styleId) ? `<button type="button" class="linkbtn" data-match>Match my dough (${state.count} ${state.count === 1 ? r.yw.replace(/s$/, "") : r.yw})</button>` : "";
+  return `<p class="hint">${r.makes}${f !== 1 ? ` · scaled ×${+f.toFixed(2)}` : ""}</p>
+    <div class="scale"><span>Batch</span><button type="button" data-sc="-" aria-label="Smaller batch">−</button><b>×${+f.toFixed(2)}</b><button type="button" data-sc="+" aria-label="Bigger batch">+</button>${match}</div>
+    <h3>Ingredients</h3><ul>${ing}</ul>
+    <h3>Steps</h3><ol>${r.steps.map(s => `<li>${s}</li>`).join("")}</ol>
+    ${r.tips.length ? `<h3>Tips</h3><ul>${r.tips.map(s => `<li>${s}</li>`).join("")}</ul>` : ""}
+    <div class="actions"><button type="button" class="linkbtn" data-share>Share recipe</button></div>`;
+}
+function renderRecipes(){
+  const q = $("recSearch").value.trim().toLowerCase();
+  const list = RECIPES.filter(r => !q || (r.name + " " + r.cat + " " + r.ing.map(i => i[2]).join(" ")).toLowerCase().includes(q));
+  const cats = [...new Set(list.map(r => r.cat))];
+  $("recList").innerHTML = cats.map(c => `<p class="catlabel">${c}</p>` + list.filter(r => r.cat === c).map(r =>
+    `<details class="rec" data-id="${r.id}"><summary><span>${r.name}</span><span class="tag">${r.makes}</span></summary><div class="recbody">${recipeBody(r)}</div></details>`).join("")).join("") ||
+    `<p class="empty">No recipes match that search.</p>`;
+}
+function openRecipe(id){
+  state.view = "recipes"; $("recSearch").value = ""; showView(); save();
+  const d = document.querySelector(`details.rec[data-id="${id}"]`);
+  if(d){ d.open = true; setTimeout(() => d.scrollIntoView({behavior:"smooth", block:"start"}), 50); }
+}
+function recipeText(r){
+  const f = recScale[r.id] || 1;
+  return [r.name, r.makes + (f !== 1 ? ` (×${+f.toFixed(2)})` : ""), "", "Ingredients:",
+    ...r.ing.map(([q, u, t]) => u === "h" ? `\n${t}:` : `- ${q == null ? "" : fmtQty(q * f, u) + " "}${t}`),
+    "", "Steps:", ...r.steps.map((s, i) => `${i + 1}. ${s}`),
+    ...(r.tips.length ? ["", "Tips:", ...r.tips.map(s => `- ${s}`)] : [])].join("\n");
+}
+
+/* ---------- My recipes ---------- */
+let mine = [], editingId = null;
+function cleanCats(v){
+  const list = Array.isArray(v) ? v.map(c => typeof c === "string" ? c : (c && c.name) || "") : String(v || "").split(",");
+  const seen = new Set(), out = [];
+  for(let c of list){ c = c.replace(/\s+/g, " ").trim(); const k = c.toLowerCase(); if(c && !seen.has(k)){ seen.add(k); out.push(c); } }
+  return out.join(", ");
+}
+const catsOf = r => (r.categories || "").split(",").map(c => c.trim()).filter(Boolean);
+function loadMine(){
+  try{ mine = JSON.parse(localStorage.getItem("dough-calc-recipes") || "[]"); }catch(e){ mine = []; }
+  if(!Array.isArray(mine)) mine = [];
+  mine.forEach(r => { r.categories = cleanCats(r.categories); });
+}
+function saveMine(){
+  try{ localStorage.setItem("dough-calc-recipes", JSON.stringify(mine)); return true; }
+  catch(e){ toast("Storage is full on this device. Try importing fewer recipes."); return false; }
+}
+function renderMine(){
+  const q = $("mineSearch").value.trim().toLowerCase();
+  const catSel = $("mineCat"), cur = catSel.value;
+  const counts = {};
+  mine.forEach(r => catsOf(r).forEach(c => { counts[c] = (counts[c] || 0) + 1; }));
+  const cats = Object.keys(counts).sort((a, b) => a.localeCompare(b));
+  catSel.innerHTML = `<option value="">All categories</option>` + cats.map(c => `<option value="${esc(c)}">${esc(c)} (${counts[c]})</option>`).join("") + (mine.some(r => !catsOf(r).length) ? `<option value="__none">No category</option>` : "");
+  catSel.value = cats.includes(cur) || cur === "__none" ? cur : "";
+  const cat = catSel.value;
+  const inCat = r => { const cs = catsOf(r); return !cat || (cat === "__none" ? !cs.length : cs.includes(cat)); };
+  const list = mine.filter(r => inCat(r) && (!q || [r.name, r.categories, r.ingredients, r.notes].join(" ").toLowerCase().includes(q)))
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  const shown = list.slice(0, 200);
+  $("mineCount").textContent = mine.length ? `${mine.length} recipe${mine.length === 1 ? "" : "s"} saved on this device${list.length > 200 ? `. Showing 200 of ${list.length}; search to narrow.` : "."}` : "";
+  $("mineList").innerHTML = shown.length ? shown.map(r => {
+    const src = r.source ? (/^https?:\/\//i.test(r.source) ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source.replace(/^https?:\/\/(www\.)?/, "").split("/")[0])}</a>` : esc(r.source)) : "";
+    const stars = +r.rating > 0 ? `<span class="starsview">${"★".repeat(+r.rating)}</span>` : "";
+    const meta = [stars, r.servings && `Serves ${esc(r.servings)}`, r.time && esc(r.time), src].filter(Boolean).join(" · ");
+    return `<details class="rec" data-mine="${esc(r.id)}"><summary><span class="nm">${r.photo ? `<img class="thumb" data-pk="r:${esc(r.id)}" alt="">` : ""}<span>${esc(r.name || "Untitled")}</span></span><span class="tag">${esc(r.categories || "")}</span></summary><div class="recbody">
+      ${r.photo ? `<img class="hero" data-hero="r:${esc(r.id)}" alt="">` : ""}
+      ${meta ? `<p class="hint">${meta}</p>` : ""}
+      ${r.ingredients ? `<h3>Ingredients</h3><div class="pre">${esc(r.ingredients)}</div>` : ""}
+      ${r.directions ? `<h3>Directions</h3><div class="pre">${esc(r.directions)}</div>` : ""}
+      ${r.notes ? `<h3>Notes</h3><div class="pre">${esc(r.notes)}</div>` : ""}
+      <div class="actions"><button type="button" class="linkbtn" data-edit>Edit</button><button type="button" class="linkbtn" data-mshare>Share</button><button type="button" class="linkbtn" data-mlink>Send as link</button><button type="button" class="linkbtn danger" data-mdel>Delete</button></div>
+    </div></details>`;
+  }).join("") : `<p class="empty">${mine.length ? "No recipes match that search." : "No recipes yet. Add one, paste one, or import from Paprika."}</p>`;
+  hydratePhotos($("mineList"));
+  if($("tidy").open) renderTidy();
+  renderSyncHint();
+}
+const FIELDS = {rName:"name", rCats:"categories", rServ:"servings", rTime:"time", rSource:"source", rIng:"ingredients", rDir:"directions", rNotes:"notes"};
+let recPhoto = null;
+function openEditor(r, title){
+  editingId = r && r.id || null;
+  for(const id in FIELDS) $(id).value = (r && r[FIELDS[id]]) || "";
+  $("editTitle").textContent = title || (editingId ? "Edit recipe" : "New recipe");
+  recPhoto.reset(editingId && r.photo ? "r:" + editingId : null);
+  $("pasteBox").hidden = true; $("editor").hidden = false;
+  $("editor").scrollIntoView({behavior:"smooth", block:"start"});
+}
+function deleteRecipe(r){
+  mine = mine.filter(x => x.id !== r.id);
+  state.gone["r:" + r.id] = Date.now();
+  if(r.photo) setPhoto("r:" + r.id, null).catch(() => {});
+}
+function parsePasted(text){
+  const lines = text.replace(/\r/g, "").split("\n");
+  let title = "", cur = "head";
+  const sec = {head:[], ing:[], dir:[], notes:[]};
+  for(const raw of lines){
+    const l = raw.trim();
+    if(!title){ if(l) title = l; continue; }
+    const h = l.replace(/[:：]\s*$/, "").toLowerCase();
+    if(/^ingredients?$/.test(h)){ cur = "ing"; continue; }
+    if(/^(directions?|instructions?|method|steps|preparation)$/.test(h)){ cur = "dir"; continue; }
+    if(/^notes?$/.test(h)){ cur = "notes"; continue; }
+    sec[cur].push(raw);
+  }
+  let servings = "", source = "", time = "";
+  sec.head = sec.head.filter(l => {
+    let m;
+    if((m = l.match(/^\s*(servings|serves|yield)\s*:\s*(.+)$/i))){ servings = m[2].trim(); return false; }
+    if((m = l.match(/^\s*(source|url)\s*:\s*(.+)$/i))){ source = m[2].trim(); return false; }
+    if((m = l.match(/^\s*(total time|cook time|prep time)\s*:\s*(.+)$/i))){ time = (time ? time + " · " : "") + m[1] + " " + m[2].trim(); return false; }
+    return true;
+  });
+  if(!sec.ing.length && !sec.dir.length){ sec.dir = sec.head; sec.head = []; }
+  const join = a => a.join("\n").replace(/^\s*\n+|\n+\s*$/g, "");
+  return {name:title, servings, time, source, categories:"", ingredients:join(sec.ing), directions:join(sec.dir), notes:join([...sec.head.filter(x => x.trim()), ...sec.notes])};
+}
+function fromPaprika(p){
+  return {
+    id: p.uid || uid(), name: (p.name || "Untitled").trim(),
+    categories: cleanCats(p.categories),
+    servings: p.servings || "",
+    time: [p.prep_time && "Prep " + p.prep_time, p.cook_time && "Cook " + p.cook_time, p.total_time && "Total " + p.total_time].filter(Boolean).join(" · "),
+    source: p.source_url || p.source || "",
+    ingredients: p.ingredients || "", directions: p.directions || "",
+    notes: [p.description, p.notes, p.nutritional_info].filter(Boolean).join("\n\n"),
+    rating: Math.max(0, Math.min(5, parseInt(p.rating) || 0)),
+    created: p.created || "", u: Date.now()
+  };
+}
+function decodeOne(b){
+  let txt;
+  if(b[0] === 0x1f && b[1] === 0x8b){
+    if(!window.pako) throw new Error("the import tool didn't load. Check your internet connection and reload the page.");
+    const out = pako.ungzip(b);
+    txt = typeof out === "string" ? out : new TextDecoder().decode(out);
+  } else txt = new TextDecoder().decode(b);
+  txt = txt.trim().replace(/^﻿/, "");
+  if(!/^[\[{]/.test(txt)) return [];
+  const j = JSON.parse(txt);
+  return [].concat(j);
+}
+async function readAny(file){
+  let raw = [];
+  const buf = new Uint8Array(await file.arrayBuffer());
+  if(buf[0] === 0x50 && buf[1] === 0x4b){
+    if(!window.JSZip) throw new Error("the import tool didn't load. Check your internet connection and reload the page.");
+    const zip = await JSZip.loadAsync(buf);
+    for(const f of Object.values(zip.files)){
+      if(f.dir || /(^|\/)(__MACOSX|\.)/.test(f.name)) continue;
+      try{ raw.push(...decodeOne(await f.async("uint8array"))); }catch(e){}
+    }
+  } else raw = decodeOne(buf);
+  return raw;
+}
+const recSig = r => [r.name, r.ingredients, r.directions].map(x => String(x || "").trim().toLowerCase().replace(/\s+/g, " ")).join("|");
+function progress(el, text, frac){
+  el.innerHTML = esc(text) + (frac != null ? `<span class="prog"><span style="width:${Math.round(frac * 100)}%"></span></span>` : "");
+}
+async function importFile(file){
+  const msg = $("impMsg"); msg.classList.remove("warn"); progress(msg, "Reading " + file.name + "…");
+  let raw;
+  try{ raw = await readAny(file); }
+  catch(e){ msg.classList.add("warn"); msg.textContent = "Couldn't read that file: " + e.message; return; }
+  if(raw.length === 1 && raw[0] && raw[0].app === "dough-calculator"){ const r = await mergeBackup(raw[0]); msg.textContent = r; return; }
+  const sigs = new Map(mine.map(r => [recSig(r), r]));
+  const ids = new Map(mine.map(r => [r.id, r]));
+  let added = 0, skipped = 0, gone = 0;
+  const photos = [], queued = new Set();
+  for(const p of raw){
+    if(!p || typeof p !== "object" || !(p.name || p.ingredients || p.directions)) continue;
+    const r = fromPaprika(p);
+    const pic = typeof p.photo_data === "string" && p.photo_data.length > 100 ? p.photo_data : null;
+    if(state.gone["r:" + r.id]){ gone++; continue; }
+    const have = ids.get(r.id) || sigs.get(recSig(r));
+    if(have){
+      skipped++;
+      if(pic && !have.photo && !queued.has(have.id)){ photos.push([have, pic]); queued.add(have.id); }
+      continue;
+    }
+    mine.push(r); ids.set(r.id, r); sigs.set(recSig(r), r); added++;
+    if(pic){ photos.push([r, pic]); queued.add(r.id); }
+  }
+  if(!added && !skipped && !gone){ msg.classList.add("warn"); msg.textContent = "No recipes found in that file. Export from Paprika using the Paprika Recipe Format."; return; }
+  let saved = 0;
+  if(photos.length){
+    try{
+      for(let i = 0; i < photos.length; i += 20){
+        progress(msg, `Saving photos… ${i} of ${photos.length}`, i / photos.length);
+        const batch = photos.slice(i, i + 20).map(([r, b64]) => [r, dataURLToBlob("data:image/jpeg;base64," + b64)]).filter(x => x[1]);
+        await PDB.putMany(batch.map(([r, bl]) => { forgetURL("r:" + r.id); return ["r:" + r.id, bl]; }));
+        batch.forEach(([r]) => { r.photo = true; saved++; });
+      }
+    }catch(e){ toast("Some photos couldn't be saved on this device."); }
+  }
+  const pl = (k, w) => `${k} ${w}${k === 1 ? "" : "s"}`;
+  let txt = added ? `Imported ${pl(added, "recipe")}${saved ? ` with ${pl(saved, "photo")}` : ""}.` : `No new recipes.${saved ? ` Added ${pl(saved, "photo")} to recipes already here.` : ""}`;
+  if(skipped) txt += ` Skipped ${skipped} already here.`;
+  if(gone) txt += ` Skipped ${gone} you deleted before.`;
+  if(saveMine()) msg.textContent = txt;
+  renderMine();
+}
+
+/* ---------- Tidy up: categories and look-alikes ---------- */
+const normName = s => String(s || "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9ğüşöçıİ]+/g, " ").replace(/\b(the|a|an|recipe|easy|best)\b/g, " ").replace(/\s+/g, " ").trim();
+const normIng = s => String(s || "").toLowerCase().replace(/[^a-z]+/g, " ").replace(/\s+/g, " ").trim();
+function findLookalikes(){
+  const groups = [], used = new Set();
+  const add = list => { const g = list.filter(r => !used.has(r.id)); if(g.length > 1){ g.forEach(r => used.add(r.id)); groups.push(g); } };
+  const by = (fn) => { const m = new Map(); mine.forEach(r => { const k = fn(r); if(k){ if(!m.has(k)) m.set(k, []); m.get(k).push(r); } }); return [...m.values()].filter(v => v.length > 1); };
+  by(r => normName(r.name)).forEach(add);
+  by(r => { const k = normIng(r.ingredients); return k.length > 40 ? k : ""; }).forEach(add);
+  return groups;
+}
+function renderTidy(){
+  const counts = {};
+  mine.forEach(r => catsOf(r).forEach(c => { counts[c] = (counts[c] || 0) + 1; }));
+  const cats = Object.keys(counts).sort((a, b) => a.localeCompare(b));
+  $("catList").innerHTML = cats.length ? cats.map(c => `<div class="tidyrow"><span>${esc(c)} <small>${counts[c]}</small></span><button type="button" class="linkbtn" data-rencat="${esc(c)}">Rename</button></div>`).join("") : `<p class="empty">No categories yet.</p>`;
+  const groups = findLookalikes();
+  $("dupList").innerHTML = groups.length ? groups.map(g => `<div class="dupgroup">${g.map(r => {
+      const first = String(r.ingredients || r.directions || "").split("\n").filter(x => x.trim()).slice(0, 2).join(" · ");
+      const info = [r.categories, r.created && r.created.slice(0, 10), r.photo && "photo", `${String(r.ingredients || "").split("\n").filter(x => x.trim()).length} ingredients`].filter(Boolean).join(" · ");
+      return `<div class="dupitem"><b>${esc(r.name || "Untitled")}</b><button type="button" class="linkbtn danger" data-dupdel="${esc(r.id)}">Delete</button><span class="hint">${esc(info)}<br>${esc(first.slice(0, 140))}</span></div>`;
+    }).join("")}</div>`).join("") : `<p class="empty">No look-alikes found.</p>`;
+}
+function initTidy(){
+$("tidy").addEventListener("toggle", () => { if($("tidy").open) renderTidy(); });
+$("catList").addEventListener("click", e => {
+  const b = e.target.closest("[data-rencat]"); if(!b) return;
+  const from = b.dataset.rencat;
+  const to = window.prompt(`Rename "${from}" to (leave empty to remove it from all recipes):`, from);
+  if(to === null) return;
+  const t = to.replace(/\s+/g, " ").trim();
+  if(t === from) return;
+  if(!t && !confirm(`Remove the category "${from}" from every recipe?`)) return;
+  const existing = Object.keys(mine.reduce((o, r) => { catsOf(r).forEach(c => o[c] = 1); return o; }, {})).find(c => c.toLowerCase() === t.toLowerCase());
+  const target = existing || t;
+  let n = 0;
+  mine.forEach(r => { const cs = catsOf(r); if(cs.includes(from)){ r.categories = cleanCats(cs.map(c => c === from ? target : c).filter(Boolean)); r.u = Date.now(); n++; } });
+  if(saveMine()){ renderMine(); renderTidy(); toast(t ? `${n} recipe${n === 1 ? "" : "s"} moved to "${target}".` : `Removed from ${n} recipe${n === 1 ? "" : "s"}.`); }
+});
+$("dupList").addEventListener("click", e => {
+  const b = e.target.closest("[data-dupdel]"); if(!b) return;
+  const r = mine.find(x => x.id === b.dataset.dupdel); if(!r) return;
+  if(!confirm(`Delete "${r.name}"?`)) return;
+  deleteRecipe(r); saveMine(); save(); renderMine(); renderTidy();
+});
+}
+
+/* ---------- Bake log ---------- */
+let logRating = 0, logSnap = null, editingLog = null, logPhoto = null;
+const todayISO = () => localISO(new Date()).slice(0, 10);
+const OVEN_NAME = {home:"home oven", electric:"electric pizza oven", gas:"gas or wood pizza oven"};
+function doughSnapshot(){
+  const st = style();
+  return {cat:state.cat, styleId:state.styleId, name:st.name, count:state.count, unit:state.unit, waste:state.waste, yeast:state.yeast,
+    discard:state.discard || 0, oven:state.oven, pcts:Object.assign({}, state.pcts), hyd:$("hyd").textContent};
+}
+const snapText = f => `${f.name}: ${f.count} × ${f.unit} g, ${f.hyd} hydration` + (f.pcts && f.pcts.yeast != null ? `, yeast ${f.pcts.yeast}%` : "") + (f.oven ? `, ${OVEN_NAME[f.oven] || f.oven}` : "");
+function applyFormula(f){
+  if(!STYLES[f.cat] || !STYLES[f.cat].some(x => x.id === f.styleId)){ toast("That style isn't in this version of the app."); return false; }
+  Object.assign(state, {cat:f.cat, styleId:f.styleId, count:f.count || 1, unit:f.unit || 250, yeast:f.yeast || "instant", waste:f.waste != null ? f.waste : 2, people:0, view:"dough"});
+  if(f.discard != null) state.discard = f.discard;
+  if(f.oven && ["home", "electric", "gas"].includes(f.oven)) state.oven = f.oven;
+  const st = style(); state.pcts = {};
+  for(const k in st.ing) state.pcts[k] = f.pcts && f.pcts[k] != null ? f.pcts[k] : st.ing[k][0];
+  renderChips(); renderForm(); showView(); window.scrollTo(0, 0);
+  return true;
+}
+function renderStars(){ $("stars").querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.s <= logRating)); }
+function renderSnap(){ $("lSnap").hidden = !logSnap; if(logSnap) $("lSnapText").textContent = "Formula attached: " + snapText(logSnap); }
+function resetLogForm(){
+  editingLog = null; logSnap = null; logRating = 0;
+  $("lWhat").value = ""; $("lNotes").value = ""; $("lDate").value = todayISO();
+  $("logSave").textContent = "Save entry"; $("logCancel").hidden = true;
+  logPhoto.reset(null); renderSnap(); renderStars();
+}
+function renderLog(){
+  if(!$("lDate").value) $("lDate").value = todayISO();
+  renderStars(); renderSnap();
+  const names = [...new Set(state.log.map(l => l.f && l.f.name).filter(Boolean))].sort();
+  const sel = $("logStyle"), cur = sel.value;
+  sel.innerHTML = `<option value="">All bakes</option>` + names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  sel.value = names.includes(cur) ? cur : "";
+  const best = $("logSort").value === "best";
+  const list = state.log.filter(l => !sel.value || (l.f && l.f.name === sel.value)).sort((a, b) =>
+    (best ? (b.rating || 0) - (a.rating || 0) : 0) || (b.date || "").localeCompare(a.date || "") || (b.t || 0) - (a.t || 0));
+  $("logList").innerHTML = list.length ? list.map(l => `<div class="logcard" data-lid="${esc(l.id)}">
+      <div class="loghead"><b>${esc(new Date(l.date + "T12:00").toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}))}</b><span class="starsview">${"★".repeat(l.rating || 0)}<span class="dim">${"★".repeat(5 - (l.rating || 0))}</span></span><button type="button" class="x" data-ldel aria-label="Delete entry">×</button></div>
+      <div>${esc(l.what)}</div>
+      ${l.f && snapText(l.f) !== l.what ? `<div class="hint">${esc(snapText(l.f))}</div>` : ""}
+      ${l.photo ? `<img class="logphoto" data-pk="l:${esc(l.id)}" alt="Photo of this bake">` : ""}
+      ${l.notes ? `<div class="pre hint">${esc(l.notes)}</div>` : ""}
+      <div class="actions">${l.f ? `<button type="button" class="linkbtn" data-lload>Make this again</button><button type="button" class="linkbtn" data-lsave>Save as formula</button>` : ""}<button type="button" class="linkbtn" data-ledit>Edit</button></div>
+    </div>`).join("")
+    : `<p class="empty">${state.log.length ? "No bakes match." : `No bakes logged yet. After a bake, tap "Log this bake" on the dough page.`}</p>`;
+  hydratePhotos($("logList"));
+}
+function editLog(l){
+  editingLog = l.id; logSnap = l.f || null; logRating = l.rating || 0;
+  $("lDate").value = l.date || todayISO(); $("lWhat").value = l.what || ""; $("lNotes").value = l.notes || "";
+  $("logSave").textContent = "Save changes"; $("logCancel").hidden = false;
+  logPhoto.reset(l.photo ? "l:" + l.id : null); renderSnap(); renderStars();
+  $("logView").scrollIntoView({behavior:"smooth", block:"start"});
+}
+function saveFormula(f, name){
+  const g = {name, cat:f.cat, styleId:f.styleId, pcts:Object.assign({}, f.pcts), count:f.count, unit:f.unit, yeast:f.yeast, waste:f.waste, u:Date.now()};
+  const i = state.saved.findIndex(x => x.name === name);
+  if(i >= 0) state.saved[i] = g; else state.saved.push(g);
+  delete state.gone["f:" + name];
+  save(); renderSaved();
+}
+
+/* ---------- Make ahead & freeze ---------- */
+let lastFreeze = null;
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+const roundQ = h => Math.round(h * 4) / 4;
+const hrs = h => { h = roundQ(h); if(h >= 48 && h % 24 === 0) return `${h / 24} days`; if(h < 1) return `${Math.round(h * 60)} min`; return `${+h.toFixed(2)} hour${h === 1 ? "" : "s"}`; };
+const hrsRange = (a, b) => roundQ(a) === roundQ(b) ? hrs(a) : `${+roundQ(a).toFixed(2)}–${hrs(b)}`;
+function freezePlan(st){
+  const rate = t => Math.pow(2, (t - 75) / 12);
+  const fk = rate(+state.plan.tk || 72), ff = rate(+state.plan.tf || 38);
+  let y = state.pcts.yeast || 0;
+  if(profileOf(st.id) === "enriched") y /= 1.5;
+  const E = 2 / Math.max(0.03, y);            // total rise the yeast can give, in 75°F-hours
+  const P = 0.5 * E;                          // use about half of it before freezing
+  const Rraw = 0.3 * P / fk, R = roundQ(clamp(Rraw, 0.5, 4));
+  const Fraw = (P - R * fk) / ff, Fc = clamp(Fraw, 2, 72), F = Fc >= 6 ? Math.round(Fc) : roundQ(Fc);
+  const Fmax = Math.round(clamp((0.65 * E - R * fk) / ff, F, 72));
+  const Fmin = roundQ(Math.min(F, Math.max(2, F * 0.5)));
+  const used = R * fk + F * ff, slow = 0.8;  // freezing knocks back some of the yeast
+  let rem = Math.max(0, E - used), warm;
+  if(state.freeze.thaw === "fridge"){ rem = Math.max(0, rem - 24 * ff * slow); warm = clamp(rem / (fk * slow), 1, 4); }
+  else warm = clamp(2.5 + rem / (fk * slow), 3, 6);
+  return {R, F, Fmin, Fmax, warmLo:warm, warmHi:Math.min(warm + 1, 7), fast:Fraw < 8, slowRoom:Rraw > 4};
+}
+function renderFreeze(st){
+  const sec = $("freezeSec");
+  if(!st.ing.yeast){
+    sec.querySelector(".two").hidden = true; $("shareFreeze").hidden = true;
+    $("freeze").innerHTML = `<p class="empty">${st.id === "sourdough" ? "Sourdough is better baked first and then frozen. Freezing raw sourdough kills a lot of the wild yeast, so it often won't rise well after thawing." : "This dough has no yeast, so there's no fermentation timing to plan."}</p>`;
+    $("freezeHint").textContent = ""; lastFreeze = null; return;
+  }
+  sec.querySelector(".two").hidden = false; $("shareFreeze").hidden = false;
+  const fz = state.freeze;
+  if(!$("fzMix").value) $("fzMix").value = fz.mix || localISO(new Date(Math.ceil(Date.now() / (15 * MN)) * 15 * MN));
+  $("fzThaw").value = fz.thaw; $("fzKeep").value = String(fz.keep);
+  const p = freezePlan(st);
+  const t0 = new Date($("fzMix").value).getTime() || Date.now();
+  const tFr = t0 + p.R * HR, tFz = tFr + p.F * HR;
+  const useBy = new Date(tFz); useBy.setMonth(useBy.getMonth() + (+fz.keep || 1));
+  const pieces = `${state.count} ${state.count === 1 ? st.unitWord : st.unitName.toLowerCase()}`;
+  const ball = profileOf(st.id) === "ball" ? `Divide and shape into ${pieces}` : `Divide into ${pieces}, one per pan or loaf`;
+  const steps = [
+    [t0, `Mix the dough. Leave it covered on the counter for <b>${hrs(p.R)}</b>.`],
+    [tFr, `${ball}. Put them in the fridge in oiled, covered containers for <b>${hrs(p.F)}</b>.`],
+    [tFz, `Into the freezer. Any time from ${fmtTime(tFr + p.Fmin * HR)} to ${fmtTime(tFr + p.Fmax * HR)} works. Coat each piece lightly with oil, wrap it tightly in plastic wrap, then seal it in a freezer bag with the air pressed out. Write the date on it.`]
+  ];
+  const fmtDay = d => d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+  const thawRows = fz.thaw === "fridge"
+    ? [["Day before", "Move the dough, still wrapped, from the freezer to the fridge. It needs about 24 hours (12–48 is fine)."],
+       ["Bake day", `Take it out <b>${hrsRange(p.warmLo, p.warmHi)}</b> before you bake. Unwrap it into an oiled, covered container and let it come to room temperature. It's ready when it's soft, puffy, and springs back slowly when poked.`]]
+    : [["Bake day", `Take the dough out of the freezer about <b>${hrsRange(p.warmLo, p.warmHi)}</b> before you bake. Unwrap it into an oiled, covered container on the counter. It's ready when it's soft, puffy, and springs back slowly when poked.`]];
+  $("freeze").innerHTML = steps.map(([t, s]) => `<div class="prow"><time>${fmtTime(t)}</time><span>${s}</span></div>`).join("") +
+    `<div class="prow"><time>Use by</time><span>${fmtDay(useBy)}. Frozen dough keeps longer, but it slowly loses rise and picks up freezer burn.</span></div>` +
+    thawRows.map(([h, s]) => `<div class="prow"><time>${h}</time><span>${s}</span></div>`).join("") +
+    `<div class="total"><span>Counter ${hrs(p.R)} → fridge ${hrs(p.F)} → freezer</span><b>${(state.pcts.yeast || 0).toFixed(2)}% yeast</b></div>`;
+  const h = $("freezeHint");
+  h.classList.toggle("warn", p.fast);
+  h.textContent = p.fast ? `With ${(state.pcts.yeast || 0).toFixed(2)}% yeast the dough moves fast, so the fridge window is short. For freezing, 0.2–0.4% yeast gives you a day or two in the fridge first.`
+    : p.slowRoom ? "There's very little yeast, so the dough needs a long time on the counter. A bit more yeast (0.2–0.4%) makes this easier."
+    : "The idea: freeze the dough when it's about halfway through its rise, so it gets the fridge flavor and still has rise left after thawing.";
+  lastFreeze = {st, steps, thawRows, useBy:fmtDay(useBy)};
+}
+
+/* ---------- Videos ---------- */
+let editingVid = null;
+function ytId(u){
+  try{
+    const x = new URL(u); const h = x.hostname.replace(/^(www|m|music)\./, ""); let id = "";
+    if(h === "youtu.be") id = x.pathname.slice(1).split("/")[0];
+    else if(/(^|\.)youtube(-nocookie)?\.com$/.test(h)){
+      if(x.pathname === "/watch") id = x.searchParams.get("v") || "";
+      else { const m = x.pathname.match(/^\/(shorts|embed|live|v)\/([^/?#]+)/); if(m) id = m[2]; }
+    }
+    return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : "";
+  }catch(e){ return ""; }
+}
+function ytStart(u){
+  try{ const t = new URL(u).searchParams.get("t") || ""; const m = t.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/); return m ? (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0) : 0; }catch(e){ return 0; }
+}
+function cleanURL(text){
+  const m = String(text || "").match(/https?:\/\/\S+/i) || String(text || "").match(/(?:www\.|m\.)?(?:youtube\.com|youtu\.be)\/\S+/i);
+  if(!m) return "";
+  return (/^https?:/i.test(m[0]) ? m[0] : "https://" + m[0]).replace(/[)\].,]+$/, "");
+}
+const VFOR_GROUPS = () => [["", "General"], ["cat:pizza", "Pizza, any style"], ["cat:bread", "Bread, any style"], ["starter", "Starter & sourdough"], ["recipes", "Sauces & toppings"]]
+  .concat(STYLES.pizza.map(s => [s.id, "Pizza: " + s.name]), STYLES.bread.map(s => [s.id, "Bread: " + s.name]));
+const vforLabel = v => (VFOR_GROUPS().find(x => x[0] === (v || "")) || ["", "General"])[1];
+function renderVideoForm(){
+  if(!$("vFor").options.length) $("vFor").innerHTML = VFOR_GROUPS().map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join("");
+}
+function resetVideoForm(){
+  editingVid = null; $("vUrl").value = ""; $("vTitle").value = ""; $("vNotes").value = ""; $("vUrlMsg").textContent = "";
+  $("vFor").value = "";
+  $("vEditTitle").textContent = "Add a video"; $("vSave").textContent = "Save video"; $("vCancel").hidden = true;
+}
+function renderVideos(){
+  renderVideoForm();
+  const q = $("vSearch").value.trim().toLowerCase();
+  const used = [...new Set(state.videos.map(v => v.for || ""))];
+  const sel = $("vFilter"), cur = sel.value;
+  sel.innerHTML = `<option value="*">All videos</option>` + VFOR_GROUPS().filter(([v]) => used.includes(v)).map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join("");
+  sel.value = cur && (cur === "*" || used.includes(cur)) ? cur : "*";
+  const list = state.videos.filter(v => (sel.value === "*" || (v.for || "") === sel.value) && (!q || [v.title, v.notes, vforLabel(v.for)].join(" ").toLowerCase().includes(q)))
+    .sort((a, b) => (b.t || 0) - (a.t || 0));
+  $("vList").innerHTML = list.length ? list.map(v => `<div class="vcard" data-vid="${esc(v.id)}">
+      <div class="vrow"><img src="https://i.ytimg.com/vi/${esc(v.yt)}/mqdefault.jpg" alt="" loading="lazy" data-vplay><div><b>${esc(v.title || "YouTube video")}</b><span class="hint">${esc(vforLabel(v.for))}</span>${v.notes ? `<div class="pre hint">${esc(v.notes)}</div>` : ""}</div></div>
+      <div class="actions"><button type="button" class="linkbtn" data-vplay>Watch here</button><a class="linkbtn" href="${esc(v.url)}" target="_blank" rel="noopener">Open in YouTube</a><button type="button" class="linkbtn" data-vedit>Edit</button><button type="button" class="linkbtn danger" data-vdel>Delete</button></div>
+    </div>`).join("") : `<p class="empty">${state.videos.length ? "No videos match." : "No videos yet. Paste a YouTube link above."}</p>`;
+}
+let titleReq = 0;
+async function fetchTitle(url){
+  const my = ++titleReq;
+  for(const api of [`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(url)}`, `https://noembed.com/embed?url=${encodeURIComponent(url)}`]){
+    try{
+      const r = await fetch(api); if(!r.ok) continue;
+      const j = await r.json();
+      if(j && j.title){ if(my === titleReq && !$("vTitle").value.trim()) $("vTitle").value = j.title; return; }
+    }catch(e){}
+  }
+}
+function onVideoURL(){
+  const raw = $("vUrl").value.trim(), url = cleanURL(raw), id = ytId(url), m = $("vUrlMsg");
+  m.classList.toggle("warn", !!raw && !id);
+  m.textContent = raw && !id ? "That doesn't look like a YouTube video link." : "";
+  if(id && !$("vTitle").value.trim()) fetchTitle(url);
+}
+function videoChips(st){
+  const vs = state.videos.filter(v => v.for === st.id || v.for === "cat:" + state.cat);
+  return vs.length ? `<p class="bake"><b>Your videos for this</b></p><div class="chips reclinks">${vs.map(v => `<button type="button" data-video="${esc(v.id)}">▶ ${esc(v.title || "YouTube video")}</button>`).join("")}</div>` : "";
+}
+function openVideo(id){
+  state.view = "videos"; $("vSearch").value = ""; showView(); $("vFilter").value = "*"; renderVideos(); save();
+  const c = [...document.querySelectorAll(".vcard")].find(x => x.dataset.vid === id);
+  if(c){ c.querySelector("button[data-vplay]").click(); setTimeout(() => c.scrollIntoView({behavior:"smooth", block:"start"}), 50); }
+}
+
+/* ---------- Sync & backup ---------- */
+let syncFile = null, syncBuilding = 0;
+const nPhotos = () => mine.filter(r => r.photo).length + state.log.filter(l => l.photo).length;
+const mb = n => n >= 1e6 ? (n / 1e6).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1e3)) + " KB";
+async function buildBackup(withPhotos){
+  const b = {app:"dough-calculator", version:2, exported:new Date().toISOString(), saved:state.saved, recipes:mine, log:state.log,
+    jar:state.starter.jar, gone:state.gone, videos:state.videos};
+  if(withPhotos){
+    b.photos = {};
+    const keys = mine.filter(r => r.photo).map(r => "r:" + r.id).concat(state.log.filter(l => l.photo).map(l => "l:" + l.id));
+    for(const k of keys){ try{ const bl = await PDB.get(k); if(bl) b.photos[k] = await blobToDataURL(bl); }catch(e){} }
+  }
+  return JSON.stringify(b);
+}
+async function prepareSync(){
+  const my = ++syncBuilding;
+  $("syncSend").disabled = $("syncDownload").disabled = true; $("syncSend").textContent = "Preparing…";
+  const json = await buildBackup($("syncPhotos").checked);
+  if(my !== syncBuilding) return;
+  const name = `dough-calculator-sync-${todayISO()}.json`;
+  syncFile = new File([json], name, {type:"application/json"});
+  const canShare = !!(navigator.canShare && navigator.canShare({files:[syncFile]}));
+  $("syncSend").hidden = !canShare;
+  $("syncSend").disabled = false; $("syncDownload").disabled = false; $("syncSend").textContent = "Send sync file";
+  $("syncDownload").className = canShare ? "btn ghost" : "btn";
+  $("syncPhotoSize").textContent = nPhotos() ? `(${nPhotos()} photos)` : "";
+  $("syncSendMsg").textContent = `File size: ${mb(syncFile.size)}.`;
+}
+function markSent(){ state.lastSync = Date.now(); save(); renderSyncHint(); }
+async function mergeBackup(b){
+  const n = {radd:0, rupd:0, rdel:0, ladd:0, lupd:0, ldel:0, fadd:0, fupd:0, vadd:0, vupd:0, vdel:0, pics:0};
+  const inGone = b.gone || {};
+  for(const k in inGone) if(!(state.gone[k] >= inGone[k])) state.gone[k] = inGone[k];
+  const changed = new Set();
+  const mergeList = (local, incoming, pre, key, ver) => {
+    const idx = new Map(local.map((x, i) => [key(x), i]));
+    for(const x of incoming || []){
+      if(!x || state.gone[pre + key(x)]) continue;
+      const i = idx.get(key(x));
+      if(i == null){ local.push(x); idx.set(key(x), local.length - 1); changed.add(pre + key(x)); n[{"r:":"radd", "l:":"ladd", "f:":"fadd", "v:":"vadd"}[pre]]++; }
+      else if(ver(x) > ver(local[i])){ local[i] = x; changed.add(pre + key(x)); n[{"r:":"rupd", "l:":"lupd", "f:":"fupd", "v:":"vupd"}[pre]]++; }
+    }
+  };
+  const ver = x => x.u || x.t || 0;
+  mergeList(mine, (b.recipes || []).map(r => Object.assign({}, r, {categories:cleanCats(r.categories)})), "r:", x => x.id, ver);
+  mergeList(state.log, b.log, "l:", x => x.id, ver);
+  mergeList(state.saved, b.saved, "f:", x => x.name, ver);
+  mergeList(state.videos, b.videos, "v:", x => x.id, ver);
+  const before = [mine.length, state.log.length];
+  mine = mine.filter(r => { if(state.gone["r:" + r.id]){ if(r.photo) setPhoto("r:" + r.id, null).catch(() => {}); return false; } return true; });
+  state.log = state.log.filter(l => { if(state.gone["l:" + l.id]){ if(l.photo) setPhoto("l:" + l.id, null).catch(() => {}); return false; } return true; });
+  state.saved = state.saved.filter(f => !state.gone["f:" + f.name]);
+  const vb = state.videos.length; state.videos = state.videos.filter(v => !state.gone["v:" + v.id]); n.vdel = vb - state.videos.length;
+  n.rdel = before[0] - mine.length; n.ldel = before[1] - state.log.length;
+  if(Array.isArray(b.jar)){ const ds = new Set(state.starter.jar.map(e => e.d)); b.jar.forEach(e => { if(e && e.d && !ds.has(e.d)){ state.starter.jar.push(e); ds.add(e.d); } }); state.starter.jar.sort((x, y) => x.d.localeCompare(y.d)); }
+  if(b.photos){
+    const have = new Set(await PDB.keys().catch(() => []));
+    const put = [];
+    for(const k in b.photos){
+      const item = k[0] === "r" ? mine.find(r => "r:" + r.id === k) : state.log.find(l => "l:" + l.id === k);
+      if(!item || (have.has(k) && !changed.has(k))) continue;
+      const bl = dataURLToBlob(b.photos[k]); if(!bl) continue;
+      forgetURL(k); put.push([k, bl]); item.photo = true;
+    }
+    for(let i = 0; i < put.length; i += 25){ try{ await PDB.putMany(put.slice(i, i + 25)); n.pics += Math.min(25, put.length - i); }catch(e){} }
+  }
+  // Items whose photo wasn't sent: keep the flag only if we still have the photo here
+  if(!b.photos){ const have = new Set(await PDB.keys().catch(() => [])); mine.forEach(r => { if(r.photo && !have.has("r:" + r.id)) r.photo = false; }); state.log.forEach(l => { if(l.photo && !have.has("l:" + l.id)) l.photo = false; }); }
+  saveMine(); save(); renderSaved();
+  if(state.view === "mine") renderMine();
+  if(state.view === "log") renderLog();
+  if(state.view === "videos") renderVideos();
+  if(state.view === "dough") update();
+  const pl = (k, w) => `${k} ${w}${k === 1 ? "" : "s"}`;
+  const say = (a, u, d, what) => [a && `${pl(a, "new " + what)}`, u && `${pl(u, what)} updated`, d && `${pl(d, what)} deleted`].filter(Boolean).join(", ");
+  const parts = [say(n.radd, n.rupd, n.rdel, "recipe"), say(n.ladd, n.lupd, n.ldel, "bake"), say(n.fadd, n.fupd, 0, "formula"), say(n.vadd, n.vupd, n.vdel, "video"), n.pics && pl(n.pics, "photo")].filter(Boolean);
+  return parts.length ? "Merged: " + parts.join("; ") + "." : "Everything in that file was already here.";
+}
+function renderSyncHint(){
+  const el = $("mineSyncHint"); if(!el) return;
+  const days = state.lastSync ? Math.floor((Date.now() - state.lastSync) / 864e5) : null;
+  const old = mine.length && (days == null || days > 30);
+  el.textContent = old ? (days == null ? "Not backed up yet. Recipes live only in this browser." : `Last sync file sent ${days} days ago.`) : "Recipes are saved in this browser only.";
+  el.classList.toggle("warn", !!old);
+}
+async function renderSync(){
+  const c = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  $("syncCounts").innerHTML = [["My recipes", c(mine.length, "recipe")], ["Saved formulas", c(state.saved.length, "formula")], ["Bake log", c(state.log.length, "bake")], ["Videos", c(state.videos.length, "video")], ["Photos", c(nPhotos(), "photo")], ["Discard jar", c(state.starter.jar.length, "entry").replace("entrys", "entries")]]
+    .map(([a, b]) => `<div class="tidyrow"><span>${a}</span><b>${b}</b></div>`).join("") +
+    `<div class="total"><span>Last sync file sent</span><b>${state.lastSync ? new Date(state.lastSync).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}) : "never"}</b></div>`;
+  prepareSync();
+  let used = "", persisted = false;
+  try{ if(navigator.storage && navigator.storage.estimate){ const e = await navigator.storage.estimate(); used = mb(e.usage || 0); } }catch(e){}
+  try{ if(navigator.storage && navigator.storage.persisted) persisted = await navigator.storage.persisted(); }catch(e){}
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = window.matchMedia && matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  $("storageInfo").innerHTML = (used ? `<p>This app is using <b>${used}</b> on this device.${persisted ? " The browser has marked it as protected." : ""}</p>` : "") +
+    (ios && !standalone ? `<p><b>iPhone and iPad:</b> Safari can clear a website's saved data if you don't open it for a few weeks. Adding it to your Home Screen prevents that: tap the share button, then <b>Add to Home Screen</b>, and open the app from that icon from now on.</p><p class="hint">Data saved in Safari and in the Home Screen app are separate. Send a sync file from Safari first, then open it in the Home Screen app.</p>`
+      : `<p>Send yourself a sync file now and then (email it to yourself or keep it in iCloud Drive). If this browser's data ever gets cleared, open that file to get everything back.</p>`);
+}
+
+/* ---------- Keep screen on ---------- */
+let wakeLock = null, wantWake = false;
+async function requestWake(){
+  try{ wakeLock = await navigator.wakeLock.request("screen"); return true; }catch(e){ return false; }
+}
+async function toggleWake(){
+  const b = $("wake");
+  if(!("wakeLock" in navigator)){ toast("This browser can't keep the screen on."); return; }
+  if(wantWake){ wantWake = false; if(wakeLock){ wakeLock.release().catch(() => {}); wakeLock = null; } }
+  else { wantWake = await requestWake(); if(!wantWake) toast("The browser blocked keeping the screen on here."); }
+  b.setAttribute("aria-pressed", wantWake);
+  b.textContent = wantWake ? "☀︎ Screen stays on" : "☀︎ Keep screen on";
+}
+document.addEventListener("visibilitychange", () => { if(wantWake && document.visibilityState === "visible") requestWake(); });
+
 const YEAST_MULT = {instant:1, active:1.25, fresh:3};
 const YEAST_NAME = {instant:"Instant yeast", active:"Active dry yeast", fresh:"Fresh yeast"};
 
-let state = {cat:"pizza", styleId:"neapolitan", count:4, unit:250, waste:2, yeast:"instant", discard:0, people:0, oven:"electric", view:"dough", lastLevain:0, starter:null, pcts:{}};
+let state = {cat:"pizza", styleId:"neapolitan", count:4, unit:250, waste:2, yeast:"instant", discard:0, people:0, oven:"electric", view:"dough", lastLevain:0, starter:null, units:"g", saved:[], log:[], plan:null, pcts:{}, gone:{}, lastSync:0, videos:[], freeze:null};
 const STARTER_DEFAULTS = () => ({keep:20, ratio:1, need:0, lratio:1, revive:[], jar:[]});
 const $ = id => document.getElementById(id);
 const style = () => STYLES[state.cat].find(s => s.id === state.styleId) || STYLES[state.cat][0];
@@ -420,6 +1633,15 @@ function load(){
   }catch(e){ applyDefaults(); }
   state.starter = Object.assign(STARTER_DEFAULTS(), state.starter || {});
   if(state.oven === "pizza" || !["home", "electric", "gas"].includes(state.oven)) state.oven = "electric";
+  state.plan = Object.assign({eat:"", ferm:24, tk:72, tf:38}, state.plan || {});
+  if(state.plan.eat && new Date(state.plan.eat).getTime() < Date.now()) state.plan.eat = "";
+  state.saved = state.saved || []; state.log = state.log || [];
+  if(!state.gone || typeof state.gone !== "object") state.gone = {};
+  if(!Array.isArray(state.videos)) state.videos = [];
+  state.freeze = Object.assign({mix:"", thaw:"fridge", keep:1}, state.freeze || {});
+  if(state.freeze.mix && new Date(state.freeze.mix).getTime() < Date.now() - 7 * 864e5) state.freeze.mix = "";
+  if(state.view === "sync") state.view = "dough";
+  if(!["g", "gv", "oz"].includes(state.units)) state.units = "g";
 }
 function peopleCount(st){ return Math.max(1, Math.ceil(state.people * st.pp - 1e-9)); }
 function applyDefaults(){
@@ -446,6 +1668,11 @@ function renderForm(){
   $("discardField").style.display = st.ing.water ? "" : "none";
   $("discard").value = state.discard || "";
   $("oven").value = state.oven;
+  $("units").value = state.units;
+  $("ferm").value = String(state.plan.ferm);
+  $("eatAt").value = state.plan.eat || defaultEat();
+  $("tk").value = state.plan.tk; $("tf").value = state.plan.tf;
+  renderSize(st); renderSaved();
   $("people").value = state.people || "";
   const per = 1 / st.pp;
   $("ppHelp").textContent = per >= 1
@@ -491,7 +1718,7 @@ function renderNotes(st, D){
   } else {
     bake = `<p class="bake"><b>Home oven:</b> ${st.bake}</p>`;
   }
-  $("notes").innerHTML = `<p><b>Flour:</b> ${st.flour}</p><ol>${ol}</ol>${bake}${tip}`;
+  $("notes").innerHTML = `<p><b>Flour:</b> ${st.flour}</p><ol>${ol}</ol>${bake}${tip}${extrasHTML(st)}`;
 }
 
 function update(){
@@ -518,11 +1745,11 @@ function update(){
     grams.water -= D / 2;
     grams.discard = D;
   }
-  $("flourG").innerHTML = `${fmt(grams.flour)}<small>g</small>`;
-  $("flourType").textContent = st.flour + (D > 0 ? ` (plus ${fmt(D / 2)} g already in the discard)` : "");
+  $("flourG").innerHTML = state.units === "oz" ? `${fmtOz(grams.flour)}<small>oz</small>` : `${fmt(grams.flour)}<small>g</small>`;
+  $("flourType").textContent = st.flour + (D > 0 ? ` (plus ${fmtW(D / 2)} already in the discard)` : "") + (state.units === "gv" ? ` · about ${vol(grams.flour, GPT.flour)}` : "");
   if($("row-discard")){
     $("row-discard").classList.toggle("hide", !(D > 0));
-    $("g-discard").innerHTML = `${fmt(D)}<small> g</small>`;
+    $("g-discard").innerHTML = amtHTML("discard", D);
   }
   const help = $("discardHelp");
   help.classList.toggle("warn", capped);
@@ -533,17 +1760,13 @@ function update(){
   if(st.id === "sourdough") state.lastLevain = Math.round(grams.levain);
   let total = 0;
   for(const k in grams) total += grams[k];
-  $("total").textContent = fmt(total) + " g";
-  $("totalTop").textContent = fmt(total) + " g";
+  $("total").textContent = fmtW(total);
+  $("totalTop").textContent = fmtW(total);
+  $("unitHint").textContent = state.units === "gv" ? "Cup and spoon amounts are approximate; a kitchen scale is much more accurate. Flour assumes spooned and leveled (125 g per cup); salt is table salt." : state.units === "oz" ? "Ounces here are weight ounces, not fluid ounces." : "";
 
   for(const k in st.ing){
-    let extra = "";
-    if(k === "yeast"){
-      $("n-" + k).firstChild.textContent = YEAST_NAME[state.yeast];
-      if(state.yeast !== "fresh") extra = ` <small>≈ ${(grams[k] / 3.1).toFixed(2)} tsp</small>`;
-    }
-    if(k === "eggs") extra = ` <small>≈ ${(grams[k] / 50).toFixed(1)} eggs</small>`;
-    $("g-" + k).innerHTML = `${fmt(grams[k])}<small> g</small>${extra}`;
+    if(k === "yeast") $("n-" + k).firstChild.textContent = YEAST_NAME[state.yeast];
+    $("g-" + k).innerHTML = amtHTML(k, grams[k]);
   }
 
   // Effective hydration: water + 87% of milk + 75% of eggs + half of levain, over flour incl. levain flour
@@ -554,12 +1777,15 @@ function update(){
   const parts = [["flour", "var(--c-flour)"]].concat(Object.keys(st.ing).map(k => [k, ING[k].color]));
   if(D > 0) parts.push(["discard", "var(--c-discard)"]);
   $("bar").innerHTML = parts.map(([k, c]) => `<span style="flex:0 0 ${total ? grams[k] / total * 100 : 0}%;background:${c}"></span>`).join("");
+  lastCalc = {grams, total, D};
+  renderPlan(st, flour);
+  renderFreeze(st);
   save();
 }
 
 document.querySelector(".seg").addEventListener("click", e => {
   const b = e.target.closest("button"); if(!b) return;
-  if(b.dataset.view === "starter"){ state.view = "starter"; showView(); save(); return; }
+  if(b.dataset.view){ state.view = b.dataset.view; showView(); save(); return; }
   state.view = "dough";
   if(b.dataset.cat !== state.cat){
     state.cat = b.dataset.cat; state.styleId = STYLES[state.cat][0].id;
@@ -568,13 +1794,21 @@ document.querySelector(".seg").addEventListener("click", e => {
   showView(); save();
 });
 
+const VIEWS = {dough:"doughView", starter:"starterView", recipes:"recipesView", mine:"mineView", videos:"videosView", log:"logView", sync:"syncView"};
 function showView(){
-  const isStarter = state.view === "starter";
+  if(!VIEWS[state.view]) state.view = "dough";
   document.querySelectorAll(".seg button").forEach(b =>
-    b.setAttribute("aria-pressed", isStarter ? b.dataset.view === "starter" : b.dataset.cat === state.cat));
-  $("doughView").hidden = isStarter;
-  $("starterView").hidden = !isStarter;
-  if(isStarter) renderStarter();
+    b.setAttribute("aria-pressed", b.dataset.view ? b.dataset.view === state.view : (state.view === "dough" && b.dataset.cat === state.cat)));
+  for(const v in VIEWS) $(VIEWS[v]).hidden = v !== state.view;
+  if(state.view === "starter") renderStarter();
+  if(state.view === "recipes") renderRecipes();
+  if(state.view === "mine") renderMine();
+  if(state.view === "log") renderLog();
+  if(state.view === "sync") renderSync();
+  if(state.view === "videos") renderVideos();
+  $("syncBtn").setAttribute("aria-pressed", state.view === "sync");
+  const active = document.querySelector('.seg button[aria-pressed="true"]');
+  if(active && active.scrollIntoView) active.scrollIntoView({block:"nearest", inline:"nearest"});
 }
 
 /* ---------- Starter tools ---------- */
@@ -707,7 +1941,277 @@ $("waste").addEventListener("change", e => { state.waste = parseFloat(e.target.v
 $("yeastType").addEventListener("change", e => { state.yeast = e.target.value; update(); });
 $("reset").addEventListener("click", () => { applyDefaults(); renderForm(); });
 
-load(); renderChips(); renderForm(); showView();
+/* ---------- Events for new features ---------- */
+$("wake").addEventListener("click", toggleWake);
+$("units").addEventListener("change", e => { state.units = e.target.value; update(); });
+$("notes").addEventListener("click", e => { const b = e.target.closest("[data-rec]"); if(b) openRecipe(b.dataset.rec); });
+$("discardRecs").addEventListener("click", e => { const b = e.target.closest("[data-rec]"); if(b) openRecipe(b.dataset.rec); });
+
+$("eatAt").addEventListener("change", e => { state.plan.eat = e.target.value; update(); });
+$("ferm").addEventListener("change", e => { state.plan.ferm = +e.target.value; if(!state.plan.eat){ $("eatAt").value = ""; } update(); });
+$("tk").addEventListener("input", e => { state.plan.tk = +e.target.value || 72; update(); });
+$("tf").addEventListener("input", e => { state.plan.tf = +e.target.value || 38; update(); });
+$("plan").addEventListener("click", e => {
+  const b = e.target.closest("#applyYeast"); if(!b) return;
+  state.pcts.yeast = +b.dataset.y; renderForm(); toast("Yeast updated for your schedule.");
+});
+$("sharePlan").addEventListener("click", () => {
+  if(!lastPlan) return;
+  const st = style();
+  shareText(`${st.name} schedule`, `${st.name}: ${state.count} × ${state.unit} g\n\n` + lastPlan.steps.map(([t, s]) => `${fmtTime(t)}: ${s}`).join("\n"));
+});
+
+$("szShape").addEventListener("change", updateSize);
+$("szA").addEventListener("input", updateSize);
+$("szB").addEventListener("input", updateSize);
+$("szUse").addEventListener("click", () => {
+  const g = +$("szUse").dataset.g; if(!g) return;
+  state.unit = g; $("unit").value = g; update(); toast(`Set to ${g} g per ${style().unitWord}.`);
+});
+
+$("saveFormula").addEventListener("click", () => {
+  const st = style();
+  const name = window.prompt("Name this formula:", `${st.name} ${state.pcts.water != null ? state.pcts.water + "%" : ""}`.trim());
+  if(!name || !name.trim()) return;
+  saveFormula({cat:state.cat, styleId:state.styleId, pcts:state.pcts, count:state.count, unit:state.unit, yeast:state.yeast, waste:state.waste}, name.trim());
+  toast("Saved.");
+});
+$("saved").addEventListener("click", e => {
+  const l = e.target.closest("[data-load]"), d = e.target.closest("[data-del]");
+  if(l){
+    const f = state.saved[+l.dataset.load];
+    if(applyFormula(f)) toast(`Loaded "${f.name}".`);
+  } else if(d){
+    const f = state.saved[+d.dataset.del];
+    if(confirm(`Delete "${f.name}"?`)){ state.saved.splice(+d.dataset.del, 1); state.gone["f:" + f.name] = Date.now(); save(); renderSaved(); }
+  }
+});
+$("shareDough").addEventListener("click", () => shareText(style().name, doughText()));
+$("linkFormula").addEventListener("click", () => {
+  const f = doughSnapshot(); delete f.hyd; delete f.oven;
+  shareLink(`${f.name} formula`, appURL() + "#f=j" + b64u(new TextEncoder().encode(JSON.stringify(f))));
+});
+$("logThis").addEventListener("click", () => {
+  resetLogForm();
+  logSnap = doughSnapshot();
+  $("lWhat").value = snapText(logSnap);
+  state.view = "log"; showView(); save(); $("lNotes").focus();
+});
+
+$("recSearch").addEventListener("input", renderRecipes);
+$("recList").addEventListener("click", e => {
+  const d = e.target.closest("details.rec"); if(!d) return;
+  const r = RECIPES.find(x => x.id === d.dataset.id); if(!r) return;
+  const sc = e.target.closest("[data-sc]");
+  if(sc){
+    const f = recScale[r.id] || 1;
+    let i = SCALES.findIndex(x => x >= f - 1e-9); if(i < 0) i = SCALES.length - 1;
+    if(sc.dataset.sc === "+") recScale[r.id] = SCALES[Math.min(SCALES.length - 1, SCALES[i] > f + 1e-9 ? i : i + 1)];
+    else recScale[r.id] = SCALES[Math.max(0, i - 1)];
+  } else if(e.target.closest("[data-match]")){
+    recScale[r.id] = Math.max(0.25, Math.round(state.count / r.yld * 100) / 100);
+  } else if(e.target.closest("[data-share]")){ shareText(r.name, recipeText(r)); return; }
+  else return;
+  d.querySelector(".recbody").innerHTML = recipeBody(r);
+});
+
+$("mineSearch").addEventListener("input", renderMine);
+$("mineCat").addEventListener("change", renderMine);
+$("newRec").addEventListener("click", () => openEditor(null));
+$("pasteRec").addEventListener("click", () => { $("editor").hidden = true; $("pasteBox").hidden = false; $("pasteText").value = ""; $("pasteText").focus(); });
+$("pasteCancel").addEventListener("click", () => { $("pasteBox").hidden = true; });
+$("pasteFill").addEventListener("click", () => {
+  const t = $("pasteText").value.trim(); if(!t){ toast("Paste a recipe first."); return; }
+  openEditor(parsePasted(t)); editingId = null; $("editTitle").textContent = "Check and save";
+});
+$("editCancel").addEventListener("click", () => { $("editor").hidden = true; editingId = null; });
+$("editSave").addEventListener("click", async () => {
+  const r = {};
+  for(const id in FIELDS) r[FIELDS[id]] = $(id).value.trim();
+  r.categories = cleanCats(r.categories);
+  if(!r.name){ toast("Give the recipe a name."); $("rName").focus(); return; }
+  r.u = Date.now();
+  let rec;
+  if(editingId){ rec = mine.find(x => x.id === editingId); if(rec) Object.assign(rec, r); }
+  if(!rec){ rec = Object.assign({id:uid()}, r); mine.push(rec); }
+  try{ const p = await recPhoto.commit("r:" + rec.id); if(p !== null) rec.photo = p; }
+  catch(e){ toast("The photo couldn't be saved on this device."); }
+  if(saveMine()){ $("editor").hidden = true; editingId = null; renderMine(); toast("Recipe saved."); }
+});
+$("mineList").addEventListener("toggle", e => {
+  const d = e.target; if(!d.open || !d.matches || !d.matches("details.rec")) return;
+  const h = d.querySelector("img[data-hero]:not([src])");
+  if(h) photoURL(h.dataset.hero).then(u => { if(u) h.src = u; else h.hidden = true; });
+  const r = mine.find(x => x.id === d.dataset.mine);
+  if(r && !d.dataset.link){
+    const o = {}; ["name", "categories", "servings", "time", "source", "ingredients", "directions", "notes"].forEach(k => { if(r[k]) o[k] = r[k]; });
+    packLink(o).then(code => { d.dataset.link = appURL() + "#r=" + code; });
+  }
+}, true);
+$("mineList").addEventListener("click", e => {
+  const d = e.target.closest("details.rec"); if(!d) return;
+  const r = mine.find(x => x.id === d.dataset.mine); if(!r) return;
+  if(e.target.closest("[data-edit]")) openEditor(r);
+  else if(e.target.closest("[data-mshare]")) shareText(r.name, [r.name, r.servings && "Serves " + r.servings, r.time, "", r.ingredients && "Ingredients:\n" + r.ingredients, "", r.directions && "Directions:\n" + r.directions, r.notes && "\nNotes:\n" + r.notes, r.source && "\nSource: " + r.source].filter(x => x !== undefined && x !== null && x !== false).join("\n").replace(/\n{3,}/g, "\n\n").trim());
+  else if(e.target.closest("[data-mlink]")){
+    if(d.dataset.link) shareLink(r.name, d.dataset.link); else toast("Getting the link ready. Tap again.");
+  }
+  else if(e.target.closest("[data-mdel]")){ if(confirm(`Delete "${r.name}"?`)){ deleteRecipe(r); saveMine(); save(); renderMine(); } }
+});
+$("impFile").addEventListener("change", e => { const f = e.target.files[0]; if(f) importFile(f); e.target.value = ""; });
+document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if(g){ state.view = g.dataset.goto; showView(); save(); window.scrollTo(0, 0); } });
+$("syncBtn").addEventListener("click", () => { state.view = state.view === "sync" ? "dough" : "sync"; showView(); save(); window.scrollTo(0, 0); });
+$("syncPhotos").addEventListener("change", prepareSync);
+$("syncSend").addEventListener("click", () => {
+  if(!syncFile) return;
+  navigator.share({files:[syncFile], title:"Dough calculator sync file"}).then(markSent).catch(err => { if(err && err.name !== "AbortError") toast("Couldn't open the share sheet. Use Save file instead."); });
+});
+$("syncDownload").addEventListener("click", () => {
+  if(!syncFile) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(syncFile); a.download = syncFile.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  markSent(); toast("Saved " + syncFile.name);
+});
+$("syncFile").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if(!f) return;
+  const msg = $("syncMsg"); msg.classList.remove("warn"); progress(msg, "Reading " + f.name + "…");
+  try{
+    const raw = await readAny(f);
+    const b = raw.length === 1 && raw[0] && raw[0].app === "dough-calculator" ? raw[0] : null;
+    if(b) msg.textContent = await mergeBackup(b);
+    else if(raw.some(p => p && (p.ingredients || p.directions))){ msg.textContent = "That's a Paprika file. Importing it under My recipes…"; state.view = "mine"; showView(); await importFile(f); }
+    else { msg.classList.add("warn"); msg.textContent = "That isn't a dough calculator sync file."; }
+  }catch(err){ msg.classList.add("warn"); msg.textContent = "Couldn't read that file: " + err.message; }
+  renderSync();
+});
+
+$("stars").addEventListener("click", e => { const b = e.target.closest("[data-s]"); if(!b) return; logRating = +b.dataset.s === logRating ? 0 : +b.dataset.s; renderStars(); });
+$("logSave").addEventListener("click", async () => {
+  const what = $("lWhat").value.trim(), notes = $("lNotes").value.trim();
+  if(!what && !notes && logPhoto.blob == null){ toast("Add what you baked or a note."); return; }
+  let l = editingLog && state.log.find(x => x.id === editingLog);
+  const fields = {date:$("lDate").value || todayISO(), what, rating:logRating, notes, f:logSnap || null, u:Date.now()};
+  if(l) Object.assign(l, fields); else { l = Object.assign({id:uid(), t:Date.now()}, fields); state.log.push(l); }
+  try{ const p = await logPhoto.commit("l:" + l.id); if(p !== null) l.photo = p; }
+  catch(e){ toast("The photo couldn't be saved on this device."); }
+  const was = !!editingLog;
+  resetLogForm(); save(); renderLog(); toast(was ? "Entry updated." : "Bake logged.");
+});
+$("logCancel").addEventListener("click", () => { resetLogForm(); renderLog(); });
+$("lSnapDel").addEventListener("click", () => { logSnap = null; renderSnap(); });
+$("logStyle").addEventListener("change", renderLog);
+$("logSort").addEventListener("change", renderLog);
+$("logList").addEventListener("click", e => {
+  const card = e.target.closest(".logcard"); if(!card) return;
+  const l = state.log.find(x => x.id === card.dataset.lid); if(!l) return;
+  if(e.target.closest("[data-ldel]")){
+    if(confirm("Delete this entry?")){ state.log = state.log.filter(x => x.id !== l.id); state.gone["l:" + l.id] = Date.now(); if(l.photo) setPhoto("l:" + l.id, null).catch(() => {}); if(editingLog === l.id) resetLogForm(); save(); renderLog(); }
+  } else if(e.target.closest("[data-ledit]")) editLog(l);
+  else if(e.target.closest("[data-lload]")){ if(applyFormula(l.f)) toast(`Loaded your ${l.f.name} from ${l.date}.`); }
+  else if(e.target.closest("[data-lsave]")){
+    const name = window.prompt("Name this formula:", `${l.f.name} ${l.date}`);
+    if(name && name.trim()){ saveFormula(l.f, name.trim()); toast("Saved to your formulas."); }
+  } else if(e.target.matches("img.logphoto")) e.target.classList.toggle("big");
+});
+
+/* ---------- Day / Night / Auto theme ---------- */
+const THEMES = [["auto", "◐ Auto"], ["light", "☀︎ Day"], ["dark", "☾ Night"]];
+function applyTheme(t){
+  if(t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme");
+  const th = THEMES.find(x => x[0] === t) || THEMES[0];
+  $("themeBtn").textContent = th[1];
+  $("themeBtn").title = t === "auto" ? "Following your phone's light or dark setting. Tap to switch." : "Tap to switch the color theme.";
+}
+let theme = "auto";
+try{ theme = localStorage.getItem("dough-calc-theme") || "auto"; }catch(e){}
+applyTheme(theme);
+$("themeBtn").addEventListener("click", () => {
+  theme = THEMES[(THEMES.findIndex(x => x[0] === theme) + 1) % THEMES.length][0];
+  try{ localStorage.setItem("dough-calc-theme", theme); }catch(e){}
+  applyTheme(theme); toast(theme === "auto" ? "Theme follows your device." : theme === "light" ? "Day theme." : "Night theme.");
+});
+
+/* ---------- Freeze + video events ---------- */
+$("fzMix").addEventListener("change", e => { state.freeze.mix = e.target.value; update(); });
+$("fzThaw").addEventListener("change", e => { state.freeze.thaw = e.target.value; update(); });
+$("fzKeep").addEventListener("change", e => { state.freeze.keep = +e.target.value; update(); });
+$("shareFreeze").addEventListener("click", () => {
+  if(!lastFreeze) return;
+  const strip = h => h.replace(/<[^>]+>/g, "");
+  const st = lastFreeze.st;
+  shareText(`${st.name} freeze plan`, `${st.name}: ${state.count} × ${state.unit} g, ${(state.pcts.yeast || 0).toFixed(2)}% yeast\n\n` +
+    lastFreeze.steps.map(([t, s]) => `${fmtTime(t)}: ${strip(s)}`).join("\n") + `\nUse by ${lastFreeze.useBy}.\n\n` + lastFreeze.thawRows.map(([h, s]) => `${h}: ${strip(s)}`).join("\n"));
+});
+$("notes").addEventListener("click", e => { const b = e.target.closest("[data-video]"); if(b) openVideo(b.dataset.video); });
+$("vUrl").addEventListener("input", onVideoURL);
+$("vPaste").addEventListener("click", async () => {
+  try{ const t = await navigator.clipboard.readText(); if(t){ $("vUrl").value = cleanURL(t) || t.trim(); onVideoURL(); } }
+  catch(e){ $("vUrl").focus(); toast("Long-press the box and choose Paste."); }
+});
+$("vSave").addEventListener("click", () => {
+  const url = cleanURL($("vUrl").value), yt = ytId(url);
+  if(!yt){ $("vUrlMsg").classList.add("warn"); $("vUrlMsg").textContent = "Paste a YouTube video link first."; $("vUrl").focus(); return; }
+  const fields = {url, yt, start:ytStart(url), title:$("vTitle").value.trim(), for:$("vFor").value, notes:$("vNotes").value.trim(), u:Date.now()};
+  const v = editingVid && state.videos.find(x => x.id === editingVid);
+  if(v) Object.assign(v, fields);
+  else {
+    const dup = state.videos.find(x => x.yt === yt);
+    if(dup && !confirm(`You already saved this video${dup.title ? ` ("${dup.title}")` : ""}. Save it again?`)) return;
+    state.videos.push(Object.assign({id:uid(), t:Date.now()}, fields));
+  }
+  const was = !!v; resetVideoForm(); save(); renderVideos(); toast(was ? "Video updated." : "Video saved.");
+});
+$("vCancel").addEventListener("click", resetVideoForm);
+$("vSearch").addEventListener("input", renderVideos);
+$("vFilter").addEventListener("change", renderVideos);
+$("vList").addEventListener("click", e => {
+  const c = e.target.closest(".vcard"); if(!c) return;
+  const v = state.videos.find(x => x.id === c.dataset.vid); if(!v) return;
+  if(e.target.closest("[data-vplay]")){
+    const open = c.querySelector(".vembed");
+    if(open){ open.remove(); c.querySelector("button[data-vplay]").textContent = "Watch here"; return; }
+    c.insertAdjacentHTML("afterbegin", `<div class="vembed"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v.yt)}?playsinline=1&rel=0${v.start ? "&start=" + v.start : ""}" title="${esc(v.title || "YouTube video")}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`);
+    c.querySelector("button[data-vplay]").textContent = "Close player";
+  } else if(e.target.closest("[data-vedit]")){
+    editingVid = v.id; $("vUrl").value = v.url; $("vTitle").value = v.title || ""; $("vFor").value = v.for || ""; $("vNotes").value = v.notes || ""; $("vUrlMsg").textContent = "";
+    $("vEditTitle").textContent = "Edit video"; $("vSave").textContent = "Save changes"; $("vCancel").hidden = false;
+    $("vEditor").scrollIntoView({behavior:"smooth", block:"start"});
+  } else if(e.target.closest("[data-vdel]")){
+    if(confirm(`Delete "${v.title || "this video"}"?`)){ state.videos = state.videos.filter(x => x.id !== v.id); state.gone["v:" + v.id] = Date.now(); if(editingVid === v.id) resetVideoForm(); save(); renderVideos(); }
+  }
+});
+
+/* ---------- Opening a shared link ---------- */
+let linkFormulaData = null;
+async function openSharedLink(){
+  const m = /^#([fr])=([A-Za-z0-9_-]+)$/.exec(location.hash); if(!m) return;
+  history.replaceState(null, "", appURL());
+  try{
+    const o = await unpackLink(m[2]);
+    if(m[1] === "f"){
+      if(!applyFormula(o)) return;
+      linkFormulaData = o;
+      $("linkBannerText").textContent = `Formula from a link: ${o.name}, ${o.count} × ${o.unit} g`;
+      $("linkBanner").hidden = false;
+    } else {
+      state.view = "mine"; showView();
+      openEditor({name:o.name || "", categories:o.categories || "", servings:o.servings || "", time:o.time || "", source:o.source || "", ingredients:o.ingredients || "", directions:o.directions || "", notes:o.notes || ""}, "Recipe from a link: check and save");
+    }
+  }catch(e){ toast(e.message && /browser/.test(e.message) ? e.message : "That link looks damaged. Ask for it again."); }
+}
+$("linkSave").addEventListener("click", () => {
+  if(!linkFormulaData) return;
+  const name = window.prompt("Name this formula:", linkFormulaData.name);
+  if(name && name.trim()){ saveFormula(linkFormulaData, name.trim()); $("linkBanner").hidden = true; toast("Saved."); }
+});
+$("linkDismiss").addEventListener("click", () => { $("linkBanner").hidden = true; });
+window.addEventListener("hashchange", openSharedLink);
+
+recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); initTidy(); renderVideoForm();
+loadMine(); load(); renderChips(); renderForm(); showView(); openSharedLink();
+if(navigator.storage && navigator.storage.persist && (mine.length || state.log.length)) navigator.storage.persist().catch(() => {});
 </script>
 </body>
 </html>
