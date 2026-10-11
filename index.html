@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dough Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5EF; --surface:#FFFFFF; --ink:#1F2A2E; --muted:#5E6B66; --line:#D5DACF;
+  --basil:#3E6B48; --basil-soft:#E3ECE2; --semolina:#E8C547; --tomato:#B8432F;
+  --c-flour:#D9CBA3; --c-water:#6F9FB8; --c-salt:#9AA5A0; --c-yeast:#C9A227; --c-oil:#8C9A3A;
+  --c-sugar:#E2B4A6; --c-discard:#8E7CB0; --c-yogurt:#CFC8B8; --c-honey:#D49A1E; --c-butter:#E8C547; --c-milk:#B9CFDA; --c-eggs:#E39A3B; --c-levain:#A88A6A;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#152024; --surface:#1E2B30; --ink:#E8EEE6; --muted:#9DAAA4; --line:#33444A;
+    --basil:#86B892; --basil-soft:#24382C; --c-flour:#B8AA82;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#152024; --surface:#1E2B30; --ink:#E8EEE6; --muted:#9DAAA4; --line:#33444A;
+  --basil:#86B892; --basil-soft:#24382C; --c-flour:#B8AA82;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Bricolage Grotesque",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.45; -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:760px; margin:0 auto; padding:20px 16px 48px}
+header h1{font-size:clamp(2rem,7vw,3rem); font-weight:800; letter-spacing:-.02em; line-height:1; margin:8px 0 6px}
+header p{margin:0; color:var(--muted); max-width:56ch}
+section{margin-top:22px}
+h2{font-size:1.05rem; font-weight:600; margin:0 0 10px}
+.seg{display:inline-flex; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:4px; gap:4px}
+.seg button{border:0; background:transparent; color:var(--ink); font:inherit; font-weight:600; padding:8px 18px; border-radius:999px; cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--basil); color:var(--bg)}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chips button{font:inherit; font-size:.95rem; border:1px solid var(--line); background:var(--surface); color:var(--ink); padding:8px 14px; border-radius:10px; cursor:pointer}
+.chips button[aria-pressed="true"]{border-color:var(--basil); background:var(--basil-soft); box-shadow:inset 0 0 0 1px var(--basil)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--semolina); outline-offset:2px}
+.qty{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
+.field{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+.field label{display:block; font-size:.82rem; color:var(--muted); margin-bottom:4px}
+.field input,.field select{width:100%; font:inherit; font-size:1.15rem; font-weight:600; border:0; background:transparent; color:var(--ink); padding:0; font-variant-numeric:tabular-nums}
+.field select{font-size:1rem}
+.stepper{display:flex; align-items:center; gap:6px}
+.stepper button{flex:none; width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font:inherit; font-size:1.1rem; cursor:pointer; line-height:1}
+.stepper input{text-align:center}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:16px; overflow:hidden}
+.flourhead{padding:18px 18px 14px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap}
+.flourhead .big{font-size:clamp(2.6rem,11vw,3.6rem); font-weight:800; line-height:.95; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.flourhead .big small{font-size:.4em; font-weight:600; margin-left:4px}
+.flourhead .sub{color:var(--muted); font-size:.92rem}
+.flourhead .meta{text-align:right; font-size:.92rem; color:var(--muted)}
+.flourhead .meta b{color:var(--ink); font-variant-numeric:tabular-nums}
+.bar{display:flex; height:14px; width:100%}
+.bar span{display:block; height:100%; transition:flex-basis .25s ease}
+.row{display:grid; grid-template-columns:14px 1fr auto; column-gap:12px; row-gap:6px; align-items:center; padding:12px 18px; border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.dot{width:14px; height:14px; border-radius:4px}
+.row .name{font-weight:600}
+.row .name em{font-style:normal; font-weight:400; color:var(--muted); font-size:.85rem; margin-left:6px}
+.row .grams{font-size:1.35rem; font-weight:800; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap}
+.row .grams small{font-size:.65em; font-weight:600; color:var(--muted)}
+.row .ctl{grid-column:2 / 4; display:flex; align-items:center; gap:10px}
+.row input[type=range]{flex:1; accent-color:var(--basil); min-width:0}
+.pct{display:flex; align-items:center; gap:2px; flex:none}
+.pct input{width:62px; font:inherit; font-weight:600; text-align:right; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); padding:4px 6px; font-variant-numeric:tabular-nums}
+.total{display:flex; justify-content:space-between; padding:14px 18px; background:var(--basil-soft); font-weight:600}
+.total b{font-variant-numeric:tabular-nums}
+.actions{display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:10px; flex-wrap:wrap}
+.linkbtn{font:inherit; background:none; border:0; color:var(--basil); font-weight:600; cursor:pointer; padding:6px 0; text-decoration:underline; text-underline-offset:3px}
+.hint{color:var(--muted); font-size:.88rem}
+.notes{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px 18px}
+.notes p{margin:0 0 10px}
+.notes ol{margin:0; padding-left:1.3em}
+.notes li{margin:4px 0}
+.notes .bake{margin-top:12px; padding-top:12px; border-top:1px solid var(--line)}
+.row.hide{display:none}
+.field .help{font-size:.82rem; color:var(--muted); margin-top:4px}
+.field .help.warn{color:var(--tomato)}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.result{margin-top:10px}
+.check{display:flex; gap:12px; align-items:flex-start; padding:12px 18px; border-bottom:1px solid var(--line); cursor:pointer}
+.check:last-child{border-bottom:0}
+.check input{flex:none; width:18px; height:18px; margin-top:3px; accent-color:var(--basil)}
+.check em{font-style:normal; color:var(--basil); font-size:.85rem; white-space:nowrap}
+.check.done span{color:var(--muted)}
+.jarrow{display:grid; grid-template-columns:auto 1fr auto auto; gap:12px; align-items:center; padding:10px 18px; border-bottom:1px solid var(--line)}
+.jarrow span:nth-child(2){color:var(--muted); font-size:.9rem}
+.jarrow.old span:nth-child(2){color:var(--tomato); font-weight:600}
+.jarrow b{font-variant-numeric:tabular-nums}
+.x{border:0; background:none; color:var(--muted); font-size:1.4rem; line-height:1; cursor:pointer; padding:0 4px}
+.empty{margin:0; padding:14px 18px; color:var(--muted)}
+.addrow{display:flex; gap:10px; align-items:stretch}
+.addrow .field{flex:1}
+.btn{font:inherit; font-weight:600; border:0; border-radius:12px; padding:10px 18px; background:var(--basil); color:var(--bg); cursor:pointer}
+.btn:disabled{opacity:.45; cursor:default}
+.hint.warn{color:var(--tomato); font-weight:600}
+@media (max-width:520px){
+  .qty{grid-template-columns:1fr 1fr}
+  .qty .field:last-child{grid-column:1 / 3}
+  .flourhead .meta{text-align:left}
+}
+@media (prefers-reduced-motion:reduce){.bar span{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Dough calculator</h1>
+    <p>Pick a pizza or bread style, set how much you want, and get the gram weights to mix. Every percentage is relative to the flour.</p>
+  </header>
+
+  <section>
+    <div class="seg" role="group" aria-label="Category">
+      <button type="button" data-cat="pizza" aria-pressed="true">Pizza</button>
+      <button type="button" data-cat="bread" aria-pressed="false">Bread</button>
+      <button type="button" data-view="starter" aria-pressed="false">Starter</button>
+    </div>
+  </section>
+
+  <div id="doughView">
+  <section>
+    <h2>Style</h2>
+    <div class="chips" id="styles" role="group" aria-label="Style"></div>
+  </section>
+
+  <section>
+    <h2>How much</h2>
+    <div class="qty">
+      <div class="field">
+        <label for="count" id="countLabel">Dough balls</label>
+        <div class="stepper">
+          <button type="button" id="minus" aria-label="Fewer">−</button>
+          <input id="count" type="number" inputmode="numeric" min="1" max="99" step="1">
+          <button type="button" id="plus" aria-label="More">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="unit" id="unitLabel">Grams per ball</label>
+        <input id="unit" type="number" inputmode="numeric" min="20" max="5000" step="5">
+      </div>
+      <div class="field">
+        <label for="waste">Extra for bowl loss</label>
+        <select id="waste">
+          <option value="0">None</option>
+          <option value="1">1%</option>
+          <option value="2" selected>2%</option>
+          <option value="3">3%</option>
+          <option value="5">5%</option>
+        </select>
+      </div>
+    </div>
+    <div class="two" style="margin-top:10px">
+      <div class="field">
+        <label for="people">People to feed</label>
+        <input id="people" type="number" inputmode="numeric" min="0" max="500" step="1" placeholder="optional">
+        <div class="help" id="ppHelp"></div>
+      </div>
+      <div class="field">
+        <label for="oven">Your oven</label>
+        <select id="oven"><option value="home">Home oven</option><option value="electric">Electric pizza oven</option><option value="gas">Gas or wood pizza oven</option></select>
+      </div>
+    </div>
+    <div class="field" id="yeastField" style="margin-top:10px">
+      <label for="yeastType">Yeast you have</label>
+      <select id="yeastType">
+        <option value="instant">Instant dry yeast</option>
+        <option value="active">Active dry yeast</option>
+        <option value="fresh">Fresh (cake) yeast</option>
+      </select>
+    </div>
+    <div class="field" id="discardField" style="margin-top:10px">
+      <label for="discard">Sourdough discard to use (g)</label>
+      <input id="discard" type="number" inputmode="numeric" min="0" max="5000" step="5" placeholder="0">
+      <div class="help" id="discardHelp">Half flour, half water. It comes out of the flour and water below, so the dough stays the same.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What to weigh</h2>
+    <div class="card">
+      <div class="flourhead">
+        <div>
+          <div class="big" id="flourG">0<small>g</small></div>
+          <div class="sub" id="flourType">Flour</div>
+        </div>
+        <div class="meta">
+          Hydration <b id="hyd">0%</b><br>
+          Total dough <b id="totalTop">0 g</b>
+        </div>
+      </div>
+      <div class="bar" id="bar" aria-hidden="true"></div>
+      <div id="rows"></div>
+      <div class="total"><span>Total dough</span><b id="total">0 g</b></div>
+    </div>
+    <div class="actions">
+      <span class="hint">Drag a slider or type a percentage to tweak the formula.</span>
+      <button type="button" class="linkbtn" id="reset">Reset to style defaults</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Method</h2>
+    <div class="notes" id="notes"></div>
+  </section>
+  </div>
+
+  <div id="starterView" hidden>
+    <section>
+      <h2>Feed your starter</h2>
+      <div class="two">
+        <div class="field"><label for="keepG">Starter to keep (g)</label><input id="keepG" type="number" inputmode="numeric" min="5" step="5"></div>
+        <div class="field"><label for="feedRatio">Feeding ratio</label>
+          <select id="feedRatio"><option value="1">1 : 1 : 1</option><option value="2">1 : 2 : 2</option><option value="5">1 : 5 : 5 (overnight)</option></select></div>
+      </div>
+      <div class="card result" id="feedOut"></div>
+    </section>
+
+    <section>
+      <h2>Build a levain</h2>
+      <div class="two">
+        <div class="field"><label for="levainNeed">Levain the recipe needs (g)</label><input id="levainNeed" type="number" inputmode="numeric" min="0" step="5"></div>
+        <div class="field"><label for="levainRatio">Build ratio</label>
+          <select id="levainRatio"><option value="1">1 : 1 : 1</option><option value="2">1 : 2 : 2</option><option value="5">1 : 5 : 5 (overnight)</option></select></div>
+      </div>
+      <div class="actions"><span class="hint">Use your starter when it's active and bubbly.</span><button type="button" class="linkbtn" id="useRecipe">Use my sourdough recipe</button></div>
+      <div class="card result" id="levainOut"></div>
+    </section>
+
+    <section>
+      <h2>Revive dried starter</h2>
+      <div class="card" id="revive"></div>
+      <div class="actions"><span class="hint">Tick each day as you go. It saves on this device.</span><button type="button" class="linkbtn" id="reviveReset">Start over</button></div>
+    </section>
+
+    <section>
+      <h2>Discard jar</h2>
+      <div class="addrow">
+        <div class="field"><label for="jarG">Discard added today (g)</label><input id="jarG" type="number" inputmode="numeric" min="0" step="5" placeholder="0"></div>
+        <button type="button" class="btn" id="addJar">Add</button>
+      </div>
+      <div class="card result" id="jar"></div>
+      <div class="actions"><span class="hint" id="jarWarn"></span></div>
+      <div class="actions">
+        <button type="button" class="btn" id="useJar">Use it in a pizza dough</button>
+        <button type="button" class="linkbtn" id="emptyJar">Empty the jar</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const ING = {
+  water:{label:"Water", color:"var(--c-water)"},
+  milk:{label:"Milk", color:"var(--c-milk)"},
+  eggs:{label:"Eggs", color:"var(--c-eggs)", note:"about 50 g each"},
+  salt:{label:"Salt", color:"var(--c-salt)"},
+  yeast:{label:"Yeast", color:"var(--c-yeast)"},
+  levain:{label:"Levain (active starter)", color:"var(--c-levain)", note:"100% hydration"},
+  oil:{label:"Olive oil", color:"var(--c-oil)"},
+  sugar:{label:"Sugar", color:"var(--c-sugar)"},
+  butter:{label:"Butter, soft", color:"var(--c-butter)"},
+  yogurt:{label:"Plain yogurt", color:"var(--c-yogurt)"},
+  honey:{label:"Honey", color:"var(--c-honey)"}
+};
+const STD_FERMENT = "Mix flour and water, rest 20–30 min, then add salt and yeast and knead 8–10 min until smooth.";
+function mixStep(st){
+  const p = state.pcts;
+  const join = a => a.length < 2 ? (a[0] || "") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+  const sweet = st.ing.honey ? "the honey" : st.ing.sugar ? "the sugar" : "a pinch of sugar";
+  if(st.ing.milk){
+    const extra = st.ing.eggs ? " and the eggs" : "";
+    return `Warm the milk to 100–110°F, stir in ${sweet} and the yeast, and wait 10 min until foamy. Whisk the salt into the flour. Add the yeast milk${extra} and mix 3–4 min on low until smooth.`;
+  }
+  const extras = ["the yeast water"];
+  if(state.discard > 0) extras.push("the sourdough discard");
+  if(st.ing.yogurt) extras.push("the yogurt");
+  if(st.ing.eggs) extras.push("the eggs");
+  let s = `Stir the yeast and ${sweet} into the water at 100–110°F and wait 10 min until foamy. Whisk the salt into the flour. Add ${join(extras)} and mix 2 min on low until no dry flour remains`;
+  if(st.ing.oil && (p.oil || 0) > 0) s += ", then add the oil";
+  if(st.ing.butter) s += ", then add the soft butter a piece at a time";
+  s += (p.water || 0) >= 75 ? ". Mix 3–4 more min on medium-low; the dough will stay sticky." : ". Mix 6–8 more min on medium-low until smooth and pulling away from the bowl.";
+  return s;
+}
+const STYLES = {
+  pizza:[
+    {id:"neapolitan", pp:1, po:"Stone 750–850°F, flame on high. Launch, bake 60–90 seconds, and turn the pizza every 15–20 seconds.", name:"Neapolitan", flour:"00 flour (Caputo Pizzeria or similar)", unitName:"Dough balls", unitWord:"ball", count:4, unit:250,
+     ing:{water:[62,55,70,.5], salt:[2.8,1.5,3.5,.1], yeast:[0.2,0.05,1,.05]},
+     steps:[STD_FERMENT,"Bulk ferment 2 hours at room temperature.","Ball, cover, and cold ferment 24–72 hours.","Rest at room temperature 3–4 hours before stretching."],
+     bake:"Pizza oven at 850–900°F for 60–90 seconds. In a home oven the dough won't char the same way; use the home-oven style instead."},
+    {id:"neap-home", pp:1, po:"This version is wetter for home ovens. In a pizza oven: stone 700–800°F, flame high, 90–120 seconds, turning every 20 seconds. For true Neapolitan, switch to the Neapolitan style.", name:"Neapolitan, home oven", flour:"00 flour or bread flour", unitName:"Dough balls", unitWord:"ball", count:4, unit:260,
+     ing:{water:[67,60,75,.5], salt:[2.8,1.5,3.5,.1], yeast:[0.3,0.05,1,.05], oil:[0,0,4,.5]},
+     steps:[STD_FERMENT,"Bulk ferment 1–2 hours.","Ball and cold ferment 24–72 hours.","Rest at room temperature 3 hours."],
+     bake:"Preheat a steel or stone on the top rack at 550°F for 45–60 min. Bake 5–7 min, finishing under the broiler."},
+    {id:"ny", pp:0.4, po:"Stone 600–650°F. Launch, then turn the flame to low–medium. Bake 3–5 min, turning every 45–60 seconds. The sugar and oil burn at Neapolitan temperatures, so keep it cooler.", name:"New York", flour:"Bread flour (high protein)", unitName:"Dough balls", unitWord:"ball", count:3, unit:280,
+     ing:{water:[63,55,70,.5], salt:[2.3,1.5,3,.1], yeast:[0.45,0.1,1.5,.05], oil:[2.5,0,5,.5], sugar:[1.5,0,4,.5]},
+     steps:[STD_FERMENT+" Add the oil in the last 2 minutes.","Ball right away and cold ferment 48–72 hours.","Rest at room temperature 2 hours."],
+     bake:"Steel or stone at 550°F, preheated 1 hour. Bake 6–8 min. 280 g makes a 14-inch pie; use 230 g for 12-inch, 340 g for 16-inch."},
+    {id:"detroit", pp:0.34, po:"Only if the pan fits with room to turn: stone about 550°F, flame on lowest, 10–14 min, turning the pan every 2 minutes. The home oven is easier for this one.", name:"Detroit pan", flour:"Bread flour", unitName:"Pans", unitWord:"pan", count:1, unit:550,
+     ing:{water:[75,65,85,.5], salt:[2.2,1.5,3,.1], yeast:[0.7,0.2,1.5,.05], oil:[1,0,4,.5]},
+     steps:["Mix everything into a shaggy, sticky dough; rest 20 min.","Do 3 sets of stretch-and-folds, 20 min apart.","Press into a well-oiled pan; if it springs back, rest 15 min and press again.","Proof in the pan 2–3 hours until puffy (or overnight in the fridge)."],
+     bake:"500°F on the lowest rack, 12–15 min. 550 g fits a 10×14 inch pan; use 400 g for 8×10."},
+    {id:"sicilian", pp:0.17, po:{"no": "a half-sheet pan doesn't fit most pizza ovens"}, name:"Sicilian / grandma", flour:"Bread flour", unitName:"Pans", unitWord:"pan", count:1, unit:750,
+     ing:{water:[70,60,80,.5], salt:[2.2,1.5,3,.1], yeast:[0.6,0.2,1.5,.05], oil:[3,0,6,.5]},
+     steps:[STD_FERMENT,"Bulk ferment 1 hour, or cold ferment overnight.","Press into a half-sheet pan with plenty of olive oil.","Proof in the pan 1–2 hours."],
+     bake:"475–500°F on the lowest rack, 18–22 min. 750 g fits a half-sheet (13×18 inch)."},
+    {id:"roman", pp:0.25, po:{"no": "the tray is too big for most pizza ovens"}, name:"Roman al taglio", flour:"Strong bread flour (13%+ protein)", unitName:"Trays", unitWord:"tray", count:1, unit:900,
+     ing:{water:[80,70,90,.5], salt:[2.5,1.5,3,.1], yeast:[0.4,0.1,1,.05], oil:[2.5,0,5,.5]},
+     steps:["Mix flour with 70% of the water; add yeast, then salt, then the remaining water in stages, then oil.","Stretch-and-fold 3 times, 15 min apart.","Cold ferment 48–72 hours in an oiled container.","Rest 3 hours, then stretch gently onto the oiled tray."],
+     bake:"Bottom rack at 500°F: par-bake bare or with sauce 10–12 min, add toppings, finish 5 min. 900 g fits a 12×16 inch tray."},
+    {id:"pide", pp:1, po:"Stone 650–700°F, flame medium. Bake 3–4 min, turning every 30 seconds so the long ends cook evenly.", name:"Turkish pide", flour:"All-purpose or bread flour", unitName:"Pides", unitWord:"pide", count:4, unit:200,
+     ing:{water:[62,55,70,.5], salt:[2,1.5,3,.1], yeast:[0.9,0.3,2,.05], oil:[2.5,0,6,.5], sugar:[1,0,3,.5]},
+     steps:[STD_FERMENT,"Bulk ferment 1–1.5 hours until doubled.","Divide, ball, and rest 20 min.","Roll into long ovals, fill, fold the edges, and pinch the ends."],
+     bake:"500°F on a preheated stone or sheet, 8–10 min. Brush the crust with butter or egg wash."},
+    {id:"tavern", pp:0.34, po:"Stone 550–600°F, flame low. Bake 5–7 min, turning every minute until crisp all over.", name:"Chicago tavern (thin)", flour:"All-purpose flour", unitName:"Pizzas", unitWord:"pizza", count:2, unit:300,
+     ing:{water:[50,42,56,.5], salt:[2,1.5,2.5,.1], yeast:[0.5,0.2,1,.05], oil:[6,2,10,.5], sugar:[1,0,3,.5]},
+     steps:["Mix (see your method).","Cold ferment 24–48 hours; this dough is stiff on purpose.","Roll paper-thin with a rolling pin and dock it all over with a fork.","Sauce lightly, top edge to edge, and cut into squares after baking."],
+     bake:"Stone or steel at 500°F, 12–15 min until crisp like a cracker. 300 g makes a 14-inch pizza."},
+    {id:"deepdish", pp:0.25, po:{"no": "a deep pan needs 30+ minutes of even heat; a pizza oven burns the bottom before the middle cooks"}, name:"Chicago deep dish", flour:"All-purpose flour (swap 10% for cornmeal if you like)", unitName:"Pans", unitWord:"pan", count:1, unit:650,
+     ing:{water:[55,48,60,.5], salt:[1.8,1.5,2.5,.1], yeast:[1,0.5,1.5,.05], oil:[18,8,25,1], sugar:[2,0,4,.5]},
+     steps:["Mix (see your method).","Bulk ferment 1.5–2 hours until doubled.","Press into a well-buttered pan and up the sides about 1.5 inches.","Layer sliced mozzarella first, then toppings, then chunky tomato sauce on top."],
+     bake:"425°F on the lowest rack, 30–35 min. 650 g fits a 12-inch pan; use 450 g for 9-inch."},
+    {id:"pinsa", pp:1, po:"Stone 650–700°F, flame medium-low. Bake 3–4 min total, turning every 30–45 seconds.", name:"Pinsa Romana", flour:"Pinsa flour blend, or 85% bread flour + 15% rice flour", unitName:"Pinsas", unitWord:"pinsa", count:4, unit:230,
+     ing:{water:[78,70,85,.5], salt:[2.5,1.5,3,.1], yeast:[0.3,0.1,1,.05], oil:[2.5,0,5,.5]},
+     steps:["Mix (see your method).","Do 2 sets of stretch-and-folds, 20 min apart.","Cold ferment 48–72 hours.","Shape into ovals on a floured counter, pressing with fingertips; don't roll."],
+     bake:"Steel or stone at 500°F: par-bake 5–6 min with a little oil, add toppings, finish 3–4 min."},
+    {id:"lahmacun", pp:2, po:"Stone 700–750°F, flame high, then medium. Bake 60–120 seconds, turning once or twice, until the edges crisp and the meat is cooked.", name:"Lahmacun", flour:"All-purpose flour", unitName:"Lahmacuns", unitWord:"lahmacun", count:8, unit:110,
+     ing:{water:[60,55,65,.5], salt:[2,1.5,2.5,.1], yeast:[0.5,0.2,1,.05], oil:[2,0,4,.5], sugar:[1,0,2,.5]},
+     steps:["Mix (see your method).","Bulk ferment 1 hour.","Divide, ball, and rest 20 min.","Roll very thin, about 10 inches across, and spread the meat topping thinly to the edge."],
+     bake:"Stone or steel at 550°F, 5–7 min until the edges crisp. Serve rolled with parsley, onion, and lemon."}
+  ],
+  bread:[
+    {id:"sandwich", pp:0.125, po:{"no": "loaf-pan breads need steady, moderate heat"}, name:"Sandwich loaf", flour:"Bread flour or all-purpose", unitName:"Loaves", unitWord:"loaf", count:1, unit:900,
+     ing:{water:[62,55,70,.5], salt:[2,1.5,2.5,.1], yeast:[1.2,0.5,2.5,.1], sugar:[4,0,10,.5], butter:[6,0,12,.5]},
+     steps:["Mix flour, water, sugar, and yeast; add salt, knead 5 min, then add butter and knead 5 more.","Bulk ferment 1–1.5 hours until doubled.","Shape into a log and place in a greased pan.","Proof 45–60 min until the dough crowns about 1 inch above the rim."],
+     bake:"375°F for 30–35 min, to 190°F inside. 900 g fits a 9×5 inch pan; use 700 g for 8.5×4.5."},
+    {id:"baguette", pp:0.34, po:{"no": "long loaves need steam and even heat for 20+ minutes"}, name:"Baguette", flour:"All-purpose or French T65", unitName:"Baguettes", unitWord:"baguette", count:3, unit:350,
+     ing:{water:[68,62,75,.5], salt:[2,1.5,2.5,.1], yeast:[0.7,0.2,1.5,.05]},
+     steps:[STD_FERMENT,"Bulk ferment 1 hour, folding once, then cold ferment overnight.","Divide, pre-shape, rest 20 min, then shape into long rolls.","Proof 45–60 min on a floured couche or towel. Score at a shallow angle."],
+     bake:"475°F with steam (a pan of boiling water on the lower rack), 22–25 min."},
+    {id:"rustic", pp:0.125, po:{"no": "a boule needs a Dutch oven and 40+ minutes of steady heat"}, name:"Rustic boule", flour:"Bread flour (add 10–20% whole wheat if you like)", unitName:"Loaves", unitWord:"loaf", count:1, unit:900,
+     ing:{water:[72,65,80,.5], salt:[2,1.5,2.5,.1], yeast:[0.6,0.2,1.5,.05]},
+     steps:["Mix flour and water, rest 30 min, then add salt and yeast.","Do 4 sets of stretch-and-folds, 30 min apart.","Shape into a tight ball and proof in a floured basket, 1 hour or overnight in the fridge.","Turn out and score."],
+     bake:"Dutch oven preheated at 475°F: 20 min lid on, then 20–25 min lid off until deep brown."},
+    {id:"ciabatta", pp:0.25, po:{"no": "it needs steam and even heat for 20+ minutes"}, name:"Ciabatta", flour:"Bread flour", unitName:"Loaves", unitWord:"loaf", count:2, unit:450,
+     ing:{water:[80,70,88,.5], salt:[2,1.5,2.5,.1], yeast:[0.7,0.2,1.5,.05], oil:[1.5,0,4,.5]},
+     steps:["Mix into a very wet dough; rest 20 min.","Do 4 sets of coil folds in the container, 30 min apart.","Turn onto a heavily floured counter and cut into rectangles without degassing.","Proof 30–45 min, seam side up."],
+     bake:"475°F on a stone with steam, 20–25 min."},
+    {id:"focaccia", pp:0.1, po:{"no": "a half-sheet pan doesn't fit most pizza ovens"}, name:"Focaccia", flour:"Bread flour", unitName:"Pans", unitWord:"pan", count:1, unit:1100,
+     ing:{water:[80,70,90,.5], salt:[2.5,1.5,3,.1], yeast:[1,0.3,2,.05], oil:[4,0,8,.5]},
+     steps:["Mix everything; rest 15 min.","Do 3 sets of folds, 20 min apart, then cold ferment overnight (optional but better).","Pour into a pan with 3–4 tbsp olive oil and stretch to the corners.","Proof 1.5–2 hours, then dimple deeply with oiled fingers and add flaky salt."],
+     bake:"450°F for 22–25 min. 1100 g fits a half-sheet (13×18 inch); use 600 g for a 9×13 pan."},
+    {id:"sourdough", pp:0.125, po:{"no": "it needs a Dutch oven and 40+ minutes of steady heat"}, name:"Sourdough", flour:"Bread flour (10–20% whole wheat optional)", unitName:"Loaves", unitWord:"loaf", count:1, unit:900,
+     ing:{water:[72,65,85,.5], salt:[2,1.5,2.5,.1], levain:[20,10,35,1]},
+     steps:["Mix flour and water and rest 1 hour; add levain and salt.","Do 4 sets of stretch-and-folds over 2 hours, then let it bulk until it's 50–75% larger (4–6 hours total at 75°F).","Pre-shape, rest 20 min, shape, and place in a floured basket.","Cold proof 12–16 hours in the fridge. Score straight from the fridge."],
+     bake:"Dutch oven preheated at 500°F: 20 min lid on at 475°F, then 20–25 min lid off."},
+    {id:"pita", pp:2, po:"Stone 700–750°F, flame low. Bake 60–90 seconds until puffed. No need to turn.", name:"Pita", flour:"All-purpose or bread flour", unitName:"Pitas", unitWord:"pita", count:8, unit:90,
+     ing:{water:[62,55,70,.5], salt:[2,1.5,2.5,.1], yeast:[1,0.5,2,.1], oil:[2.5,0,6,.5]},
+     steps:[STD_FERMENT,"Bulk ferment 1–1.5 hours until doubled.","Divide, ball, and rest 15 min.","Roll to about 1/4 inch thick."],
+     bake:"Stone or steel at 500°F, 3–4 min until puffed. Or a dry cast-iron skillet on high, about 1 min per side."},
+    {id:"brioche", pp:0.125, po:{"no": "rich, buttery loaves burn quickly at pizza-oven heat"}, name:"Brioche", flour:"Bread flour", unitName:"Loaves", unitWord:"loaf", count:1, unit:700,
+     ing:{milk:[20,10,30,1], eggs:[45,30,60,1], salt:[2,1.5,2.5,.1], yeast:[1.8,0.8,3,.1], sugar:[12,5,18,.5], butter:[50,20,70,1]},
+     steps:["Mix flour, milk, eggs, sugar, and yeast until smooth; add salt.","Add soft butter a piece at a time, kneading until the dough is silky and pulls a thin windowpane (10–15 min in a mixer).","Cold ferment overnight, which makes the dough easy to shape.","Shape, place in a buttered pan, and proof 2–3 hours until doubled. Brush with egg wash."],
+     bake:"350°F for 30–35 min, to 190°F inside. Tent with foil if it browns too fast. 700 g fits a 9×5 inch pan."},
+    {id:"wholewheat", pp:0.125, po:{"no": "loaf-pan breads need steady, moderate heat"}, name:"Whole wheat loaf", flour:"Whole wheat flour (or 50/50 with bread flour)", unitName:"Loaves", unitWord:"loaf", count:1, unit:900,
+     ing:{water:[72,62,80,.5], salt:[2,1.5,2.5,.1], yeast:[1.5,0.8,2.5,.1], honey:[6,0,12,.5], oil:[5,0,10,.5]},
+     steps:["Mix (see your method).","Bulk ferment 1–1.5 hours until doubled.","Shape into a log and place in a greased 9×5 inch pan.","Proof 45–60 min until it crowns above the rim."],
+     bake:"375°F for 35–40 min, to 195°F inside."},
+    {id:"rolls", pp:2, po:{"no": "soft rolls need moderate heat to bake through without burning"}, name:"Dinner rolls", flour:"All-purpose or bread flour", unitName:"Rolls", unitWord:"roll", count:12, unit:60,
+     ing:{milk:[60,50,70,.5], eggs:[10,0,20,1], salt:[1.8,1.5,2.5,.1], yeast:[1.5,0.8,2.5,.1], sugar:[8,3,12,.5], butter:[10,5,20,.5]},
+     steps:["Mix (see your method).","Add the soft butter a piece at a time and mix until smooth and slightly tacky.","Bulk ferment 1 hour until doubled.","Shape into tight balls, set in a buttered 9×13 pan, and proof 45 min. Brush with egg wash."],
+     bake:"375°F for 15–18 min until golden. Brush with melted butter as they come out."},
+    {id:"challah", pp:0.125, po:{"no": "egg and honey doughs burn quickly at pizza-oven heat"}, name:"Challah", flour:"Bread flour", unitName:"Loaves", unitWord:"loaf", count:1, unit:900,
+     ing:{water:[32,25,40,.5], eggs:[30,20,40,1], salt:[2,1.5,2.5,.1], yeast:[1.5,0.8,2.5,.1], honey:[10,4,15,.5], oil:[12,6,16,.5]},
+     steps:["Mix (see your method).","Bulk ferment 1.5 hours until doubled.","Divide into 3–6 strands and braid.","Proof 45–60 min, brush with egg wash, and sprinkle with sesame or poppy seeds if you like."],
+     bake:"350°F for 30–35 min, to 190°F inside. Tent with foil if it browns too fast."},
+    {id:"bagel", pp:1, po:{"no": "bagels need 20 minutes of even heat after boiling"}, name:"Bagels", flour:"High-gluten or bread flour", unitName:"Bagels", unitWord:"bagel", count:8, unit:110,
+     ing:{water:[57,52,62,.5], salt:[2,1.5,2.5,.1], yeast:[0.8,0.4,1.5,.05], sugar:[2,0,4,.5]},
+     steps:["Mix (see your method).","Divide right away, rest 15 min, and shape into rings.","Cold proof overnight on an oiled tray.","Boil 1 min per side in water with 1 tbsp sugar or barley malt, then top with seeds."],
+     bake:"450°F for 18–22 min until deep golden."},
+    {id:"naan", pp:1.5, po:"Stone 750°F, flame high. Bake 60–90 seconds until puffed and spotted, then brush with garlic butter.", name:"Naan", flour:"All-purpose flour", unitName:"Naans", unitWord:"naan", count:6, unit:100,
+     ing:{water:[40,30,50,.5], yogurt:[20,10,30,1], salt:[2,1.5,2.5,.1], yeast:[1,0.5,1.5,.05], sugar:[2,0,4,.5], oil:[5,0,8,.5]},
+     steps:["Mix (see your method).","Bulk ferment 1–1.5 hours until doubled.","Divide, ball, and rest 15 min.","Stretch into teardrops about 1/4 inch thick."],
+     bake:"Smoking-hot dry cast iron: 1–2 min until bubbled, flip for 1 min. Brush with garlic butter."},
+    {id:"bazlama", pp:1, po:"Stone 550–600°F, flame low. Bake 2–3 min, flipping once halfway.", name:"Bazlama", flour:"All-purpose flour", unitName:"Bazlamas", unitWord:"bazlama", count:6, unit:150,
+     ing:{water:[45,35,55,.5], yogurt:[20,10,30,1], salt:[2,1.5,2.5,.1], yeast:[1,0.5,1.5,.05], sugar:[1,0,3,.5], oil:[2,0,5,.5]},
+     steps:["Mix (see your method).","Bulk ferment 1–1.5 hours until doubled.","Divide, ball, and rest 20 min.","Roll into rounds about 1/2 inch thick."],
+     bake:"Dry skillet over medium heat, 2–3 min per side until puffed and spotted brown."},
+    {id:"simit", pp:1, po:{"no": "the molasses coating burns at pizza-oven heat"}, name:"Simit", flour:"Bread flour", unitName:"Simits", unitWord:"simit", count:8, unit:110,
+     ing:{water:[60,55,65,.5], salt:[2,1.5,2.5,.1], yeast:[1,0.5,1.5,.05], sugar:[2,0,4,.5], oil:[2,0,4,.5]},
+     steps:["Mix (see your method).","Bulk ferment 1 hour.","Roll each piece into two ropes, twist together, and join into a ring.","Dip in grape molasses (pekmez) thinned 1:1 with water, then press into toasted sesame."],
+     bake:"425°F for 18–22 min until deep mahogany."}
+  ]
+};
+const PE = {"neapolitan": "Stone 750–850°F, top heat on high (most electric ovens top out around 850°F). Bake 60–90 seconds, turning once halfway if one side browns faster.", "neap-home": "Stone 700–750°F, top heat high. Bake 90–120 seconds, turning once. For true Neapolitan, switch to the Neapolitan style.", "ny": "Stone 600–650°F, top heat medium. Bake 3–5 min, turning once or twice. If your oven has a New York preset, start there.", "detroit": "Only if the pan fits: stone 500–550°F, top heat low–medium, 10–14 min, turning the pan once or twice. If your oven has a Pan preset, use it.", "pide": "Stone 650–700°F, top heat medium. Bake 3–4 min, turning once so the long ends cook evenly.", "tavern": "Stone 550–600°F, top heat low–medium. Bake 5–7 min, turning once or twice. A Thin & Crispy preset, if you have one, fits this style.", "pinsa": "Stone 650–700°F, top heat medium. Bake 3–4 min total, turning once.", "lahmacun": "Stone 700–750°F, top heat high. Bake 1–2 min until the edges crisp and the meat is cooked, turning once if needed.", "pita": "Stone 700–750°F, top heat low. Bake 60–90 seconds until puffed.", "naan": "Stone 750°F, top heat high. Bake 60–90 seconds until puffed and spotted, then brush with garlic butter.", "bazlama": "Stone 550–600°F, top heat low. Bake 2–3 min, flipping once halfway."};
+const YEAST_MULT = {instant:1, active:1.25, fresh:3};
+const YEAST_NAME = {instant:"Instant yeast", active:"Active dry yeast", fresh:"Fresh yeast"};
+
+let state = {cat:"pizza", styleId:"neapolitan", count:4, unit:250, waste:2, yeast:"instant", discard:0, people:0, oven:"electric", view:"dough", lastLevain:0, starter:null, pcts:{}};
+const STARTER_DEFAULTS = () => ({keep:20, ratio:1, need:0, lratio:1, revive:[], jar:[]});
+const $ = id => document.getElementById(id);
+const style = () => STYLES[state.cat].find(s => s.id === state.styleId) || STYLES[state.cat][0];
+
+function save(){ try{ localStorage.setItem("dough-calc", JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem("dough-calc") || "null");
+    if(s && STYLES[s.cat] && STYLES[s.cat].some(x => x.id === s.styleId)) state = Object.assign(state, s);
+    else applyDefaults();
+  }catch(e){ applyDefaults(); }
+  state.starter = Object.assign(STARTER_DEFAULTS(), state.starter || {});
+  if(state.oven === "pizza" || !["home", "electric", "gas"].includes(state.oven)) state.oven = "electric";
+}
+function peopleCount(st){ return Math.max(1, Math.ceil(state.people * st.pp - 1e-9)); }
+function applyDefaults(){
+  const st = style();
+  state.count = state.people > 0 ? peopleCount(st) : st.count; state.unit = st.unit; state.pcts = {};
+  for(const k in st.ing) state.pcts[k] = st.ing[k][0];
+}
+function fmt(g){ return g < 10 ? g.toFixed(1) : Math.round(g).toLocaleString(); }
+
+function renderChips(){
+  $("styles").innerHTML = STYLES[state.cat].map(s =>
+    `<button type="button" data-id="${s.id}" aria-pressed="${s.id === state.styleId}">${s.name}</button>`).join("");
+}
+
+function renderForm(){
+  const st = style();
+  $("countLabel").textContent = st.unitName;
+  $("unitLabel").textContent = "Grams per " + st.unitWord;
+  $("count").value = state.count;
+  $("unit").value = state.unit;
+  $("waste").value = String(state.waste);
+  $("yeastType").value = state.yeast;
+  $("yeastField").style.display = st.ing.yeast ? "" : "none";
+  $("discardField").style.display = st.ing.water ? "" : "none";
+  $("discard").value = state.discard || "";
+  $("oven").value = state.oven;
+  $("people").value = state.people || "";
+  const per = 1 / st.pp;
+  $("ppHelp").textContent = per >= 1
+    ? `One ${st.unitWord} feeds about ${+per.toFixed(1)} ${per === 1 ? "person" : "people"}.`
+    : `About ${+st.pp.toFixed(1)} ${st.unitName.toLowerCase()} per person.`;
+  $("flourType").textContent = st.flour;
+
+  $("rows").innerHTML = Object.keys(st.ing).map(k => {
+    const [def, min, max, step] = st.ing[k];
+    const info = ING[k];
+    return `<div class="row" data-k="${k}">
+      <span class="dot" style="background:${info.color}"></span>
+      <span class="name" id="n-${k}">${info.label}${info.note ? `<em>${info.note}</em>` : ""}</span>
+      <span class="grams" id="g-${k}">0<small> g</small></span>
+      <div class="ctl">
+        <input type="range" min="${min}" max="${max}" step="${step}" value="${state.pcts[k]}" aria-label="${info.label} percent" data-k="${k}">
+        <span class="pct"><input type="number" min="0" max="200" step="${step}" value="${state.pcts[k]}" aria-label="${info.label} percent" data-k="${k}">%</span>
+      </div>
+    </div>`;
+  }).join("") + (st.ing.water ? `<div class="row hide" id="row-discard">
+      <span class="dot" style="background:var(--c-discard)"></span>
+      <span class="name">Sourdough discard<em>half flour, half water</em></span>
+      <span class="grams" id="g-discard">0<small> g</small></span>
+    </div>` : "");
+  update();
+}
+
+function renderNotes(st, D){
+  const steps = st.steps.slice();
+  if(st.ing.yeast) steps[0] = mixStep(st);
+  const ol = steps.map(s => `<li>${s}</li>`).join("");
+  const tip = D > 0 ? `<p class="bake"><b>Discard:</b> Use discard within 1–2 weeks of collecting it. Gray liquid on top is normal; stir it in or pour it off. Pink, orange, or fuzzy mold means throw it out. Discard adds flavor, not much rise, so keep the full yeast amount.</p>` : "";
+  let bake;
+  const notFit = st.po && st.po.no;
+  if(state.oven === "electric"){
+    bake = PE[st.id]
+      ? `<p class="bake"><b>Electric pizza oven:</b> ${PE[st.id]}</p><p class="hint">Temperatures are for the stone. Let it recover 5–10 min between pizzas; the bottom element heats back up slower than the top.</p>`
+      : `<p class="bake"><b>Electric pizza oven:</b> Not a good fit, because ${notFit}. Use the home oven instead.</p><p><b>Home oven:</b> ${st.bake}</p>`;
+  } else if(state.oven === "gas"){
+    bake = !notFit
+      ? `<p class="bake"><b>Gas or wood pizza oven:</b> ${st.po}</p><p class="hint">Temperatures are for the stone. Check it with an infrared thermometer; the dome reads hotter.</p>`
+      : `<p class="bake"><b>Gas or wood pizza oven:</b> Not a good fit, because ${notFit}. Use the home oven instead.</p><p><b>Home oven:</b> ${st.bake}</p>`;
+  } else {
+    bake = `<p class="bake"><b>Home oven:</b> ${st.bake}</p>`;
+  }
+  $("notes").innerHTML = `<p><b>Flour:</b> ${st.flour}</p><ol>${ol}</ol>${bake}${tip}`;
+}
+
+function update(){
+  const st = style();
+  const p = state.pcts;
+  const target = Math.max(0, state.count) * Math.max(0, state.unit) * (1 + state.waste / 100);
+  let sum = 100;
+  for(const k in st.ing) sum += (p[k] || 0);
+  const flour = target / (sum / 100);
+
+  const grams = {flour};
+  for(const k in st.ing){
+    let g = flour * (p[k] || 0) / 100;
+    if(k === "yeast") g *= YEAST_MULT[state.yeast];
+    grams[k] = g;
+  }
+
+  let D = 0, capped = false;
+  if(st.ing.water && state.discard > 0){
+    const maxD = 2 * Math.min(flour, grams.water);
+    D = Math.min(state.discard, maxD);
+    capped = state.discard > maxD;
+    grams.flour = flour - D / 2;
+    grams.water -= D / 2;
+    grams.discard = D;
+  }
+  $("flourG").innerHTML = `${fmt(grams.flour)}<small>g</small>`;
+  $("flourType").textContent = st.flour + (D > 0 ? ` (plus ${fmt(D / 2)} g already in the discard)` : "");
+  if($("row-discard")){
+    $("row-discard").classList.toggle("hide", !(D > 0));
+    $("g-discard").innerHTML = `${fmt(D)}<small> g</small>`;
+  }
+  const help = $("discardHelp");
+  help.classList.toggle("warn", capped);
+  help.textContent = capped
+    ? `That's more discard than this batch can take. Using ${fmt(D)} g; add more dough balls to use it all.`
+    : "Half flour, half water. It comes out of the flour and water below, so the dough stays the same.";
+  renderNotes(st, D);
+  if(st.id === "sourdough") state.lastLevain = Math.round(grams.levain);
+  let total = 0;
+  for(const k in grams) total += grams[k];
+  $("total").textContent = fmt(total) + " g";
+  $("totalTop").textContent = fmt(total) + " g";
+
+  for(const k in st.ing){
+    let extra = "";
+    if(k === "yeast"){
+      $("n-" + k).firstChild.textContent = YEAST_NAME[state.yeast];
+      if(state.yeast !== "fresh") extra = ` <small>≈ ${(grams[k] / 3.1).toFixed(2)} tsp</small>`;
+    }
+    if(k === "eggs") extra = ` <small>≈ ${(grams[k] / 50).toFixed(1)} eggs</small>`;
+    $("g-" + k).innerHTML = `${fmt(grams[k])}<small> g</small>${extra}`;
+  }
+
+  // Effective hydration: water + 87% of milk + 75% of eggs + half of levain, over flour incl. levain flour
+  const lev = p.levain || 0;
+  const wet = (p.water || 0) + (p.milk || 0) * 0.87 + (p.eggs || 0) * 0.75 + (p.yogurt || 0) * 0.85 + (p.honey || 0) * 0.17 + lev / 2;
+  $("hyd").textContent = (wet / (100 + lev / 2) * 100).toFixed(1) + "%";
+
+  const parts = [["flour", "var(--c-flour)"]].concat(Object.keys(st.ing).map(k => [k, ING[k].color]));
+  if(D > 0) parts.push(["discard", "var(--c-discard)"]);
+  $("bar").innerHTML = parts.map(([k, c]) => `<span style="flex:0 0 ${total ? grams[k] / total * 100 : 0}%;background:${c}"></span>`).join("");
+  save();
+}
+
+document.querySelector(".seg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.dataset.view === "starter"){ state.view = "starter"; showView(); save(); return; }
+  state.view = "dough";
+  if(b.dataset.cat !== state.cat){
+    state.cat = b.dataset.cat; state.styleId = STYLES[state.cat][0].id;
+    applyDefaults(); renderChips(); renderForm();
+  }
+  showView(); save();
+});
+
+function showView(){
+  const isStarter = state.view === "starter";
+  document.querySelectorAll(".seg button").forEach(b =>
+    b.setAttribute("aria-pressed", isStarter ? b.dataset.view === "starter" : b.dataset.cat === state.cat));
+  $("doughView").hidden = isStarter;
+  $("starterView").hidden = !isStarter;
+  if(isStarter) renderStarter();
+}
+
+/* ---------- Starter tools ---------- */
+const SD = () => state.starter;
+const PEAK = {1:"4–6 hours", 2:"6–8 hours", 5:"10–12 hours"};
+const REVIVE = [
+  ["Day 1", "Soak 25 g dried starter in 50 g warm water (80–85°F) for 30 min, then stir in 25 g flour. Cover loosely and keep at 75–80°F."],
+  ["Day 2", "Keep 50 g, discard the rest, and feed 50 g flour + 50 g water. Mark the level with a rubber band."],
+  ["Day 3", "Same feeding: keep 50 g, add 50 g flour + 50 g water."],
+  ["Day 4", "Same feeding. Once it rises noticeably, switch to every 12 hours."],
+  ["Day 5", "Keep feeding. Watch for it to double within 4–8 hours."],
+  ["Day 6", "Keep feeding."],
+  ["Day 7", "Keep feeding. A slow starter can take a few more days; warmth helps most."],
+  ["Ready", "Doubles within 4–8 hours after feeding, two feedings in a row."],
+  ["Ready", "Bubbly all the way through and smells pleasantly sour."],
+  ["Ready", "A spoonful floats in water."]
+];
+const dfmt = iso => new Date(iso).toLocaleDateString(undefined, {month:"short", day:"numeric"});
+const ageDays = iso => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
+const resRows = items => items.map(([name, g, color, note]) =>
+  `<div class="row"><span class="dot" style="background:${color}"></span><span class="name">${name}${note ? `<em>${note}</em>` : ""}</span><span class="grams">${fmt(g)}<small> g</small></span></div>`).join("");
+
+function sourdoughLevain(){
+  if(state.lastLevain) return state.lastLevain;
+  const sd = STYLES.bread.find(x => x.id === "sourdough");
+  let sum = 100; for(const k in sd.ing) sum += sd.ing[k][0];
+  return Math.round(sd.unit * 1.02 / (sum / 100) * sd.ing.levain[0] / 100);
+}
+function renderStarter(){
+  const s = SD();
+  $("keepG").value = s.keep;
+  $("feedRatio").value = String(s.ratio);
+  $("levainNeed").value = s.need || sourdoughLevain();
+  $("levainRatio").value = String(s.lratio);
+  calcStarter(); renderRevive(); renderJar();
+}
+function calcStarter(){
+  const s = SD();
+  const k = Math.max(0, s.keep || 0), r = s.ratio;
+  $("feedOut").innerHTML = resRows([
+    ["Starter to keep", k, "var(--c-levain)", "discard the rest"],
+    ["Flour", k * r, "var(--c-flour)"],
+    ["Water", k * r, "var(--c-water)", "75–80°F"]
+  ]) + `<div class="total"><span>Peaks in about ${PEAK[r]} at 75°F</span><b>${fmt(k + 2 * k * r)} g</b></div>`;
+
+  const need = Math.max(0, s.need || sourdoughLevain());
+  const total = Math.ceil(need * 1.1 / 5) * 5;
+  const lr = s.lratio, st = total / (1 + 2 * lr);
+  $("levainOut").innerHTML = resRows([
+    ["Active starter", st, "var(--c-levain)"],
+    ["Flour", st * lr, "var(--c-flour)"],
+    ["Water", st * lr, "var(--c-water)", "75–80°F"]
+  ]) + `<div class="total"><span>Ready in about ${PEAK[lr]} · 10% extra included</span><b>${fmt(total)} g</b></div>`;
+}
+function renderRevive(){
+  const r = SD().revive;
+  $("revive").innerHTML = REVIVE.map(([h, t], i) =>
+    `<label class="check${r[i] ? " done" : ""}"><input type="checkbox" data-i="${i}"${r[i] ? " checked" : ""}><span><b>${h}:</b> ${t}${r[i] ? ` <em>✓ ${dfmt(r[i])}</em>` : ""}</span></label>`).join("");
+}
+function renderJar(){
+  const j = SD().jar;
+  const total = j.reduce((a, e) => a + e.g, 0);
+  const oldest = j.length ? Math.max(...j.map(e => ageDays(e.d))) : 0;
+  let html = j.length
+    ? j.map((e, i) => ({e, i})).reverse().map(({e, i}) => {
+        const a = ageDays(e.d);
+        return `<div class="jarrow${a > 14 ? " old" : ""}"><span>${dfmt(e.d)}</span><span>${a === 0 ? "today" : a + (a === 1 ? " day old" : " days old")}</span><b>${fmt(e.g)} g</b><button type="button" class="x" data-i="${i}" aria-label="Remove entry">×</button></div>`;
+      }).join("")
+    : `<p class="empty">The jar is empty. Add your discard each time you feed.</p>`;
+  html += `<div class="total"><span>In the jar</span><b>${fmt(total)} g</b></div>`;
+  $("jar").innerHTML = html;
+  const w = $("jarWarn");
+  w.textContent = oldest > 14 ? `The oldest discard is ${oldest} days old. Use it soon or toss it.` : (j.length ? "Keep the jar covered in the fridge and use it within 1–2 weeks." : "");
+  w.classList.toggle("warn", oldest > 14);
+  $("useJar").disabled = !total;
+}
+
+$("keepG").addEventListener("input", e => { SD().keep = Math.max(0, parseFloat(e.target.value) || 0); calcStarter(); save(); });
+$("feedRatio").addEventListener("change", e => { SD().ratio = +e.target.value; calcStarter(); save(); });
+$("levainNeed").addEventListener("input", e => { SD().need = Math.max(0, parseFloat(e.target.value) || 0); calcStarter(); save(); });
+$("levainRatio").addEventListener("change", e => { SD().lratio = +e.target.value; calcStarter(); save(); });
+$("useRecipe").addEventListener("click", () => { SD().need = sourdoughLevain(); $("levainNeed").value = SD().need; calcStarter(); save(); });
+$("revive").addEventListener("change", e => {
+  const i = +e.target.dataset.i; if(isNaN(i)) return;
+  SD().revive[i] = e.target.checked ? new Date().toISOString() : null;
+  renderRevive(); save();
+});
+$("reviveReset").addEventListener("click", () => { if(confirm("Clear the revival checklist?")){ SD().revive = []; renderRevive(); save(); } });
+$("addJar").addEventListener("click", () => {
+  const g = parseFloat($("jarG").value);
+  if(!(g > 0)) return;
+  SD().jar.push({d:new Date().toISOString(), g});
+  $("jarG").value = ""; renderJar(); save();
+});
+$("jar").addEventListener("click", e => {
+  const b = e.target.closest(".x"); if(!b) return;
+  SD().jar.splice(+b.dataset.i, 1); renderJar(); save();
+});
+$("useJar").addEventListener("click", () => {
+  state.discard = SD().jar.reduce((a, e) => a + e.g, 0);
+  state.view = "dough";
+  if(state.cat !== "pizza"){ state.cat = "pizza"; state.styleId = "neapolitan"; applyDefaults(); }
+  renderChips(); renderForm(); showView(); window.scrollTo(0, 0);
+});
+$("emptyJar").addEventListener("click", () => { if(confirm("Empty the discard jar?")){ SD().jar = []; renderJar(); save(); } });
+$("styles").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  state.styleId = b.dataset.id; applyDefaults(); renderChips(); renderForm();
+});
+$("rows").addEventListener("input", e => {
+  const k = e.target.dataset.k; if(!k) return;
+  const v = parseFloat(e.target.value);
+  state.pcts[k] = isNaN(v) ? 0 : v;
+  const row = e.target.closest(".row");
+  row.querySelectorAll("input").forEach(i => { if(i !== e.target) i.value = state.pcts[k]; });
+  update();
+});
+$("people").addEventListener("input", e => {
+  state.people = Math.max(0, parseInt(e.target.value) || 0);
+  if(state.people > 0){ state.count = peopleCount(style()); $("count").value = state.count; }
+  update();
+});
+$("oven").addEventListener("change", e => { state.oven = e.target.value; update(); });
+$("count").addEventListener("input", e => { state.people = 0; $("people").value = ""; state.count = Math.max(0, parseInt(e.target.value) || 0); update(); });
+$("unit").addEventListener("input", e => { state.unit = Math.max(0, parseFloat(e.target.value) || 0); update(); });
+$("minus").addEventListener("click", () => { state.people = 0; $("people").value = ""; state.count = Math.max(1, state.count - 1); $("count").value = state.count; update(); });
+$("plus").addEventListener("click", () => { state.people = 0; $("people").value = ""; state.count = Math.min(99, state.count + 1); $("count").value = state.count; update(); });
+$("discard").addEventListener("input", e => { state.discard = Math.max(0, parseFloat(e.target.value) || 0); update(); });
+$("waste").addEventListener("change", e => { state.waste = parseFloat(e.target.value); update(); });
+$("yeastType").addEventListener("change", e => { state.yeast = e.target.value; update(); });
+$("reset").addEventListener("click", () => { applyDefaults(); renderForm(); });
+
+load(); renderChips(); renderForm(); showView();
+</script>
+</body>
+</html>
