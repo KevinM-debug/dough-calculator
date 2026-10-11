@@ -121,7 +121,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .nav button{white-space:nowrap; padding:9px 4px; border-radius:14px; text-align:center}
 @media (max-width:479px){ .nav button{font-size:.88rem; padding:9px 2px} }
 @media (max-width:359px){ .nav button{font-size:.8rem; white-space:normal; line-height:1.15} }
-@media (min-width:640px){ .nav{grid-template-columns:repeat(7,minmax(0,1fr))} }
+@media (min-width:640px){ .nav{grid-template-columns:repeat(8,minmax(0,1fr))} .nav button{font-size:.92rem; padding:9px 2px} }
 .toprow{display:flex; justify-content:space-between; align-items:flex-start; gap:12px}
 .pill{font:inherit; font-size:.85rem; font-weight:600; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:999px; padding:8px 12px; cursor:pointer; white-space:nowrap; margin-top:10px}
 .pill[aria-pressed="true"]{background:var(--semolina); color:#1F2A2E; border-color:var(--semolina)}
@@ -222,6 +222,9 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
 .check2 input{width:18px; height:18px; accent-color:var(--basil)}
 .banner{background:var(--semolina); color:#1F2A2E; border-radius:12px; padding:10px 14px; margin-top:12px; font-weight:600; display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap}
 .banner .linkbtn{color:#1F2A2E}
+.pchips{display:flex; flex-wrap:wrap; gap:8px}
+.pchip{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:var(--surface); border-radius:10px; padding:7px 12px; font-size:.95rem; cursor:pointer}
+.pchip input{accent-color:var(--basil); width:16px; height:16px}
 .seg.sub{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); width:100%}
 .seg.sub button{padding:8px 4px}
 .zrow{display:grid; grid-template-columns:1fr auto; gap:4px 12px; padding:12px 18px; border-bottom:1px solid var(--line); align-items:center}
@@ -276,6 +279,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
     <div class="seg nav" role="group" aria-label="Sections">
       <button type="button" data-cat="pizza" aria-pressed="true">Pizza</button>
       <button type="button" data-cat="bread" aria-pressed="false">Bread</button>
+      <button type="button" data-cat="keto" aria-pressed="false">Keto</button>
       <button type="button" data-view="starter" aria-pressed="false">Starter</button>
       <button type="button" data-view="recipes" aria-pressed="false">Recipes</button>
       <button type="button" data-view="mine" aria-pressed="false">My recipes</button>
@@ -379,6 +383,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
       <button type="button" class="linkbtn" id="reset">Reset to style defaults</button>
     </div>
     <p class="hint" id="unitHint"></p>
+    <p class="hint" id="carbHint"></p>
     <div class="btnrow" style="margin-top:10px">
       <button type="button" class="btn ghost" id="saveFormula">★ Save formula</button>
       <button type="button" class="btn ghost" id="shareDough">Share recipe</button>
@@ -392,6 +397,53 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
     <h2>Method</h2>
     <div class="notes" id="notes"></div>
   </section>
+
+  <div id="ketoSec" hidden>
+  <section>
+    <h2>Chaffles</h2>
+    <p class="hint" style="margin-top:0">Cheese-and-egg waffles. Pick your waffle maker and the kind you want; the batter is sized to the iron so they cook through.</p>
+    <div class="two">
+      <div class="field"><label for="chMaker">Waffle maker</label><select id="chMaker"><option value="mini">Mini, 4-inch</option><option value="std">Standard round, 7-inch</option><option value="belg">Belgian, 7-inch deep</option></select></div>
+      <div class="field"><label for="chType">Kind</label><select id="chType"><option value="bread">Bread (sandwiches, burgers)</option><option value="classic">Classic cheese</option><option value="pizza">Pizza</option><option value="sweet">Sweet (cinnamon)</option></select></div>
+      <div class="field" style="grid-column:1 / -1"><label for="chCount">How many chaffles</label><div class="stepper"><button type="button" id="chMinus" aria-label="Fewer">−</button><input id="chCount" type="number" inputmode="numeric" min="1" max="40" value="2"><button type="button" id="chPlus" aria-label="More">+</button></div></div>
+    </div>
+    <div class="card result" id="chOut"></div>
+    <div class="notes" id="chSteps" style="margin-top:10px"></div>
+  </section>
+
+  <section>
+    <h2>What's in my pantry</h2>
+    <p class="hint" style="margin-top:0">Tick what you have. The app shows what you can make right now.</p>
+    <div class="pchips" id="pantry"><label class="pchip"><input type="checkbox" data-pan="almond"> Almond flour</label><label class="pchip"><input type="checkbox" data-pan="coconut"> Coconut flour</label><label class="pchip"><input type="checkbox" data-pan="psyllium"> Psyllium husk powder</label><label class="pchip"><input type="checkbox" data-pan="gluten"> Vital wheat gluten</label><label class="pchip"><input type="checkbox" data-pan="oatfiber"> Oat fiber</label><label class="pchip"><input type="checkbox" data-pan="flax"> Flaxseed meal</label><label class="pchip"><input type="checkbox" data-pan="lupin"> Lupin flour</label><label class="pchip"><input type="checkbox" data-pan="ewp"> Egg white protein</label><label class="pchip"><input type="checkbox" data-pan="bp"> Baking powder</label><label class="pchip"><input type="checkbox" data-pan="yeast"> Yeast</label><label class="pchip"><input type="checkbox" data-pan="eggs"> Eggs</label><label class="pchip"><input type="checkbox" data-pan="mozz"> Mozzarella</label><label class="pchip"><input type="checkbox" data-pan="cream"> Cream cheese</label><label class="pchip"><input type="checkbox" data-pan="butter"> Butter</label></div>
+    <div class="notes" id="pantryOut" style="margin-top:10px"></div>
+  </section>
+
+  <section>
+    <h2>Swap almond flour for coconut flour</h2>
+    <div class="two">
+      <div class="field"><label for="swAlmond">Almond flour in the recipe (g)</label><input id="swAlmond" type="number" inputmode="numeric" min="0" step="5" value="100"></div>
+      <div class="field"><label>Use instead</label><div id="swOut" style="font-weight:600"></div></div>
+    </div>
+    <p class="hint">Coconut flour soaks up about four times as much liquid, so it's never a 1:1 swap. This is a starting point; let the batter rest 5 minutes and add a spoon of water if it's stiff.</p>
+  </section>
+
+  <section>
+    <h2>Why keto bread fails</h2>
+    <div class="notes">
+      <ol>
+        <li><b>Gummy, wet middle:</b> underbaked, or cut warm. Bake until the bottom sounds hollow (or 200°F inside), then cool completely. Keto bread sets as it cools.</li>
+        <li><b>Dense and flat:</b> not enough binder. Psyllium <i>powder</i> (not whole husks) plus egg whites holds the air. Check the baking powder is fresh: a spoon in hot water should fizz hard.</li>
+        <li><b>Crumbly, falls apart:</b> too little psyllium or egg, or too much coconut flour.</li>
+        <li><b>Brick-hard:</b> coconut flour swapped 1:1 for almond flour. Use the swap helper above.</li>
+        <li><b>Tastes eggy:</b> too many yolks. Use egg whites and a splash of vinegar.</li>
+        <li><b>Purple loaf:</b> some psyllium brands turn purple. Harmless; a lighter brand avoids it.</li>
+        <li><b>Collapsed after baking:</b> too much baking powder or the oven door opened early.</li>
+        <li><b>Want it to taste like real bread?</b> The wheat-gluten loaf is the closest: it rises with yeast and toasts like bread.</li>
+      </ol>
+      <p class="bake"><b>Chaffle problems:</b> soggy = not hot enough or opened too early (wait until the steam stops); stuck = iron not fully preheated (sprinkle a little cheese on the iron first); raw middle with a dark outside = too much batter for the iron; eggy = more cheese, a spoon of almond flour.</p>
+    </div>
+  </section>
+  </div>
 
   <section>
     <h2>Plan &amp; schedule</h2>
@@ -483,6 +535,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
         <label class="btn ghost" for="impFile">Import from Paprika</label>
         <input type="file" id="impFile" accept=".paprikarecipes,.paprikarecipe,.zip,.json" hidden>
       </div>
+      <label class="check2"><input type="checkbox" id="impOnly" checked> Import only dough, keto, and Turkish recipes (pizza, bread, pide, kebabs…); the rest stay in Paprika</label>
       <p class="hint" id="impMsg"></p>
 
       <div class="card editor" id="pasteBox" hidden>
@@ -524,6 +577,9 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
         <h2 style="margin-top:12px">Categories</h2>
         <p class="hint" style="margin-top:0">Rename a category to fix a typo. Renaming it to one that already exists merges the two.</p>
         <div class="card" id="catList"></div>
+        <h2 style="margin-top:18px">Keep only dough recipes</h2>
+        <p class="hint" style="margin-top:0">Removes recipes that aren't pizza, bread, keto, Turkish dough dishes, kebabs, or sauces. They stay in Paprika.</p>
+        <button type="button" class="btn ghost" id="keepDough">Keep only dough, keto &amp; Turkish</button>
         <h2 style="margin-top:18px">Look-alike recipes</h2>
         <p class="hint" style="margin-top:0">Recipes with the same name, or the same ingredients under different names. Delete the copies you don't want.</p>
         <div class="card" id="dupList"></div>
@@ -699,7 +755,15 @@ const ING = {
   sugar:{label:"Sugar", color:"var(--c-sugar)"},
   butter:{label:"Butter, soft", color:"var(--c-butter)"},
   yogurt:{label:"Plain yogurt", color:"var(--c-yogurt)"},
-  honey:{label:"Honey", color:"var(--c-honey)"}
+  honey:{label:"Honey", color:"var(--c-honey)"},
+  psyllium:{label:"Psyllium husk powder", color:"#8E6F5A", note:"powder, not whole husks"},
+  bp:{label:"Baking powder", color:"#C9C2B0"},
+  vinegar:{label:"Apple cider vinegar", color:"#C08A4A"},
+  whites:{label:"Egg whites", color:"#EFE3BF", note:"about 30 g each"},
+  mozz:{label:"Mozzarella, shredded", color:"#E9E4D2", note:"low-moisture"},
+  cream:{label:"Cream cheese", color:"#D9D2BE"},
+  almond:{label:"Almond flour", color:"#D8B98C"},
+  oatfiber:{label:"Oat fiber", color:"#CDBF9C", note:"zero net carb; not oat flour"}
 };
 const STD_FERMENT = "Mix flour and water, rest 20–30 min, then add salt and yeast and knead 8–10 min until smooth.";
 function mixStep(st){
@@ -711,7 +775,7 @@ function mixStep(st){
     return `Warm the milk to 100–110°F, stir in ${sweet} and the yeast, and wait 10 min until foamy. Whisk the salt into the flour. Add the yeast milk${extra} and mix 3–4 min on low until smooth.`;
   }
   const extras = ["the yeast water"];
-  if(state.discard > 0) extras.push("the sourdough discard");
+  if(state.discard > 0 && st.cat !== "keto") extras.push("the sourdough discard");
   if(st.ing.yogurt) extras.push("the yogurt");
   if(st.ing.eggs) extras.push("the eggs");
   let s = `Stir the yeast and ${sweet} into the water at 100–110°F and wait 10 min until foamy. Whisk the salt into the flour. Add ${join(extras)} and mix 2 min on low until no dry flour remains`;
@@ -828,17 +892,44 @@ const STYLES = {
      ing:{water:[60,55,65,.5], salt:[2,1.5,2.5,.1], yeast:[1,0.5,1.5,.05], sugar:[2,0,4,.5], oil:[2,0,4,.5]},
      steps:["Mix (see your method).","Bulk ferment 1 hour.","Roll each piece into two ropes, twist together, and join into a ring.","Dip in grape molasses (pekmez) thinned 1:1 with water, then press into toasted sesame."],
      bake:"425°F for 18–22 min until deep mahogany."}
+  ],
+  keto:[
+    {id:"psyllium", pp:1, po:{"no": "keto bread needs a slow, even bake; pizza-oven heat burns the outside before the middle sets"}, name:"Psyllium rolls or loaf", flour:"Almond flour (blanched, superfine)", gpt:2.0, unitName:"Rolls", unitWord:"roll", count:6, unit:90,
+     ing:{psyllium:[27,20,35,1], bp:[6,4,8,.5], salt:[2,1,3,.1], vinegar:[7,4,10,.5], whites:[60,40,90,1], water:[158,130,180,1]},
+     steps:["Preheat the oven to 350°F. Bring the water to a boil.","Whisk the almond flour, psyllium, baking powder, and salt in a bowl.","Add the vinegar and egg whites and mix until thick.","Pour in the boiling water and beat about 30 seconds, just until it turns into a soft dough. Don't overmix.","With wet hands, shape rolls (or one loaf) and set them on parchment. They grow a little in the oven."],
+     bake:"350°F: rolls 50–60 min, a loaf 65–75 min, until the bottom sounds hollow when tapped. Cool completely (at least 1 hour) before cutting, or the middle stays gummy."},
+    {id:"fathead", pp:0.5, po:{"no": "the cheese in the crust scorches at pizza-oven heat; pre-bake it in the home oven, then finish under the broiler"}, name:"Fathead pizza crust", flour:"Almond flour (blanched)", gpt:2.0, unitName:"Crusts (12-inch)", unitWord:"crust", count:1, unit:330,
+     ing:{mozz:[200,150,250,5], cream:[33,0,60,1], eggs:[59,40,80,1]},
+     steps:["Microwave the mozzarella and cream cheese 1 minute, stir, then 30 seconds more until completely melted and smooth.","Stir in the almond flour and egg, then knead with wet hands until even. If it turns stringy, microwave 10 seconds.","Roll between two sheets of parchment to about ¼ inch thick.","Peel off the top sheet and prick all over with a fork."],
+     bake:"425°F on the parchment for 10–12 min until golden (flip it if big bubbles form). Add sauce and toppings, then bake 5–7 min more or broil 2–3 min."},
+    {id:"fbagel", pp:1, po:{"no": "the cheese dough scorches at pizza-oven heat"}, name:"Fathead bagels", flour:"Almond flour (blanched)", gpt:2.0, unitName:"Bagels", unitWord:"bagel", count:6, unit:105,
+     ing:{mozz:[200,150,250,5], cream:[33,0,60,1], eggs:[59,40,80,1], bp:[4,2,6,.5]},
+     steps:["Melt the mozzarella and cream cheese in the microwave (1 min, stir, 30 s more).","Mix in the almond flour, baking powder, and egg; knead with wet hands.","Divide, roll each piece into a rope, and join into a ring on parchment.","Brush with beaten egg and press into everything-bagel seasoning or sesame."],
+     bake:"400°F for 12–15 min until deep golden. Cool 10 min; they firm up as they cool."},
+    {id:"ketoyeast", pp:0.125, po:{"no": "a pan loaf needs an even oven bake"}, name:"Low-carb yeast loaf (wheat gluten)", flour:"Vital wheat gluten (very low-carb, not gluten-free)", gpt:2.5, unitName:"Loaves (8×4 pan)", unitWord:"loaf", count:1, unit:520,
+     ing:{water:[200,170,230,1], almond:[47,30,70,1], oatfiber:[37,20,60,1], eggs:[42,0,60,1], oil:[23,10,30,1], salt:[5,3,6,.1], yeast:[6,4,8,.5], sugar:[3,2,5,.5]},
+     steps:["Mix (see your method).","Knead 5 min. It feels springy and a little tacky, more like bubble gum than bread dough; that's normal.","Shape into a loaf and set it in a greased 8×4-inch pan.","Proof covered in a warm spot 45–60 min, until it crowns about 1 inch over the pan."],
+     bake:"350°F for 35–40 min, to 200°F inside. Out of the pan onto a rack; cool at least 1 hour before slicing. Slices toast like real bread."},
+    {id:"mug", pp:1, po:{"no": "it's a microwave bread"}, name:"90-second mug bread", flour:"Almond flour", gpt:2.0, unitName:"Mugs", unitWord:"mug", count:1, unit:90,
+     ing:{eggs:[240,200,280,5], butter:[67,40,90,1], bp:[10,6,14,.5], salt:[1.5,0,3,.1]},
+     steps:["Melt the butter in a wide mug or a 4-inch microwave-safe bowl.","Add the almond flour, baking powder, salt, and egg; whisk with a fork until smooth.","Tap the mug on the counter to level it."],
+     bake:"Microwave 90 seconds (1000 W) until set in the middle. Turn out, cool 2 min, slice in half, and toast in a buttered skillet for a real-bread texture."}
   ]
 };
+
+for(const c in STYLES) STYLES[c].forEach(s => { s.cat = c; });
 const PE = {"neapolitan": "Stone 750–850°F, top heat on high (most electric ovens top out around 850°F). Bake 60–90 seconds, turning once halfway if one side browns faster.", "neap-home": "Stone 700–750°F, top heat high. Bake 90–120 seconds, turning once. For true Neapolitan, switch to the Neapolitan style.", "ny": "Stone 600–650°F, top heat medium. Bake 3–5 min, turning once or twice. If your oven has a New York preset, start there.", "detroit": "Only if the pan fits: stone 500–550°F, top heat low–medium, 10–14 min, turning the pan once or twice. If your oven has a Pan preset, use it.", "pide": "Stone 650–700°F, top heat medium. Bake 3–4 min, turning once so the long ends cook evenly.", "tavern": "Stone 550–600°F, top heat low–medium. Bake 5–7 min, turning once or twice. A Thin & Crispy preset, if you have one, fits this style.", "pinsa": "Stone 650–700°F, top heat medium. Bake 3–4 min total, turning once.", "lahmacun": "Stone 700–750°F, top heat high. Bake 1–2 min until the edges crisp and the meat is cooked, turning once if needed.", "pita": "Stone 700–750°F, top heat low. Bake 60–90 seconds until puffed.", "naan": "Stone 750°F, top heat high. Bake 60–90 seconds until puffed and spotted, then brush with garlic butter.", "bazlama": "Stone 550–600°F, top heat low. Bake 2–3 min, flipping once halfway."};
 const RECIPES = [{"id": "sauce-neap", "cat": "Sauces", "name": "Neapolitan pizza sauce (no-cook)", "makes": "About 3 cups, enough for 8–9 Neapolitan pizzas", "yld": 9, "yw": "pizzas", "ing": [[1, "can (28 oz)", "whole peeled San Marzano or plum tomatoes"], [1.5, "tsp", "fine sea salt"], [4, "", "fresh basil leaves, torn (optional)"], [1, "tbsp", "olive oil (optional)"]], "steps": ["Pour the tomatoes into a bowl and tip off the thin, watery juice at the top of the can.", "Crush the tomatoes by hand or pass them through a food mill. Leave the sauce a little chunky.", "Stir in the salt, basil, and olive oil. Taste: it should taste like bright, fresh tomato, lightly salted.", "Don't cook it. It cooks on the pizza in the oven.", "Use about 80 g (⅓ cup) per 11-inch pizza. Spread it thin with the back of a spoon in a spiral, leaving the rim bare."], "tips": ["Why homemade sauce often turns out bad: it's cooked too long (tastes like paste), loaded with dried herbs or garlic powder, sweetened to hide sour tomatoes, or blended, which whips in air and grinds the seeds so it turns pale orange and bitter.", "Too much sauce is the main cause of a soggy center. Less is more.", "Keeps 5 days in the fridge or 3 months in the freezer."], "for": ["neapolitan", "neap-home", "pinsa", "roman"]}, {"id": "sauce-ny", "cat": "Sauces", "name": "New York pizza sauce", "makes": "About 3 cups, enough for 4 pizzas (14-inch)", "yld": 4, "yw": "pizzas", "ing": [[1, "can (28 oz)", "crushed tomatoes"], [2, "tbsp", "olive oil"], [1, "tbsp", "butter (optional, rounds out the flavor)"], [3, "clove", "garlic, finely grated"], [1, "tsp", "dried oregano"], [0.5, "tsp", "red pepper flakes"], [1, "tsp", "salt"], [1, "tsp", "sugar, only if the tomatoes taste sharp"], [1, "sprig", "fresh basil"]], "steps": ["Warm the oil and butter over low heat. Add the garlic, oregano, and pepper flakes and cook 1–2 minutes until fragrant. Don't let the garlic brown.", "Add the tomatoes, salt, and basil sprig. Simmer gently, uncovered, for 15–20 minutes until slightly thickened.", "Remove the basil. Taste and adjust the salt; add sugar only if it tastes sour.", "Cool completely before using. Use about 170 g (⅔ cup) per 14-inch pizza."], "tips": ["Warm sauce makes the dough sticky and hard to launch. Always use it cool.", "It should be spoonable, not runny. If it's watery, simmer 5 more minutes."], "for": ["ny", "tavern", "sicilian"]}, {"id": "sauce-detroit", "cat": "Sauces", "name": "Detroit red stripe sauce", "makes": "About 2 cups, enough for 2 pans (10×14)", "yld": 2, "yw": "pans", "ing": [[1, "can (28 oz)", "crushed tomatoes"], [2, "tbsp", "butter"], [2, "clove", "garlic, minced"], [1, "tsp", "dried oregano"], [0.5, "tsp", "dried basil"], [0.5, "tsp", "onion powder"], [1, "tsp", "sugar"], [0.75, "tsp", "salt"], [0.25, "tsp", "black pepper"], [2, "tbsp", "grated Parmesan"]], "steps": ["Melt the butter over medium-low heat and cook the garlic for 1 minute.", "Add everything except the Parmesan. Simmer 30–40 minutes, stirring often, until thick and reduced by about a third.", "Stir in the Parmesan.", "Ladle 2–3 stripes of warm sauce across the pizza after it comes out of the oven."], "tips": ["This sauce is thicker than the others because it goes on top after baking."], "for": ["detroit"]}, {"id": "sauce-deep", "cat": "Sauces", "name": "Chicago deep-dish chunky sauce", "makes": "Enough for one 12-inch deep dish", "yld": 1, "yw": "pans", "ing": [[1, "can (28 oz)", "whole peeled tomatoes"], [2, "clove", "garlic, grated"], [1, "tsp", "dried oregano"], [0.5, "tsp", "sugar"], [0.5, "tsp", "salt"], [1, "tbsp", "olive oil"], [2, "tbsp", "grated Parmesan, for the top"]], "steps": ["Drain the tomatoes well in a sieve for 10 minutes. Save the juice for soup.", "Crush the tomatoes by hand into chunks.", "Mix in the garlic, oregano, sugar, salt, and oil. Don't cook it.", "Spread over the cheese layer in the pan and sprinkle with Parmesan."], "tips": ["Draining is the key step. Undrained tomatoes make the deep dish soupy."], "for": ["deepdish", "sicilian"]}, {"id": "margherita", "cat": "Pizza toppings", "name": "Margherita", "makes": "Per pizza (11-inch)", "yld": 1, "yw": "pizzas", "ing": [[80, "g", "Neapolitan pizza sauce"], [100, "g", "fior di latte or fresh mozzarella"], [3, "", "fresh basil leaves"], [1, "tsp", "olive oil"], [1, "tbsp", "grated Pecorino or Parmesan (optional)"]], "steps": ["2–3 hours ahead, tear the mozzarella into bite-size pieces and let it drain on paper towels in the fridge.", "Stretch the dough and spread the sauce in a thin spiral, leaving the rim bare.", "Sprinkle the grated cheese, scatter the mozzarella, and drizzle with the oil.", "Bake. Add the basil right after baking; at 850°F it can scorch if added before."], "tips": ["Wet mozzarella is the number one cause of a soupy center. Buffalo mozzarella is even wetter, so drain it longer."], "for": ["neapolitan", "neap-home", "pinsa"]}, {"id": "ny-cheese", "cat": "Pizza toppings", "name": "New York cheese or pepperoni", "makes": "Per pizza (14-inch)", "yld": 1, "yw": "pizzas", "ing": [[170, "g", "New York pizza sauce"], [200, "g", "low-moisture whole-milk mozzarella, shredded from a block"], [10, "g", "grated Parmesan"], [60, "g", "pepperoni, about 30 slices (optional)"], [1, "pinch", "dried oregano"]], "steps": ["Shred the mozzarella yourself. Pre-shredded cheese has anti-caking starch that melts grainy.", "Spread the sauce to about ½ inch from the edge.", "Add the mozzarella, then the pepperoni.", "Bake, then finish with the Parmesan and a pinch of oregano."], "tips": ["For pepperoni that curls into crispy cups, buy a small-diameter natural-casing pepperoni."], "for": ["ny", "tavern"]}, {"id": "detroit-top", "cat": "Pizza toppings", "name": "Detroit-style toppings", "makes": "Per pan (10×14)", "yld": 1, "yw": "pans", "ing": [[250, "g", "brick cheese, or half Monterey Jack and half low-moisture mozzarella, in ½-inch cubes"], [60, "g", "pepperoni"], [180, "g", "Detroit red stripe sauce, warm"]], "steps": ["After the dough proofs in the pan, press the pepperoni onto the dough.", "Scatter the cheese cubes all the way to the edges so the cheese touches the pan walls. That's what makes the crispy, lacy cheese crust.", "Bake until the edges are dark brown.", "Run a thin spatula around the edges, slide the pizza out, and ladle 2–3 stripes of warm sauce across the top."], "tips": [], "for": ["detroit"]}, {"id": "bianca", "cat": "Pizza toppings", "name": "White pizza with garlic oil", "makes": "Per pizza (11–12 inch)", "yld": 1, "yw": "pizzas", "ing": [[2, "tbsp", "olive oil"], [2, "clove", "garlic, thinly sliced"], [80, "g", "fresh mozzarella, torn and drained"], [3, "tbsp", "whole-milk ricotta"], [1, "tbsp", "grated Parmesan"], [1, "pinch", "red pepper flakes"], [1, "handful", "arugula, after baking (optional)"]], "steps": ["Warm the oil and garlic on the lowest heat for 5 minutes, then let it cool.", "Brush the garlic oil over the stretched dough, garlic slices too.", "Scatter the mozzarella and add small dollops of ricotta.", "Bake, then finish with Parmesan, pepper flakes, arugula, and a squeeze of lemon."], "tips": [], "for": ["neapolitan", "neap-home", "ny", "pinsa", "roman"]}, {"id": "lahmacun-top", "cat": "Turkish", "name": "Lahmacun topping", "makes": "Enough for 8 lahmacuns", "yld": 8, "yw": "lahmacuns", "ing": [[250, "g", "ground lamb or beef, about 20% fat"], [1, "", "medium onion"], [1, "", "small green bell pepper, or 2 Turkish sivri peppers"], [1, "", "medium tomato"], [1, "bunch", "flat-leaf parsley (small)"], [2, "clove", "garlic"], [1, "tbsp", "tomato paste"], [1, "tbsp", "Turkish red pepper paste (biber salçası), or another tbsp tomato paste"], [1, "tsp", "pul biber (Aleppo pepper)"], [0.5, "tsp", "ground cumin"], [0.5, "tsp", "black pepper"], [1, "tsp", "salt"], [1, "tbsp", "olive oil"], [null, "h", "To serve"], [1, "", "lemon, in wedges"], [1, "", "small red onion, sliced and tossed with sumac"]], "steps": ["Pulse the onion, pepper, tomato, garlic, and parsley in a food processor until very fine, or chop them by hand.", "Press out the extra juice in a sieve. A wet topping makes soggy lahmacun.", "Add the meat, both pastes, the spices, and the oil. Knead with your hands for 2 minutes until it's a smooth paste. Rest 30 minutes in the fridge.", "Roll each dough ball very thin, about 10 inches across.", "With wet fingers, spread about 60 g of topping in a thin, even layer right to the edge. The meat goes on raw.", "Bake (see the oven settings on the Lahmacun dough). Stack the baked lahmacuns on top of each other so they stay soft.", "Serve with lemon, parsley, and the sumac onions, rolled up."], "tips": ["Thin is the whole point: a thin crust and a thin layer of meat that cooks through in a couple of minutes."], "for": ["lahmacun"]}, {"id": "pide-fillings", "cat": "Turkish", "name": "Pide fillings", "makes": "Enough for 4 pides", "yld": 4, "yw": "pides", "ing": [[null, "h", "Kıymalı (ground beef)"], [250, "g", "ground beef"], [1, "", "onion, finely chopped"], [1, "", "green pepper, finely chopped"], [1, "", "tomato, grated"], [1, "tbsp", "tomato paste"], [1, "tsp", "salt"], [0.5, "tsp", "black pepper"], [0.5, "tsp", "pul biber"], [null, "h", "Kaşarlı (cheese and egg)"], [200, "g", "kaşar cheese (or mozzarella), shredded"], [4, "", "eggs, one per pide (optional)"], [null, "h", "Sucuklu (sucuk and cheese)"], [150, "g", "sucuk, thinly sliced"], [150, "g", "kaşar cheese, shredded"], [null, "h", "For all"], [30, "g", "butter, melted, for brushing"]], "steps": ["Kıymalı: brown the beef and onion until dry. Add the pepper, tomato, paste, and spices and cook 5–8 minutes until no liquid is left. Cool completely.", "Roll each dough ball into a long oval. Spread the filling down the middle, leaving a 1-inch border.", "Fold the long edges over the filling and pinch the ends into a boat shape.", "Kaşarlı: fill with cheese, bake 2 minutes, crack an egg into the center, and bake until the egg is just set.", "Brush the crust with melted butter as soon as it comes out of the oven."], "tips": ["Filling must be cool and dry, or the bottom turns soggy."], "for": ["pide"]}, {"id": "focaccia-top", "cat": "Bread toppings", "name": "Focaccia brine and toppings", "makes": "Per half-sheet pan", "yld": 1, "yw": "pans", "ing": [[60, "g", "olive oil, for the pan"], [2, "tbsp", "olive oil, for the brine"], [2, "tbsp", "water"], [0.5, "tsp", "salt"], [2, "sprig", "rosemary, leaves picked"], [1, "tsp", "flaky salt"], [null, "h", "Optional"], [1, "cup", "cherry tomatoes, halved"], [0.5, "cup", "olives"], [0.5, "", "red onion, thinly sliced"]], "steps": ["Oil the pan generously before the dough goes in.", "After dimpling, whisk the brine (oil, water, salt) and pour it over. It pools in the dimples and gives the classic crisp, salty top.", "Add the rosemary and any optional toppings, pressing them in lightly.", "Sprinkle with flaky salt and bake."], "tips": [], "for": ["focaccia"]}, {"id": "garlic-butter", "cat": "Bread toppings", "name": "Garlic butter for naan, bazlama, and pita", "makes": "Enough for 6 breads", "yld": 6, "yw": "breads", "ing": [[4, "tbsp", "butter"], [3, "clove", "garlic, grated"], [2, "tbsp", "chopped cilantro or parsley"], [0.25, "tsp", "flaky salt"], [1, "pinch", "nigella seeds (optional)"]], "steps": ["Melt the butter over low heat. Add the garlic and cook 1 minute without browning.", "Take it off the heat and stir in the herbs, salt, and seeds.", "Brush on the bread right after it comes off the stone or skillet."], "tips": [], "for": ["naan", "bazlama", "pita"]}, {"id": "simit-dip", "cat": "Turkish", "name": "Simit molasses dip and sesame", "makes": "Enough for 8 simits", "yld": 8, "yw": "simits", "ing": [[0.5, "cup", "grape molasses (pekmez) or carob molasses"], [0.5, "cup", "water"], [1.5, "cup", "sesame seeds"]], "steps": ["Toast the sesame in a dry pan over medium heat for 4–5 minutes until light gold. Spread on a plate to cool.", "Whisk the molasses and water in a wide bowl.", "Dip each shaped ring in the molasses, let it drip, then press both sides into the sesame.", "Twist the ring gently to stretch it a little, then bake."], "tips": ["The molasses is what gives simit its deep mahogany color and crisp shell."], "for": ["simit"]}, {"id": "discard-crackers", "cat": "Using sourdough discard", "name": "Sourdough discard crackers", "makes": "One sheet pan", "yld": null, "yw": "", "ing": [[200, "g", "sourdough discard"], [100, "g", "flour"], [40, "g", "olive oil or melted butter"], [1, "tsp", "salt"], [1, "tsp", "dried herbs (rosemary, oregano) or everything bagel seasoning"], [1, "tsp", "flaky salt, for the top"]], "steps": ["Mix everything except the flaky salt into a firm dough. Rest 30 minutes, or overnight in the fridge.", "Roll it paper-thin directly on parchment.", "Brush lightly with oil, sprinkle the flaky salt, and cut into squares with a pizza cutter.", "Bake at 350°F for 20–25 minutes, rotating once, until golden. Cool on the pan; they crisp as they cool."], "tips": ["Older, more sour discard makes tangier crackers."], "for": []}, {"id": "discard-pancakes", "cat": "Using sourdough discard", "name": "Sourdough discard pancakes", "makes": "About 10 pancakes", "yld": null, "yw": "", "ing": [[250, "g", "sourdough discard"], [1, "", "egg"], [2, "tbsp", "sugar"], [2, "tbsp", "melted butter"], [60, "g", "flour (½ cup)"], [0.25, "tsp", "salt"], [0.5, "tsp", "baking soda"], [0.25, "cup", "milk, more to thin"]], "steps": ["Whisk the discard, egg, sugar, butter, flour, and salt.", "Add milk until it's a thick, pourable batter.", "Stir in the baking soda last. The batter will puff up.", "Cook on a buttered griddle over medium heat until bubbles form, then flip."], "tips": [], "for": []}];
-const TOP = {"neapolitan": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "neap-home": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "ny": [["Sauce", 170], ["Low-moisture mozzarella", 200], ["Parmesan", 10], ["Pepperoni (optional)", 60]], "detroit": [["Brick or Jack + mozzarella cubes", 250], ["Pepperoni (optional)", 60], ["Sauce stripes, after baking", 180]], "sicilian": [["Sauce", 250], ["Low-moisture mozzarella", 300], ["Parmesan", 15]], "roman": [["Sauce", 200], ["Mozzarella", 250]], "tavern": [["Sauce", 140], ["Low-moisture mozzarella", 180], ["Italian sausage, raw (optional)", 150]], "deepdish": [["Sliced low-moisture mozzarella", 350], ["Italian sausage (optional)", 250], ["Chunky sauce", 350], ["Parmesan", 15]], "pinsa": [["Sauce", 70], ["Fresh mozzarella", 90]], "pide": [["Filling", 120]], "lahmacun": [["Meat topping", 60]], "focaccia": [["Olive oil in the pan", 60]], "naan": [["Garlic butter", 10]], "bazlama": [["Garlic butter", 10]]};
-const REF = {"neapolitan": {"r": 11}, "neap-home": {"r": 11}, "ny": {"r": 14}, "tavern": {"r": 14}, "deepdish": {"r": 12}, "lahmacun": {"r": 10}, "detroit": {"w": 10, "h": 14}, "sicilian": {"w": 13, "h": 18}, "roman": {"w": 12, "h": 16}, "focaccia": {"w": 13, "h": 18}};
-const PROFILE = {"ball": ["neapolitan", "neap-home", "ny", "pide", "tavern", "pinsa", "lahmacun", "pita", "naan", "bazlama"], "pan": ["detroit", "sicilian", "roman", "deepdish", "focaccia"], "loaf": ["sandwich", "baguette", "rustic", "ciabatta", "wholewheat", "simit"], "enriched": ["brioche", "rolls", "challah"], "sour": ["sourdough"], "bagel": ["bagel"]};
-const BAKE_MIN = {"neapolitan": 2, "neap-home": 7, "ny": 6, "pide": 8, "tavern": 12, "pinsa": 8, "lahmacun": 6, "pita": 4, "naan": 3, "bazlama": 6, "detroit": 14, "sicilian": 20, "roman": 17, "deepdish": 35, "focaccia": 25, "sandwich": 35, "baguette": 25, "rustic": 45, "ciabatta": 25, "wholewheat": 40, "simit": 20, "brioche": 35, "rolls": 18, "challah": 35, "sourdough": 45, "bagel": 22};
-const COOL_MIN = {"detroit": 5, "sicilian": 5, "roman": 5, "deepdish": 10, "focaccia": 10, "sandwich": 60, "baguette": 30, "rustic": 60, "ciabatta": 30, "wholewheat": 60, "simit": 10, "brioche": 60, "rolls": 10, "challah": 30, "sourdough": 60, "bagel": 15};
+const TOP = {"fathead": [["Sauce (no sugar added)", 120], ["Mozzarella", 150], ["Pepperoni or cooked chicken/beef", 70]], "neapolitan": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "neap-home": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "ny": [["Sauce", 170], ["Low-moisture mozzarella", 200], ["Parmesan", 10], ["Pepperoni (optional)", 60]], "detroit": [["Brick or Jack + mozzarella cubes", 250], ["Pepperoni (optional)", 60], ["Sauce stripes, after baking", 180]], "sicilian": [["Sauce", 250], ["Low-moisture mozzarella", 300], ["Parmesan", 15]], "roman": [["Sauce", 200], ["Mozzarella", 250]], "tavern": [["Sauce", 140], ["Low-moisture mozzarella", 180], ["Italian sausage, raw (optional)", 150]], "deepdish": [["Sliced low-moisture mozzarella", 350], ["Italian sausage (optional)", 250], ["Chunky sauce", 350], ["Parmesan", 15]], "pinsa": [["Sauce", 70], ["Fresh mozzarella", 90]], "pide": [["Filling", 120]], "lahmacun": [["Meat topping", 60]], "focaccia": [["Olive oil in the pan", 60]], "naan": [["Garlic butter", 10]], "bazlama": [["Garlic butter", 10]]};
+const REF = {"fathead": {"r": 12}, "neapolitan": {"r": 11}, "neap-home": {"r": 11}, "ny": {"r": 14}, "tavern": {"r": 14}, "deepdish": {"r": 12}, "lahmacun": {"r": 10}, "detroit": {"w": 10, "h": 14}, "sicilian": {"w": 13, "h": 18}, "roman": {"w": 12, "h": 16}, "focaccia": {"w": 13, "h": 18}};
+const PROFILE = {"keto": ["psyllium", "fathead", "fbagel", "mug"], "ball": ["neapolitan", "neap-home", "ny", "pide", "tavern", "pinsa", "lahmacun", "pita", "naan", "bazlama"], "pan": ["detroit", "sicilian", "roman", "deepdish", "focaccia"], "loaf": ["sandwich", "baguette", "rustic", "ciabatta", "wholewheat", "simit", "ketoyeast"], "enriched": ["brioche", "rolls", "challah"], "sour": ["sourdough"], "bagel": ["bagel"]};
+const BAKE_MIN = {"psyllium": 55, "fathead": 18, "fbagel": 14, "mug": 2, "ketoyeast": 38, "neapolitan": 2, "neap-home": 7, "ny": 6, "pide": 8, "tavern": 12, "pinsa": 8, "lahmacun": 6, "pita": 4, "naan": 3, "bazlama": 6, "detroit": 14, "sicilian": 20, "roman": 17, "deepdish": 35, "focaccia": 25, "sandwich": 35, "baguette": 25, "rustic": 45, "ciabatta": 25, "wholewheat": 40, "simit": 20, "brioche": 35, "rolls": 18, "challah": 35, "sourdough": 45, "bagel": 22};
+const COOL_MIN = {"psyllium": 60, "fathead": 5, "fbagel": 10, "mug": 2, "ketoyeast": 60, "detroit": 5, "sicilian": 5, "roman": 5, "deepdish": 10, "focaccia": 10, "sandwich": 60, "baguette": 30, "rustic": 60, "ciabatta": 30, "wholewheat": 60, "simit": 10, "brioche": 60, "rolls": 10, "challah": 30, "sourdough": 60, "bagel": 15};
 /* ---------- Helpers: units, sharing, toast ---------- */
-const GPT = {flour:2.6, water:4.93, milk:5, salt:6, yeast:3.1, sugar:4.2, oil:4.5, butter:4.7, honey:7, yogurt:5.1, levain:5, discard:5};
+const GPT = {flour:2.6, water:4.93, milk:5, salt:6, yeast:3.1, sugar:4.2, oil:4.5, butter:4.7, honey:7, yogurt:5.1, levain:5, discard:5, psyllium:2.4, bp:4, vinegar:5, mozz:2.35, cream:4.8, almond:2.0, oatfiber:1.8};
+// Estimated net carbs, grams per 100 g (check your own labels)
+const CARB = {water:0, milk:5, eggs:0.7, whites:0.7, salt:0, yeast:12, levain:36, oil:0, sugar:100, butter:0, yogurt:4.7, honey:82, discard:36, psyllium:4, bp:28, vinegar:1, mozz:3, cream:5, almond:10, oatfiber:0};
+const flourCarb = st => st.carb != null ? st.carb : st.cat === "keto" ? (/gluten/i.test(st.flour) ? 14 : 10) : st.id === "wholewheat" ? 62 : 72;
 const FR = {1:"⅛", 2:"¼", 3:"⅜", 4:"½", 5:"⅝", 6:"¾", 7:"⅞"};
 function frac(x, den){
   const e = Math.round(x * den) * (8 / den);
@@ -858,6 +949,8 @@ function amtHTML(k, g){
   const main = state.units === "oz" ? `${fmtOz(g)}<small> oz</small>` : `${fmt(g)}<small> g</small>`;
   let sub = "";
   if(k === "eggs") sub = `≈ ${(g / 50).toFixed(1)} eggs`;
+  else if(k === "whites") sub = `≈ ${(g / 30).toFixed(1)} whites`;
+  else if(k === "bp" || k === "psyllium" || k === "vinegar") sub = "≈ " + vol(g, GPT[k]);
   else if(k === "yeast" && state.yeast === "fresh") sub = "";
   else if((state.units === "gv" || k === "yeast" || k === "salt") && GPT[k]) sub = "≈ " + vol(g, GPT[k]);
   return main + (sub ? `<span class="vol">${sub}</span>` : "");
@@ -1015,6 +1108,7 @@ function buildPlan(st){
   const T = new Date(pl.eat || defaultEat()).getTime();
   const prof = profileOf(st.id);
   let Hc = +pl.ferm || 0, note = "";
+  if(prof === "keto"){ Hc = 0; note = "No rising needed; this plan just counts back from baking."; }
   if(prof === "sour" && Hc > 16){ Hc = 16; note = "Shaped sourdough shouldn't sit in the fridge much longer than a day, so this plan uses a 16-hour cold proof."; }
   const bakeM = BAKE_MIN[st.id] || 30, coolM = COOL_MIN[st.id] || 0;
   const pizzaOven = state.oven === "electric" ? !!PE[st.id] : state.oven === "gas" ? typeof st.po === "string" : false;
@@ -1023,7 +1117,10 @@ function buildPlan(st){
   const steps = [], add = (t, s) => steps.push([t, s]);
   const pieces = `${state.count} ${state.count === 1 ? st.unitWord : st.unitName.toLowerCase()}`;
   let mix;
-  if(prof === "ball"){
+  if(prof === "keto"){
+    mix = B - 25 * MN;
+    if(st.id === "fathead") add(B - 10 * MN, "Roll the crust out between parchment.");
+  } else if(prof === "ball"){
     const out = B - 3 * HR;
     if(Hc){ const fin = out - Hc * HR; mix = fin - HR; add(fin, `Divide and shape into ${pieces}. Cover and refrigerate.`); add(out, "Take the dough out of the fridge to warm up."); }
     else { mix = out - 2 * HR; add(out, `Divide and shape into ${pieces}. Cover and let them proof.`); }
@@ -1314,11 +1411,12 @@ async function importFile(file){
   if(raw.length === 1 && raw[0] && raw[0].app === "dough-calculator"){ const r = await mergeBackup(raw[0]); msg.textContent = r; return; }
   const sigs = new Map(mine.map(r => [recSig(r), r]));
   const ids = new Map(mine.map(r => [r.id, r]));
-  let added = 0, skipped = 0, gone = 0;
+  let added = 0, skipped = 0, gone = 0, other = 0;
   const photos = [], queued = new Set();
   for(const p of raw){
     if(!p || typeof p !== "object" || !(p.name || p.ingredients || p.directions)) continue;
     const r = fromPaprika(p);
+    if(state.impOnly !== false && !isDoughRecipe(r)){ other++; continue; }
     const pic = typeof p.photo_data === "string" && p.photo_data.length > 100 ? p.photo_data : null;
     if(state.gone["r:" + r.id]){ gone++; continue; }
     const have = ids.get(r.id) || sigs.get(recSig(r));
@@ -1330,7 +1428,7 @@ async function importFile(file){
     mine.push(r); ids.set(r.id, r); sigs.set(recSig(r), r); added++;
     if(pic){ photos.push([r, pic]); queued.add(r.id); }
   }
-  if(!added && !skipped && !gone){ msg.classList.add("warn"); msg.textContent = "No recipes found in that file. Export from Paprika using the Paprika Recipe Format."; return; }
+  if(!added && !skipped && !gone && !other){ msg.classList.add("warn"); msg.textContent = "No recipes found in that file. Export from Paprika using the Paprika Recipe Format."; return; }
   let saved = 0;
   if(photos.length){
     try{
@@ -1346,6 +1444,7 @@ async function importFile(file){
   let txt = added ? `Imported ${pl(added, "recipe")}${saved ? ` with ${pl(saved, "photo")}` : ""}.` : `No new recipes.${saved ? ` Added ${pl(saved, "photo")} to recipes already here.` : ""}`;
   if(skipped) txt += ` Skipped ${skipped} already here.`;
   if(gone) txt += ` Skipped ${gone} you deleted before.`;
+  if(other) txt += ` Left ${other} non-dough recipe${other === 1 ? "" : "s"} in Paprika.`;
   if(saveMine()) msg.textContent = txt;
   renderMine();
 }
@@ -1500,7 +1599,7 @@ function renderFreeze(st){
   const sec = $("freezeSec");
   if(!st.ing.yeast){
     sec.querySelector(".two").hidden = true; $("shareFreeze").hidden = true;
-    $("freeze").innerHTML = `<p class="empty">${st.id === "sourdough" ? "Sourdough is better baked first and then frozen. Freezing raw sourdough kills a lot of the wild yeast, so it often won't rise well after thawing." : "This dough has no yeast, so there's no fermentation timing to plan."}</p>`;
+    $("freeze").innerHTML = `<p class="empty">${st.cat === "keto" ? "No rise to time here. Keto breads freeze best after baking: cool completely, slice, wrap, and freeze up to 2 months. Toast slices straight from frozen; reheat fathead crusts at 400°F for 5 minutes." : st.id === "sourdough" ? "Sourdough is better baked first and then frozen. Freezing raw sourdough kills a lot of the wild yeast, so it often won't rise well after thawing." : "This dough has no yeast, so there's no fermentation timing to plan."}</p>`;
     $("freezeHint").textContent = ""; lastFreeze = null; return;
   }
   sec.querySelector(".two").hidden = false; $("shareFreeze").hidden = false;
@@ -1571,7 +1670,7 @@ function cleanURL(text){
   return (/^https?:/i.test(m[0]) ? m[0] : "https://" + m[0]).replace(/[)\].,]+$/, "");
 }
 const VFOR_GROUPS = () => [["", "General"], ["shaping", "Stretching & shaping"], ["cat:pizza", "Pizza, any style"], ["cat:bread", "Bread, any style"], ["starter", "Starter & sourdough"], ["recipes", "Sauces & toppings"]]
-  .concat(STYLES.pizza.map(s => [s.id, "Pizza: " + s.name]), STYLES.bread.map(s => [s.id, "Bread: " + s.name]));
+  .concat([["cat:keto", "Keto, any style"], ["chaffle", "Chaffles"]], STYLES.pizza.map(s => [s.id, "Pizza: " + s.name]), STYLES.bread.map(s => [s.id, "Bread: " + s.name]), STYLES.keto.map(s => [s.id, "Keto: " + s.name]));
 const vforLabel = v => (VFOR_GROUPS().find(x => x[0] === (v || "")) || ["", "General"])[1];
 function renderVideoForm(){
   if(!$("vFor").options.length) $("vFor").innerHTML = VFOR_GROUPS().map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join("");
@@ -1628,7 +1727,7 @@ async function fillMissingTitles(){
   if(n){ save(); if(state.view === "videos") renderVideos(); }
 }
 function videoChips(st){
-  const vs = state.videos.filter(v => v.for === st.id || v.for === "cat:" + state.cat);
+  const vs = state.videos.filter(v => v.for === st.id || v.for === "cat:" + state.cat || (state.cat === "keto" && v.for === "chaffle"));
   return vs.length ? `<p class="bake"><b>Your videos for this</b></p><div class="chips reclinks">${vs.map(v => `<button type="button" data-video="${esc(v.id)}">▶ ${esc(v.title || "YouTube video")}</button>`).join("")}</div>` : "";
 }
 function openVideo(id){
@@ -1765,7 +1864,7 @@ document.addEventListener("visibilitychange", () => { if(wantWake && document.vi
 const YEAST_MULT = {instant:1, active:1.25, fresh:3};
 const YEAST_NAME = {instant:"Instant yeast", active:"Active dry yeast", fresh:"Fresh yeast"};
 
-let state = {cat:"pizza", styleId:"neapolitan", count:4, unit:250, waste:2, yeast:"instant", discard:0, people:0, oven:"electric", view:"dough", lastLevain:0, starter:null, units:"g", saved:[], log:[], plan:null, pcts:{}, gone:{}, lastSync:0, videos:[], freeze:null, freezer:[], practice:[], ltab:"bakes"};
+let state = {cat:"pizza", styleId:"neapolitan", count:4, unit:250, waste:2, yeast:"instant", discard:0, people:0, oven:"electric", view:"dough", lastLevain:0, starter:null, units:"g", saved:[], log:[], plan:null, pcts:{}, gone:{}, lastSync:0, videos:[], freeze:null, freezer:[], practice:[], ltab:"bakes", chaffle:null, pantry:[], impOnly:true};
 const STARTER_DEFAULTS = () => ({keep:20, ratio:1, need:0, lratio:1, revive:[], jar:[]});
 const $ = id => document.getElementById(id);
 const style = () => STYLES[state.cat].find(s => s.id === state.styleId) || STYLES[state.cat][0];
@@ -1786,6 +1885,8 @@ function load(){
   if(!Array.isArray(state.videos)) state.videos = [];
   if(!Array.isArray(state.freezer)) state.freezer = [];
   if(!Array.isArray(state.practice)) state.practice = [];
+  state.chaffle = Object.assign({maker:"mini", type:"bread", count:2}, state.chaffle || {});
+  if(!Array.isArray(state.pantry)) state.pantry = [];
   state.freeze = Object.assign({mix:"", thaw:"fridge", keep:1, fridge:"14"}, state.freeze || {});
   if(state.freeze.mix && new Date(state.freeze.mix).getTime() < Date.now() - 7 * 864e5) state.freeze.mix = "";
   if(state.view === "sync") state.view = "dough";
@@ -1813,7 +1914,9 @@ function renderForm(){
   $("waste").value = String(state.waste);
   $("yeastType").value = state.yeast;
   $("yeastField").style.display = st.ing.yeast ? "" : "none";
-  $("discardField").style.display = st.ing.water ? "" : "none";
+  $("discardField").style.display = st.ing.water && st.cat !== "keto" ? "" : "none";
+  $("ketoSec").hidden = st.cat !== "keto";
+  $("ferm").closest(".field").hidden = profileOf(st.id) === "keto";
   $("discard").value = state.discard || "";
   $("oven").value = state.oven;
   $("units").value = state.units;
@@ -1846,6 +1949,7 @@ function renderForm(){
       <span class="grams" id="g-discard">0<small> g</small></span>
     </div>` : "");
   update();
+  renderKeto();
 }
 
 function renderNotes(st, D){
@@ -1885,7 +1989,7 @@ function update(){
   }
 
   let D = 0, capped = false;
-  if(st.ing.water && state.discard > 0){
+  if(st.ing.water && state.discard > 0 && st.cat !== "keto"){
     const maxD = 2 * Math.min(flour, grams.water);
     D = Math.min(state.discard, maxD);
     capped = state.discard > maxD;
@@ -1894,7 +1998,7 @@ function update(){
     grams.discard = D;
   }
   $("flourG").innerHTML = state.units === "oz" ? `${fmtOz(grams.flour)}<small>oz</small>` : `${fmt(grams.flour)}<small>g</small>`;
-  $("flourType").textContent = st.flour + (D > 0 ? ` (plus ${fmtW(D / 2)} already in the discard)` : "") + (state.units === "gv" ? ` · about ${vol(grams.flour, GPT.flour)}` : "");
+  $("flourType").textContent = st.flour + (D > 0 ? ` (plus ${fmtW(D / 2)} already in the discard)` : "") + (state.units === "gv" ? ` · about ${vol(grams.flour, st.gpt || GPT.flour)}` : "");
   if($("row-discard")){
     $("row-discard").classList.toggle("hide", !(D > 0));
     $("g-discard").innerHTML = amtHTML("discard", D);
@@ -1920,7 +2024,12 @@ function update(){
   // Effective hydration: water + 87% of milk + 75% of eggs + half of levain, over flour incl. levain flour
   const lev = p.levain || 0;
   const wet = (p.water || 0) + (p.milk || 0) * 0.87 + (p.eggs || 0) * 0.75 + (p.yogurt || 0) * 0.85 + (p.honey || 0) * 0.17 + lev / 2;
-  $("hyd").textContent = (wet / (100 + lev / 2) * 100).toFixed(1) + "%";
+  $("hyd").textContent = st.cat === "keto" ? "n/a" : (wet / (100 + lev / 2) * 100).toFixed(1) + "%";
+  let carbs = grams.flour * flourCarb(st) / 100;
+  for(const k in grams) if(k !== "flour") carbs += grams[k] * (CARB[k] != null ? CARB[k] : 0) / 100;
+  const pieces = Math.max(1, state.count) * (1 + state.waste / 100);
+  const per = carbs / pieces, totalG = Object.values(grams).reduce((a, b) => a + b, 0);
+  $("carbHint").innerHTML = `Estimated ${st.cat === "keto" ? "net " : ""}carbs: <b>about ${Math.round(per)} g per ${esc(st.unitWord)}</b> · ${Math.round(carbs / totalG * 100)} g per 100 g of dough.${st.cat !== "keto" ? " A rough estimate; check your flour's label." : " Net = total minus fiber; check your labels."}`;
 
   const parts = [["flour", "var(--c-flour)"]].concat(Object.keys(st.ing).map(k => [k, ING[k].color]));
   if(D > 0) parts.push(["discard", "var(--c-discard)"]);
@@ -2361,14 +2470,14 @@ function openLogTab(t){ state.ltab = t; state.view = "log"; showView(); save(); 
 $("logTabs").addEventListener("click", e => { const b = e.target.closest("[data-ltab]"); if(b){ state.ltab = b.dataset.ltab; save(); renderLog(); } });
 
 /* ---------- Freezer tracker ---------- */
-const allStyles = () => STYLES.pizza.map(s => ["pizza", s]).concat(STYLES.bread.map(s => ["bread", s]));
+const allStyles = () => Object.keys(STYLES).flatMap(c => STYLES[c].map(s => [c, s]));
 const styleById = id => (allStyles().find(([, s]) => s.id === id) || [])[1];
 const dayISO = d => localISO(d).slice(0, 10);
 const fmtDate = iso => new Date(iso + "T12:00").toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
 const daysUntil = iso => Math.round((new Date(iso + "T12:00").getTime() - new Date(todayISO() + "T12:00").getTime()) / 864e5);
 function useByOf(z){ const d = new Date(z.frozen + "T12:00"); d.setMonth(d.getMonth() + (+z.keep || 1)); return dayISO(d); }
 function fillFreezerForm(o){
-  if(!$("zStyle").options.length) $("zStyle").innerHTML = `<optgroup label="Pizza">${STYLES.pizza.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup><optgroup label="Bread">${STYLES.bread.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup>`;
+  if(!$("zStyle").options.length) $("zStyle").innerHTML = `<optgroup label="Pizza">${STYLES.pizza.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup><optgroup label="Bread">${STYLES.bread.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup><optgroup label="Keto">${STYLES.keto.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup>`;
   $("zStyle").value = o.styleId; $("zCount").value = o.count; $("zUnit").value = o.unit; $("zKeep").value = String(o.keep || 1);
   $("zDate").value = o.frozen || todayISO(); $("zNotes").value = o.notes || "";
 }
@@ -2546,6 +2655,101 @@ document.addEventListener("click", e => {
   }
 });
 
+/* ---------- Keto: chaffles, pantry, swap ---------- */
+const CH_MAKER = {mini:[1, "3–4 min"], std:[3, "4–5 min"], belg:[4, "5–6 min"]};
+// grams per mini chaffle
+const CH_TYPE = {
+  classic:{name:"Classic cheese", ing:[["eggs", "Egg", 25], ["mozz", "Mozzarella, shredded", 28], ["almond", "Almond flour", 4]]},
+  bread:{name:"Bread", ing:[["eggs", "Egg", 25], ["mozz", "Mozzarella, shredded", 21], ["almond", "Almond flour", 7], ["cream", "Cream cheese, soft", 7], ["bp", "Baking powder", 0.6]]},
+  pizza:{name:"Pizza", ing:[["eggs", "Egg", 25], ["mozz", "Mozzarella, shredded", 28], ["almond", "Almond flour", 4], ["herbs", "Italian seasoning + garlic powder", 0.2]], top:[["Pizza sauce (no sugar added)", 15], ["Mozzarella, on top", 15], ["Pepperoni, cooked chicken or beef", 12]]},
+  sweet:{name:"Sweet", ing:[["eggs", "Egg", 25], ["cream", "Cream cheese, soft", 14], ["mozz", "Mozzarella, shredded", 7], ["almond", "Almond flour", 7], ["sweet", "Sweetener (allulose or erythritol)", 4], ["cin", "Cinnamon + vanilla", 1]]}
+};
+const CH_VOL = {mozz:2.35, almond:2.0, cream:4.8, bp:4, sweet:4, herbs:0.8, cin:1.5};
+function chAmt(k, g){
+  if(k === "eggs") return `${fmtW(g)}<span class="vol">≈ ${frac(g / 50, 2)} egg${g / 50 > 1.01 ? "s" : ""}</span>`;
+  return `${fmtW(g)}${CH_VOL[k] ? `<span class="vol">≈ ${vol(g, CH_VOL[k])}</span>` : ""}`;
+}
+function renderChaffle(){
+  const ch = state.chaffle, [f, time] = CH_MAKER[ch.maker] || CH_MAKER.mini, T = CH_TYPE[ch.type] || CH_TYPE.bread;
+  const n = Math.max(1, ch.count), mult = f * n;
+  $("chMaker").value = ch.maker; $("chType").value = ch.type; $("chCount").value = n;
+  let carbs = 0, batter = 0;
+  const rows = T.ing.map(([k, label, g]) => { const w = g * mult; batter += w; carbs += w * (CARB[k] != null ? CARB[k] : ({sweet:0, cin:30, herbs:40}[k] || 0)) / 100;
+    return `<div class="row"><span class="dot" style="background:${(ING[k] && ING[k].color) || "var(--c-flour)"}"></span><span class="name">${esc(label)}</span><span class="grams">${chAmt(k, w)}</span></div>`; }).join("");
+  const tops = T.top ? `<div class="row"><span></span><span class="name" style="grid-column:2 / 4;color:var(--muted)">Toppings, after the chaffles are cooked:</span></div>` + T.top.map(([l, g]) => `<div class="row"><span class="dot" style="background:var(--tomato)"></span><span class="name">${esc(l)}</span><span class="grams">${fmtW(g * mult)}</span></div>`).join("") : "";
+  $("chOut").innerHTML = rows + tops + `<div class="total"><span>About ${fmtW(batter / n)} batter per chaffle · ${time} each</span><b>≈ ${Math.max(0, carbs / n).toFixed(1)} g net carbs each</b></div>`;
+  const extra = ch.type === "pizza" ? "<li>Top with sauce, cheese, and meat, then broil 2–3 min (or 1 min on a hot pizza-oven stone) until bubbly.</li>"
+    : ch.type === "bread" ? "<li>Let them cool on a rack 3–5 min. They firm up into bread you can slice a sandwich around.</li>"
+    : ch.type === "sweet" ? "<li>Great with a little butter and sugar-free syrup, or as a sandwich with whipped cream cheese.</li>" : "";
+  $("chSteps").innerHTML = `<ol>
+    <li>Preheat the waffle maker fully (the light goes off), and spray or brush it lightly with oil.</li>
+    <li>Whisk the egg${T.ing.some(x => x[0] === "cream") ? " and cream cheese" : ""} smooth, then stir in everything else.</li>
+    <li>For a crisp shell: sprinkle a little extra cheese on the iron, add about ${fmtW(batter / n)} of batter, and top with a pinch more cheese.</li>
+    <li>Close and <b>don't open it</b> until the steam mostly stops, ${time}.</li>
+    <li>Lift out with a fork or silicone tongs and cool on a rack, not a plate, so it stays crisp.</li>${extra}</ol>`;
+}
+const PANTRY_NEED = {
+  psyllium:["almond", "psyllium", "bp", "eggs"],
+  fathead:["almond", "mozz", "cream", "eggs"],
+  fbagel:["almond", "mozz", "cream", "eggs", "bp"],
+  ketoyeast:["gluten", "yeast", "oatfiber", "almond", "eggs"],
+  mug:["almond", "eggs", "butter", "bp"],
+  chaffle:["eggs", "mozz"]
+};
+const PANTRY_NAME = {almond:"almond flour", coconut:"coconut flour", psyllium:"psyllium", gluten:"vital wheat gluten", oatfiber:"oat fiber", flax:"flaxseed meal", lupin:"lupin flour", ewp:"egg white protein", bp:"baking powder", yeast:"yeast", eggs:"eggs", mozz:"mozzarella", cream:"cream cheese", butter:"butter"};
+function renderPantry(){
+  const have = new Set(state.pantry);
+  $("pantry").querySelectorAll("[data-pan]").forEach(c => { c.checked = have.has(c.dataset.pan); });
+  if(!have.size){ $("pantryOut").innerHTML = `<p class="hint" style="margin:0">Tick a few things to see what you can make.</p>`; return; }
+  const name = id => id === "chaffle" ? "Chaffles" : STYLES.keto.find(s => s.id === id).name;
+  const can = [], close = [];
+  for(const id in PANTRY_NEED){
+    const miss = PANTRY_NEED[id].filter(x => !have.has(x));
+    if(!miss.length) can.push(id); else if(miss.length === 1) close.push([id, miss[0]]);
+  }
+  $("pantryOut").innerHTML = (can.length ? `<p><b>You can make:</b></p><div class="chips reclinks">${can.map(id => `<button type="button" data-kstyle="${id}">${esc(name(id))}</button>`).join("")}</div>` : `<p>Nothing complete yet.</p>`) +
+    (close.length ? `<p class="bake"><b>One item away:</b> ${close.map(([id, m]) => `${esc(name(id))} (need ${esc(PANTRY_NAME[m])})`).join(" · ")}</p>` : "") +
+    (have.has("coconut") && !have.has("almond") ? `<p class="hint">Only coconut flour? Use the swap helper below on any almond-flour recipe.</p>` : "") +
+    (have.has("lupin") ? `<p class="hint">Lupin flour can replace up to half the almond flour in the psyllium rolls for a more bread-like crumb.</p>` : "") +
+    (have.has("ewp") ? `<p class="hint">Egg white protein: 1 Tbsp per cup of almond flour makes fathead and chaffles less eggy and more bready.</p>` : "");
+}
+function renderSwap(){
+  const a = Math.max(0, parseFloat($("swAlmond").value) || 0), c = a * 0.3, eggs = c / 30;
+  $("swOut").innerHTML = a ? `${fmt(c)} g coconut flour<br><span class="hint">+ ${frac(eggs, 2)} extra egg${eggs > 1.01 ? "s" : ""} and a splash more liquid</span>` : "–";
+}
+$("chMaker").addEventListener("change", e => { state.chaffle.maker = e.target.value; renderChaffle(); save(); });
+$("chType").addEventListener("change", e => { state.chaffle.type = e.target.value; renderChaffle(); save(); });
+$("chCount").addEventListener("input", e => { state.chaffle.count = Math.max(1, parseInt(e.target.value) || 1); renderChaffle(); save(); });
+$("chMinus").addEventListener("click", () => { state.chaffle.count = Math.max(1, state.chaffle.count - 1); renderChaffle(); save(); });
+$("chPlus").addEventListener("click", () => { state.chaffle.count = Math.min(40, state.chaffle.count + 1); renderChaffle(); save(); });
+$("pantry").addEventListener("change", e => {
+  const k = e.target.dataset.pan; if(!k) return;
+  state.pantry = state.pantry.filter(x => x !== k); if(e.target.checked) state.pantry.push(k);
+  renderPantry(); save();
+});
+$("pantryOut").addEventListener("click", e => {
+  const b = e.target.closest("[data-kstyle]"); if(!b) return;
+  if(b.dataset.kstyle === "chaffle"){ $("chMaker").scrollIntoView({behavior:"smooth", block:"center"}); return; }
+  state.styleId = b.dataset.kstyle; applyDefaults(); renderChips(); renderForm(); window.scrollTo({top:0, behavior:"smooth"});
+});
+$("swAlmond").addEventListener("input", renderSwap);
+function renderKeto(){ if(state.cat !== "keto") return; renderChaffle(); renderPantry(); renderSwap(); }
+
+/* ---------- Dough-only recipe filter ---------- */
+const DOUGH_CAT = /pizza|bread|keto|sauce|souce|dough|flatbread|pastr|b[öo]rek|keba[bp]/i;
+const DOUGH_NAME = /pizza|pide|lahmacun|bread|dough|flatbread|naan|\bpita\b|bazlama|simit|b[öo]rek|g[öo]zleme|focaccia|bagel|chaffle|waffle|crust|biscuit|muffin|\brolls?\b|\bbuns?\b|keba[bp]|kabobs?|d[öo]ner|k[öo]fte|adana|iskender|mant[ıi]|po[gğ]a[cç]a|a[cç]ma|katmer|yufka|lava[sş]h?|\bcrackers?\b|scone|pancake|cr[eê]pe|loaf|brioche|challah|ciabatta|baguette|sourdough|calzone|stromboli|empanada|gyros?|shawarma|lahmajun|d[üu]r[üu]m|ekmek/i;
+const isDoughRecipe = r => DOUGH_CAT.test(r.categories || "") || DOUGH_NAME.test(r.name || "");
+function initDoughFilter(){
+  $("impOnly").checked = state.impOnly !== false;
+  $("impOnly").addEventListener("change", e => { state.impOnly = e.target.checked; save(); });
+  $("keepDough").addEventListener("click", () => {
+    const drop = mine.filter(r => !isDoughRecipe(r));
+    if(!drop.length){ toast("Everything here is already dough, keto, or Turkish."); return; }
+    if(!confirm(`Remove ${drop.length} recipe${drop.length === 1 ? "" : "s"} that aren't dough, keto, or Turkish (salads, chicken dishes, and so on)? ${mine.length - drop.length} stay. They're still in Paprika.`)) return;
+    drop.forEach(deleteRecipe); saveMine(); save(); renderMine(); toast(`Removed ${drop.length}. ${mine.length} left.`);
+  });
+}
+
 /* ---------- Opening a shared link ---------- */
 let linkFormulaData = null;
 async function openSharedLink(){
@@ -2580,7 +2784,7 @@ $("linkSave").addEventListener("click", () => {
 $("linkDismiss").addEventListener("click", () => { $("linkBanner").hidden = true; });
 window.addEventListener("hashchange", openSharedLink);
 
-recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); pPhoto = photoPicker("p"); initTidy(); renderVideoForm();
+recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); pPhoto = photoPicker("p"); initTidy(); renderVideoForm(); initDoughFilter();
 loadMine(); load(); renderChips(); renderForm(); showView(); openSharedLink();
 if(navigator.storage && navigator.storage.persist && (mine.length || state.log.length)) navigator.storage.persist().catch(() => {});
 </script>
