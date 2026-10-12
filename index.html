@@ -2616,7 +2616,7 @@ $("favFormulas").addEventListener("click", e => {
   const b = e.target.closest("[data-ffav]"); if(!b) return;
   const f = state.saved[+b.dataset.ffav]; f.fav = !f.fav; f.u = Date.now(); save(); renderSaved(); renderFavorites();
 });
-$("favSend").addEventListener("click", () => { if(favLink) shareLink("Dad's dough calculator favorites", favLink); });
+$("favSend").addEventListener("click", () => { if(favLink) shareLink("Dough calculator favorites", favLink); });
 
 /* ---------- Print ---------- */
 function printHTML(html){
