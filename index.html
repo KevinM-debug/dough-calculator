@@ -447,9 +447,10 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
 
   <section>
     <h2>Plan &amp; schedule</h2>
+    <p class="hint" style="margin-top:0">For a bake you'll eat soon. Set <b>when you want to eat</b>; the app counts backward and gives the clock time for every step: mix, fridge, take out, preheat, bake. A time in red is already past: pick a later meal or less fridge time.</p>
     <div class="two">
-      <div class="field" style="grid-column:1 / -1"><label for="eatAt">Ready to eat</label><input id="eatAt" type="datetime-local"></div>
-      <div class="field"><label for="ferm">Fermentation</label>
+      <div class="field" style="grid-column:1 / -1"><label for="eatAt">When you want to eat</label><input id="eatAt" type="datetime-local"></div>
+      <div class="field"><label for="ferm">Time in the fridge</label>
         <select id="ferm"><option value="0">Same day</option><option value="24">24 h in the fridge</option><option value="48">48 h in the fridge</option><option value="72">72 h in the fridge</option></select></div>
       <div class="field"><label for="tk">Kitchen temp (°F)</label><input id="tk" type="number" inputmode="numeric" min="55" max="95"></div>
       <div class="field"><label for="tf">Fridge temp (°F)</label><input id="tf" type="number" inputmode="numeric" min="33" max="45"></div>
@@ -460,9 +461,9 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
 
   <section id="freezeSec">
     <h2>Make ahead &amp; freeze</h2>
-    <p class="hint" style="margin-top:0">How long the dough sits on the counter, then in the fridge, before it goes in the freezer, so it still has rise left when you thaw it. Uses the kitchen and fridge temperatures above.</p>
+    <p class="hint" style="margin-top:0">Only for dough you're going to freeze. Set <b>when you start mixing</b> (it fills in now); the app counts forward: how long on the counter and when to fold, when it goes in the fridge, when it goes in the freezer, the use-by date, and how to thaw it. Uses the kitchen and fridge temperatures above.</p>
     <div class="two">
-      <div class="field" style="grid-column:1 / -1"><label for="fzMix">Mixing at</label><input id="fzMix" type="datetime-local"></div>
+      <div class="field" style="grid-column:1 / -1"><label for="fzMix">When you start mixing</label><input id="fzMix" type="datetime-local"></div>
       <div class="field" style="grid-column:1 / -1"><label for="fzFridge">Time in the fridge before freezing</label><select id="fzFridge"><option value="auto">Let the app pick (best for my yeast)</option><option value="14">One night (about 14 hours)</option><option value="24">24 hours</option><option value="48">2 days</option></select></div>
       <div class="field"><label for="fzThaw">Thaw</label><select id="fzThaw"><option value="fridge">Fridge overnight</option><option value="counter">Counter, same day</option></select></div>
       <div class="field"><label for="fzKeep">Keep frozen up to</label><select id="fzKeep"><option value="1">1 month (best)</option><option value="2">2 months</option><option value="3">3 months</option></select></div>
