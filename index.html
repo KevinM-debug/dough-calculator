@@ -53,6 +53,10 @@ h2{font-size:1.05rem; font-weight:600; margin:0 0 10px}
 .seg button[aria-pressed="true"]{background:var(--basil); color:var(--bg)}
 .chips{display:flex; flex-wrap:wrap; gap:8px}
 .chips button{font:inherit; font-size:.95rem; border:1px solid var(--line); background:var(--surface); color:var(--ink); padding:8px 14px; border-radius:10px; cursor:pointer}
+.frow{display:flex; justify-content:space-between; gap:12px; padding:10px 18px; border-bottom:1px solid var(--line); align-items:baseline}
+.frow b{font-weight:600; text-align:right; font-variant-numeric:tabular-nums}
+.frow.head{background:var(--basil-soft); font-weight:600}
+.hint.ok{color:var(--basil); font-weight:600}
 .qnotes button{font-size:.9rem; padding:7px 12px}
 .chips button[aria-pressed="true"]{border-color:var(--basil); background:var(--basil-soft); box-shadow:inset 0 0 0 1px var(--basil)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--semolina); outline-offset:2px}
@@ -465,6 +469,8 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
       <div class="field" style="grid-column:1 / -1"><label for="eatAt">When you want to eat</label><input id="eatAt" type="datetime-local"></div>
       <div class="field"><label for="ferm">Time in the fridge</label>
         <select id="ferm"><option value="0">Same day</option><option value="24">24 h in the fridge</option><option value="48">48 h in the fridge</option><option value="72">72 h in the fridge</option></select></div>
+      <div class="field" id="warmF"><label for="warmSel">Warm-up before baking</label>
+        <select id="warmSel"><option value="3">3 hours (best)</option><option value="1.5">1½ hours (weeknight)</option></select></div>
       <div class="field"><label for="tk">Kitchen temp (°F)</label><input id="tk" type="number" inputmode="numeric" min="55" max="95"></div>
       <div class="field"><label for="tf">Fridge temp (°F)</label><input id="tf" type="number" inputmode="numeric" min="33" max="45"></div>
     </div>
@@ -478,6 +484,21 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
     <div id="fits"></div>
     <div class="card result" id="plan"></div>
     <div class="actions"><span class="hint" id="planHint"></span><button type="button" class="linkbtn" id="sharePlan">Share schedule</button></div>
+    <div class="btnrow" style="margin-top:8px"><button type="button" class="btn" id="calPlan">Add to my calendar</button></div>
+    <p class="hint">Puts every step in your phone's calendar with an alert, so it reminds you.</p>
+  </section>
+
+  <section id="wkSec">
+    <h2>Plan the weekend</h2>
+    <p class="hint" style="margin-top:0">Pick up to three things to bake. The app fits them all into your weekend around your sleep hours, keeps the oven times from overlapping, and makes one shopping list.</p>
+    <div class="two">
+      <div class="field"><label for="wk0">Bake 1</label><select id="wk0" class="wkpick"></select></div>
+      <div class="field"><label for="wk1">Bake 2</label><select id="wk1" class="wkpick"></select></div>
+      <div class="field" style="grid-column:1 / -1"><label for="wk2">Bake 3</label><select id="wk2" class="wkpick"></select></div>
+    </div>
+    <div class="card result" id="wkOut"></div>
+    <div class="btnrow" style="margin-top:10px" id="wkBtns"><button type="button" class="btn" id="wkCal">Add all to my calendar</button><button type="button" class="btn ghost" id="wkShop">Shopping list</button></div>
+    <div class="card" id="wkList" hidden style="margin-top:12px"></div>
   </section>
 
   <section id="freezeSec">
@@ -495,6 +516,20 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
   </div>
 
   <div id="starterView" hidden>
+    <section>
+      <h2>Today's starter</h2>
+      <div class="jarbtns">
+        <button type="button" class="btn" id="fedNow">Fed it now</button>
+        <button type="button" class="btn ghost" id="doubledNow">It doubled</button>
+      </div>
+      <div class="card result" id="feedLog" style="margin-top:10px"></div>
+      <div class="actions"><span class="hint" id="feedReady"></span><button type="button" class="linkbtn" id="feedUndo">Undo last tap</button></div>
+      <div class="addrow" style="margin-top:6px">
+        <div class="field"><label for="feedAt">Remind me to feed it every day at</label><input id="feedAt" type="time" value="19:00"></div>
+        <button type="button" class="btn ghost" id="calFeed">Add to calendar</button>
+      </div>
+    </section>
+
     <section>
       <h2>Feed your starter</h2>
       <div class="two">
@@ -532,7 +567,8 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
         <button type="button" class="btn" id="addJar">Add</button>
         <button type="button" class="btn ghost" id="takeJar">Remove</button>
       </div>
-      <p class="hint" style="margin:6px 0 10px">Remove takes from the oldest discard first, so the dates stay right.</p>
+      <div class="chips qnotes" id="jarQuick" style="margin-top:10px"><button type="button" data-jq="50">+ 50 g</button><button type="button" data-jq="100">+ 100 g</button><button type="button" data-jq="150">+ 150 g</button><button type="button" data-jq="-50">− 50 g</button><button type="button" data-jq="-100">− 100 g</button></div>
+      <p class="hint" style="margin:6px 0 10px">Tap a quick amount, or type one. Remove takes from the oldest discard first, so the dates stay right.</p>
       <div class="card result" id="jar"></div>
       <div class="actions"><span class="hint" id="jarWarn"></span></div>
       <div class="actions">
@@ -797,7 +833,8 @@ const ING = {
   mozz:{label:"Mozzarella, shredded", color:"#E9E4D2", note:"low-moisture"},
   cream:{label:"Cream cheese", color:"#D9D2BE"},
   almond:{label:"Almond flour", color:"#D8B98C"},
-  oatfiber:{label:"Oat fiber", color:"#CDBF9C", note:"zero net carb; not oat flour"}
+  oatfiber:{label:"Oat fiber", color:"#CDBF9C", note:"zero net carb; not oat flour"},
+  gluten:{label:"Vital wheat gluten", color:"#C9A86A"}
 };
 const STD_FERMENT = "Mix flour and water, rest 20–30 min, then add salt and yeast and knead 8–10 min until smooth.";
 function mixStep(st){
@@ -947,22 +984,30 @@ const STYLES = {
     {id:"mug", pp:1, po:{"no": "it's a microwave bread"}, name:"90-second mug bread", flour:"Almond flour", gpt:2.0, unitName:"Mugs", unitWord:"mug", count:1, unit:90,
      ing:{eggs:[240,200,280,5], butter:[67,40,90,1], bp:[10,6,14,.5], salt:[1.5,0,3,.1]},
      steps:["Melt the butter in a wide mug or a 4-inch microwave-safe bowl.","Add the almond flour, baking powder, salt, and egg; whisk with a fork until smooth.","Tap the mug on the counter to level it."],
-     bake:"Microwave 90 seconds (1000 W) until set in the middle. Turn out, cool 2 min, slice in half, and toast in a buttered skillet for a real-bread texture."}
+     bake:"Microwave 90 seconds (1000 W) until set in the middle. Turn out, cool 2 min, slice in half, and toast in a buttered skillet for a real-bread texture."},
+    {id:"hh-loaf", pp:0.1, carb:72, po:{"no": "a pan loaf needs an even oven bake"}, name:"Half-and-half loaf (lower carb)", flour:"Bread flour; the gluten, oat fiber, and almond flour below make up the other half", gpt:2.6, unitName:"Loaves (9×5 pan)", unitWord:"loaf", count:1, unit:975,
+     ing:{gluten:[30,20,40,1], oatfiber:[30,20,40,1], almond:[40,25,50,1], water:[176,150,200,1], yeast:[2.8,1,4,.1], sugar:[1.6,0,4,.2], oil:[6,0,10,.5], salt:[3,2.5,4,.1]},
+     steps:["Whisk the bread flour, gluten, oat fiber, almond flour, salt, and yeast together.","Add the water, oil, and sugar and mix until no dry flour is left. Rest 10 minutes; the oat fiber soaks up a lot of water.","Knead 8–10 minutes. It feels softer and stickier than regular dough; that's normal.","Bulk rise about 1 hour, until puffy (not quite doubled).","Shape into a log and set it in a greased 9×5-inch pan.","Proof 45–60 minutes, until it crowns about 1 inch over the rim."],
+     bake:"450°F with steam (a pan of hot water on the bottom rack) for 35–40 min, to 200°F inside. Cool at least 1 hour before slicing. This is a starting point: if the dough is too slack or too stiff, adjust the water a little next time."},
+    {id:"hh-pizza", pp:0.5, carb:72, po:"Keep the stone around 600–650°F, not full heat: the almond flour scorches. Bake 2–3 minutes, turning every 30 seconds.", name:"Half-and-half pizza (lower carb)", flour:"Bread flour; the gluten, oat fiber, and almond flour below make up the other half", gpt:2.6, unitName:"Pizzas (12-inch)", unitWord:"dough ball", count:2, unit:300,
+     ing:{gluten:[30,20,40,1], oatfiber:[30,20,40,1], almond:[40,25,50,1], water:[160,140,190,1], yeast:[0.4,0.1,2,.05], sugar:[1,0,3,.2], oil:[8,0,12,.5], salt:[3,2.5,4,.1]},
+     steps:["Whisk the bread flour, gluten, oat fiber, almond flour, salt, and yeast together.","Add the water, oil, and sugar and mix until no dry flour is left. Rest 10 minutes.","Knead 6–8 minutes until smooth and stretchy.","Divide into balls, oil them lightly, and refrigerate in covered containers (one night is ideal).","Let the balls warm up before stretching; stretch with your fingertips on a floured counter."],
+     bake:"Home oven: 500°F on a preheated stone or steel, 8–10 min. This is a starting point: adjust the water a little next time if needed."}
   ]
 };
 
 for(const c in STYLES) STYLES[c].forEach(s => { s.cat = c; });
 const PE = {"neapolitan": "Stone 750–850°F, top heat on high (most electric ovens top out around 850°F). Bake 60–90 seconds, turning once halfway if one side browns faster.", "neap-home": "Stone 700–750°F, top heat high. Bake 90–120 seconds, turning once. For true Neapolitan, switch to the Neapolitan style.", "ny": "Stone 600–650°F, top heat medium. Bake 3–5 min, turning once or twice. If your oven has a New York preset, start there.", "detroit": "Only if the pan fits: stone 500–550°F, top heat low–medium, 10–14 min, turning the pan once or twice. If your oven has a Pan preset, use it.", "pide": "Stone 650–700°F, top heat medium. Bake 3–4 min, turning once so the long ends cook evenly.", "tavern": "Stone 550–600°F, top heat low–medium. Bake 5–7 min, turning once or twice. A Thin & Crispy preset, if you have one, fits this style.", "pinsa": "Stone 650–700°F, top heat medium. Bake 3–4 min total, turning once.", "lahmacun": "Stone 700–750°F, top heat high. Bake 1–2 min until the edges crisp and the meat is cooked, turning once if needed.", "pita": "Stone 700–750°F, top heat low. Bake 60–90 seconds until puffed.", "naan": "Stone 750°F, top heat high. Bake 60–90 seconds until puffed and spotted, then brush with garlic butter.", "bazlama": "Stone 550–600°F, top heat low. Bake 2–3 min, flipping once halfway."};
 const RECIPES = [{"id": "sauce-neap", "cat": "Sauces", "name": "Neapolitan pizza sauce (no-cook)", "makes": "About 3 cups, enough for 8–9 Neapolitan pizzas", "yld": 9, "yw": "pizzas", "ing": [[1, "can (28 oz)", "whole peeled San Marzano or plum tomatoes"], [1.5, "tsp", "fine sea salt"], [4, "", "fresh basil leaves, torn (optional)"], [1, "tbsp", "olive oil (optional)"]], "steps": ["Pour the tomatoes into a bowl and tip off the thin, watery juice at the top of the can.", "Crush the tomatoes by hand or pass them through a food mill. Leave the sauce a little chunky.", "Stir in the salt, basil, and olive oil. Taste: it should taste like bright, fresh tomato, lightly salted.", "Don't cook it. It cooks on the pizza in the oven.", "Use about 80 g (⅓ cup) per 11-inch pizza. Spread it thin with the back of a spoon in a spiral, leaving the rim bare."], "tips": ["Why homemade sauce often turns out bad: it's cooked too long (tastes like paste), loaded with dried herbs or garlic powder, sweetened to hide sour tomatoes, or blended, which whips in air and grinds the seeds so it turns pale orange and bitter.", "Too much sauce is the main cause of a soggy center. Less is more.", "Keeps 5 days in the fridge or 3 months in the freezer."], "for": ["neapolitan", "neap-home", "pinsa", "roman"]}, {"id": "sauce-ny", "cat": "Sauces", "name": "New York pizza sauce", "makes": "About 3 cups, enough for 4 pizzas (14-inch)", "yld": 4, "yw": "pizzas", "ing": [[1, "can (28 oz)", "crushed tomatoes"], [2, "tbsp", "olive oil"], [1, "tbsp", "butter (optional, rounds out the flavor)"], [3, "clove", "garlic, finely grated"], [1, "tsp", "dried oregano"], [0.5, "tsp", "red pepper flakes"], [1, "tsp", "salt"], [1, "tsp", "sugar, only if the tomatoes taste sharp"], [1, "sprig", "fresh basil"]], "steps": ["Warm the oil and butter over low heat. Add the garlic, oregano, and pepper flakes and cook 1–2 minutes until fragrant. Don't let the garlic brown.", "Add the tomatoes, salt, and basil sprig. Simmer gently, uncovered, for 15–20 minutes until slightly thickened.", "Remove the basil. Taste and adjust the salt; add sugar only if it tastes sour.", "Cool completely before using. Use about 170 g (⅔ cup) per 14-inch pizza."], "tips": ["Warm sauce makes the dough sticky and hard to launch. Always use it cool.", "It should be spoonable, not runny. If it's watery, simmer 5 more minutes."], "for": ["ny", "tavern", "sicilian"]}, {"id": "sauce-detroit", "cat": "Sauces", "name": "Detroit red stripe sauce", "makes": "About 2 cups, enough for 2 pans (10×14)", "yld": 2, "yw": "pans", "ing": [[1, "can (28 oz)", "crushed tomatoes"], [2, "tbsp", "butter"], [2, "clove", "garlic, minced"], [1, "tsp", "dried oregano"], [0.5, "tsp", "dried basil"], [0.5, "tsp", "onion powder"], [1, "tsp", "sugar"], [0.75, "tsp", "salt"], [0.25, "tsp", "black pepper"], [2, "tbsp", "grated Parmesan"]], "steps": ["Melt the butter over medium-low heat and cook the garlic for 1 minute.", "Add everything except the Parmesan. Simmer 30–40 minutes, stirring often, until thick and reduced by about a third.", "Stir in the Parmesan.", "Ladle 2–3 stripes of warm sauce across the pizza after it comes out of the oven."], "tips": ["This sauce is thicker than the others because it goes on top after baking."], "for": ["detroit"]}, {"id": "sauce-deep", "cat": "Sauces", "name": "Chicago deep-dish chunky sauce", "makes": "Enough for one 12-inch deep dish", "yld": 1, "yw": "pans", "ing": [[1, "can (28 oz)", "whole peeled tomatoes"], [2, "clove", "garlic, grated"], [1, "tsp", "dried oregano"], [0.5, "tsp", "sugar"], [0.5, "tsp", "salt"], [1, "tbsp", "olive oil"], [2, "tbsp", "grated Parmesan, for the top"]], "steps": ["Drain the tomatoes well in a sieve for 10 minutes. Save the juice for soup.", "Crush the tomatoes by hand into chunks.", "Mix in the garlic, oregano, sugar, salt, and oil. Don't cook it.", "Spread over the cheese layer in the pan and sprinkle with Parmesan."], "tips": ["Draining is the key step. Undrained tomatoes make the deep dish soupy."], "for": ["deepdish", "sicilian"]}, {"id": "margherita", "cat": "Pizza toppings", "name": "Margherita", "makes": "Per pizza (11-inch)", "yld": 1, "yw": "pizzas", "ing": [[80, "g", "Neapolitan pizza sauce"], [100, "g", "fior di latte or fresh mozzarella"], [3, "", "fresh basil leaves"], [1, "tsp", "olive oil"], [1, "tbsp", "grated Pecorino or Parmesan (optional)"]], "steps": ["2–3 hours ahead, tear the mozzarella into bite-size pieces and let it drain on paper towels in the fridge.", "Stretch the dough and spread the sauce in a thin spiral, leaving the rim bare.", "Sprinkle the grated cheese, scatter the mozzarella, and drizzle with the oil.", "Bake. Add the basil right after baking; at 850°F it can scorch if added before."], "tips": ["Wet mozzarella is the number one cause of a soupy center. Buffalo mozzarella is even wetter, so drain it longer."], "for": ["neapolitan", "neap-home", "pinsa"]}, {"id": "ny-cheese", "cat": "Pizza toppings", "name": "New York cheese or pepperoni", "makes": "Per pizza (14-inch)", "yld": 1, "yw": "pizzas", "ing": [[170, "g", "New York pizza sauce"], [200, "g", "low-moisture whole-milk mozzarella, shredded from a block"], [10, "g", "grated Parmesan"], [60, "g", "pepperoni, about 30 slices (optional)"], [1, "pinch", "dried oregano"]], "steps": ["Shred the mozzarella yourself. Pre-shredded cheese has anti-caking starch that melts grainy.", "Spread the sauce to about ½ inch from the edge.", "Add the mozzarella, then the pepperoni.", "Bake, then finish with the Parmesan and a pinch of oregano."], "tips": ["For pepperoni that curls into crispy cups, buy a small-diameter natural-casing pepperoni."], "for": ["ny", "tavern"]}, {"id": "detroit-top", "cat": "Pizza toppings", "name": "Detroit-style toppings", "makes": "Per pan (10×14)", "yld": 1, "yw": "pans", "ing": [[250, "g", "brick cheese, or half Monterey Jack and half low-moisture mozzarella, in ½-inch cubes"], [60, "g", "pepperoni"], [180, "g", "Detroit red stripe sauce, warm"]], "steps": ["After the dough proofs in the pan, press the pepperoni onto the dough.", "Scatter the cheese cubes all the way to the edges so the cheese touches the pan walls. That's what makes the crispy, lacy cheese crust.", "Bake until the edges are dark brown.", "Run a thin spatula around the edges, slide the pizza out, and ladle 2–3 stripes of warm sauce across the top."], "tips": [], "for": ["detroit"]}, {"id": "bianca", "cat": "Pizza toppings", "name": "White pizza with garlic oil", "makes": "Per pizza (11–12 inch)", "yld": 1, "yw": "pizzas", "ing": [[2, "tbsp", "olive oil"], [2, "clove", "garlic, thinly sliced"], [80, "g", "fresh mozzarella, torn and drained"], [3, "tbsp", "whole-milk ricotta"], [1, "tbsp", "grated Parmesan"], [1, "pinch", "red pepper flakes"], [1, "handful", "arugula, after baking (optional)"]], "steps": ["Warm the oil and garlic on the lowest heat for 5 minutes, then let it cool.", "Brush the garlic oil over the stretched dough, garlic slices too.", "Scatter the mozzarella and add small dollops of ricotta.", "Bake, then finish with Parmesan, pepper flakes, arugula, and a squeeze of lemon."], "tips": [], "for": ["neapolitan", "neap-home", "ny", "pinsa", "roman"]}, {"id": "lahmacun-top", "cat": "Turkish", "name": "Lahmacun topping", "makes": "Enough for 8 lahmacuns", "yld": 8, "yw": "lahmacuns", "ing": [[250, "g", "ground lamb or beef, about 20% fat"], [1, "", "medium onion"], [1, "", "small green bell pepper, or 2 Turkish sivri peppers"], [1, "", "medium tomato"], [1, "bunch", "flat-leaf parsley (small)"], [2, "clove", "garlic"], [1, "tbsp", "tomato paste"], [1, "tbsp", "Turkish red pepper paste (biber salçası), or another tbsp tomato paste"], [1, "tsp", "pul biber (Aleppo pepper)"], [0.5, "tsp", "ground cumin"], [0.5, "tsp", "black pepper"], [1, "tsp", "salt"], [1, "tbsp", "olive oil"], [null, "h", "To serve"], [1, "", "lemon, in wedges"], [1, "", "small red onion, sliced and tossed with sumac"]], "steps": ["Pulse the onion, pepper, tomato, garlic, and parsley in a food processor until very fine, or chop them by hand.", "Press out the extra juice in a sieve. A wet topping makes soggy lahmacun.", "Add the meat, both pastes, the spices, and the oil. Knead with your hands for 2 minutes until it's a smooth paste. Rest 30 minutes in the fridge.", "Roll each dough ball very thin, about 10 inches across.", "With wet fingers, spread about 60 g of topping in a thin, even layer right to the edge. The meat goes on raw.", "Bake (see the oven settings on the Lahmacun dough). Stack the baked lahmacuns on top of each other so they stay soft.", "Serve with lemon, parsley, and the sumac onions, rolled up."], "tips": ["Thin is the whole point: a thin crust and a thin layer of meat that cooks through in a couple of minutes."], "for": ["lahmacun"]}, {"id": "pide-fillings", "cat": "Turkish", "name": "Pide fillings", "makes": "Enough for 4 pides", "yld": 4, "yw": "pides", "ing": [[null, "h", "Kıymalı (ground beef)"], [250, "g", "ground beef"], [1, "", "onion, finely chopped"], [1, "", "green pepper, finely chopped"], [1, "", "tomato, grated"], [1, "tbsp", "tomato paste"], [1, "tsp", "salt"], [0.5, "tsp", "black pepper"], [0.5, "tsp", "pul biber"], [null, "h", "Kaşarlı (cheese and egg)"], [200, "g", "kaşar cheese (or mozzarella), shredded"], [4, "", "eggs, one per pide (optional)"], [null, "h", "Sucuklu (sucuk and cheese)"], [150, "g", "sucuk, thinly sliced"], [150, "g", "kaşar cheese, shredded"], [null, "h", "For all"], [30, "g", "butter, melted, for brushing"]], "steps": ["Kıymalı: brown the beef and onion until dry. Add the pepper, tomato, paste, and spices and cook 5–8 minutes until no liquid is left. Cool completely.", "Roll each dough ball into a long oval. Spread the filling down the middle, leaving a 1-inch border.", "Fold the long edges over the filling and pinch the ends into a boat shape.", "Kaşarlı: fill with cheese, bake 2 minutes, crack an egg into the center, and bake until the egg is just set.", "Brush the crust with melted butter as soon as it comes out of the oven."], "tips": ["Filling must be cool and dry, or the bottom turns soggy."], "for": ["pide"]}, {"id": "focaccia-top", "cat": "Bread toppings", "name": "Focaccia brine and toppings", "makes": "Per half-sheet pan", "yld": 1, "yw": "pans", "ing": [[60, "g", "olive oil, for the pan"], [2, "tbsp", "olive oil, for the brine"], [2, "tbsp", "water"], [0.5, "tsp", "salt"], [2, "sprig", "rosemary, leaves picked"], [1, "tsp", "flaky salt"], [null, "h", "Optional"], [1, "cup", "cherry tomatoes, halved"], [0.5, "cup", "olives"], [0.5, "", "red onion, thinly sliced"]], "steps": ["Oil the pan generously before the dough goes in.", "After dimpling, whisk the brine (oil, water, salt) and pour it over. It pools in the dimples and gives the classic crisp, salty top.", "Add the rosemary and any optional toppings, pressing them in lightly.", "Sprinkle with flaky salt and bake."], "tips": [], "for": ["focaccia"]}, {"id": "garlic-butter", "cat": "Bread toppings", "name": "Garlic butter for naan, bazlama, and pita", "makes": "Enough for 6 breads", "yld": 6, "yw": "breads", "ing": [[4, "tbsp", "butter"], [3, "clove", "garlic, grated"], [2, "tbsp", "chopped cilantro or parsley"], [0.25, "tsp", "flaky salt"], [1, "pinch", "nigella seeds (optional)"]], "steps": ["Melt the butter over low heat. Add the garlic and cook 1 minute without browning.", "Take it off the heat and stir in the herbs, salt, and seeds.", "Brush on the bread right after it comes off the stone or skillet."], "tips": [], "for": ["naan", "bazlama", "pita"]}, {"id": "simit-dip", "cat": "Turkish", "name": "Simit molasses dip and sesame", "makes": "Enough for 8 simits", "yld": 8, "yw": "simits", "ing": [[0.5, "cup", "grape molasses (pekmez) or carob molasses"], [0.5, "cup", "water"], [1.5, "cup", "sesame seeds"]], "steps": ["Toast the sesame in a dry pan over medium heat for 4–5 minutes until light gold. Spread on a plate to cool.", "Whisk the molasses and water in a wide bowl.", "Dip each shaped ring in the molasses, let it drip, then press both sides into the sesame.", "Twist the ring gently to stretch it a little, then bake."], "tips": ["The molasses is what gives simit its deep mahogany color and crisp shell."], "for": ["simit"]}, {"id": "discard-crackers", "cat": "Using sourdough discard", "name": "Sourdough discard crackers", "makes": "One sheet pan", "yld": null, "yw": "", "ing": [[200, "g", "sourdough discard"], [100, "g", "flour"], [40, "g", "olive oil or melted butter"], [1, "tsp", "salt"], [1, "tsp", "dried herbs (rosemary, oregano) or everything bagel seasoning"], [1, "tsp", "flaky salt, for the top"]], "steps": ["Mix everything except the flaky salt into a firm dough. Rest 30 minutes, or overnight in the fridge.", "Roll it paper-thin directly on parchment.", "Brush lightly with oil, sprinkle the flaky salt, and cut into squares with a pizza cutter.", "Bake at 350°F for 20–25 minutes, rotating once, until golden. Cool on the pan; they crisp as they cool."], "tips": ["Older, more sour discard makes tangier crackers."], "for": []}, {"id": "discard-pancakes", "cat": "Using sourdough discard", "name": "Sourdough discard pancakes", "makes": "About 10 pancakes", "yld": null, "yw": "", "ing": [[250, "g", "sourdough discard"], [1, "", "egg"], [2, "tbsp", "sugar"], [2, "tbsp", "melted butter"], [60, "g", "flour (½ cup)"], [0.25, "tsp", "salt"], [0.5, "tsp", "baking soda"], [0.25, "cup", "milk, more to thin"]], "steps": ["Whisk the discard, egg, sugar, butter, flour, and salt.", "Add milk until it's a thick, pourable batter.", "Stir in the baking soda last. The batter will puff up.", "Cook on a buttered griddle over medium heat until bubbles form, then flip."], "tips": [], "for": []}, {"id": "discard-bazlama", "cat": "Using sourdough discard", "name": "Bazlama with discard (skillet flatbread)", "makes": "6 flatbreads, about 7 inches", "yld": null, "yw": "", "ing": [[200, "g", "sourdough discard"], [300, "g", "all-purpose or bread flour"], [150, "g", "plain yogurt"], [60, "g", "warm water, more as needed"], [1, "tsp", "instant yeast"], [1, "tsp", "sugar"], [1.25, "tsp", "salt"], [1, "tbsp", "olive oil"]], "steps": ["Mix everything into a soft, slightly sticky dough. Add water a spoonful at a time only if it feels dry.", "Knead 5 minutes until smooth. Cover and let it rise in a warm spot 1–1½ hours, until doubled.", "Divide into 6 balls and let them rest 10 minutes, covered.", "Press or roll each ball to about ¼ inch thick and 7 inches across.", "Cook in a dry cast-iron skillet over medium heat, 2–3 minutes per side, until it puffs and has brown spots.", "Stack them in a clean towel as they come off so they stay soft."], "tips": ["Tear and dip in olive oil, or use for breakfast with beyaz peynir, tomato, and olives."], "for": []}, {"id": "discard-lavas", "cat": "Using sourdough discard", "name": "Lavaş / dürüm wraps with discard", "makes": "6 thin wraps, about 10 inches", "yld": null, "yw": "", "ing": [[150, "g", "sourdough discard"], [250, "g", "all-purpose flour"], [100, "g", "warm water, more as needed"], [1, "tsp", "salt"], [1, "tbsp", "olive oil"]], "steps": ["Mix into a smooth, medium-soft dough and knead 3–4 minutes. No yeast needed.", "Cover and rest 30 minutes (or overnight in the fridge). Resting makes it easy to roll thin.", "Divide into 6 balls. Roll each one very thin, about 10 inches, dusting with flour.", "Cook on a dry, very hot skillet 30–45 seconds per side, just until bubbles and light spots appear. Don't let it go crisp.", "Stack under a towel right away; the steam keeps them soft and foldable."], "tips": ["Wrap kebab, köfte, or chicken with onion-sumac salad and tomatoes for dürüm.", "They freeze well with parchment between them."], "for": []}, {"id": "discard-gozleme", "cat": "Using sourdough discard", "name": "Gözleme with discard", "makes": "4 large gözleme", "yld": null, "yw": "", "ing": [[null, "h", "Dough"], [150, "g", "sourdough discard"], [250, "g", "all-purpose flour"], [60, "g", "plain yogurt"], [70, "g", "warm water, more as needed"], [1, "tsp", "salt"], [1, "tbsp", "olive oil"], [null, "h", "Peynirli ıspanaklı (cheese and spinach)"], [150, "g", "beyaz peynir or feta, crumbled"], [150, "g", "fresh spinach, chopped"], [0.5, "", "small onion, finely chopped"], [0.25, "tsp", "black pepper"], [null, "h", "Kıymalı (ground beef), instead"], [250, "g", "ground beef"], [1, "", "small onion, finely chopped"], [1, "tbsp", "biber salçası (pepper paste) or tomato paste"], [0.5, "tsp", "salt"], [0.5, "tsp", "pul biber"], [null, "h", "For cooking"], [2, "tbsp", "melted butter or olive oil"]], "steps": ["Mix the dough until smooth and soft, knead 3 minutes, then cover and rest 30 minutes.", "For kıymalı, brown the beef and onion, stir in the paste and spices, and let it cool. For peynirli, just mix the cheese, spinach, onion, and pepper.", "Divide the dough into 4. Roll each piece very thin into a large oval.", "Spread filling over half, fold the other half over, and press the edges to seal.", "Cook in a dry skillet over medium heat, about 3 minutes per side, brushing the top with butter before flipping, until golden with brown spots.", "Cut into wedges and serve hot."], "tips": ["Serve with ayran and a squeeze of lemon."], "for": []}, {"id": "discard-pogaca", "cat": "Using sourdough discard", "name": "Poğaça with discard (cheese rolls)", "makes": "12 rolls", "yld": null, "yw": "", "ing": [[150, "g", "sourdough discard"], [350, "g", "all-purpose flour"], [100, "g", "warm milk"], [80, "g", "plain yogurt"], [60, "g", "vegetable or olive oil"], [1, "", "egg, separated (white in the dough, yolk for the top)"], [1.5, "tsp", "instant yeast"], [1, "tsp", "sugar"], [1.25, "tsp", "salt"], [null, "h", "Filling and top"], [150, "g", "beyaz peynir or feta, crumbled"], [2, "tbsp", "chopped parsley"], [1, "tbsp", "sesame or nigella seeds (çörek otu)"]], "steps": ["Mix the dough ingredients (with the egg white) into a very soft, smooth dough. Knead 3–4 minutes.", "Cover and rise in a warm spot about 1 hour, until puffy.", "Mix the cheese and parsley.", "Divide into 12 balls. Flatten each in your palm, add a spoon of filling, fold into a half-moon, and pinch closed.", "Set on a parchment-lined sheet, brush with the yolk mixed with a spoon of milk, and sprinkle seeds. Rise 20 minutes more.", "Bake at 375°F for 20–25 minutes until deep golden."], "tips": ["They freeze well after baking; warm them at 350°F for 10 minutes."], "for": []}, {"id": "discard-crumpets", "cat": "Using sourdough discard", "name": "Sourdough discard crumpets", "makes": "About 6 crumpets (3½-inch rings)", "yld": null, "yw": "", "ing": [[300, "g", "sourdough discard, at room temperature"], [0.5, "tsp", "sugar"], [0.5, "tsp", "salt"], [0.5, "tsp", "baking soda"], [1, "tsp", "butter or oil, for the pan and rings"]], "steps": ["Heat a skillet over medium-low and grease it and the inside of your rings (egg rings or tuna cans with both ends removed).", "Stir the sugar and salt into the discard, then stir in the baking soda. It will foam and get bubbly.", "Set the rings in the pan and fill each about ½ inch deep.", "Cook 5–8 minutes, until the top is covered in holes and has set all the way through.", "Lift off the rings. Flip for 30 seconds if you want a little color on top, or leave them pale like the classic ones.", "Toast and serve with butter."], "tips": ["Thin, runny discard makes the most holes. If yours is thick, stir in a spoon of water."], "for": []}, {"id": "discard-waffles", "cat": "Using sourdough discard", "name": "Sourdough discard waffles", "makes": "About 4 Belgian or 8 small waffles", "yld": null, "yw": "", "ing": [[250, "g", "sourdough discard"], [1, "", "egg"], [2, "tbsp", "melted butter"], [0.25, "cup", "milk"], [1, "tbsp", "sugar"], [60, "g", "all-purpose flour (½ cup)"], [0.25, "tsp", "salt"], [0.5, "tsp", "baking soda"]], "steps": ["Preheat the waffle maker and brush it lightly with butter or oil.", "Whisk the discard, egg, butter, milk, sugar, flour, and salt into a thick batter.", "Stir in the baking soda last. The batter puffs up.", "Fill the iron, close, and cook until the steam mostly stops and the waffle is golden, about 4–5 minutes.", "Cool on a rack, not a plate, so they stay crisp."], "tips": ["Leave out the sugar and add grated cheese and herbs for savory waffles.", "They freeze well; reheat in the toaster."], "for": []}, {"id": "discard-focaccia", "cat": "Using sourdough discard", "name": "Same-day focaccia with discard", "makes": "One 9×13-inch pan", "yld": null, "yw": "", "ing": [[400, "g", "bread flour"], [280, "g", "warm water"], [200, "g", "sourdough discard"], [1.5, "tsp", "instant yeast"], [10, "g", "salt"], [2, "tbsp", "olive oil, plus more for the pan and top"], [1, "tsp", "flaky salt and rosemary, for the top"]], "steps": ["Mix the flour, water, discard, and yeast until no dry flour is left. Rest 30 minutes.", "Add the salt and olive oil and squeeze them in with wet hands.", "Do 3 sets of stretch and folds, 30 minutes apart.", "Pour 2–3 tablespoons of oil into the pan, tip the dough in, and gently stretch it toward the corners.", "Let it rise 1–1½ hours in a warm spot, until puffy and jiggly.", "Drizzle with oil, dimple deeply with oily fingers, and sprinkle flaky salt and rosemary.", "Bake at 450°F for 20–25 minutes, until deep golden. Cool on a rack 10 minutes before cutting."], "tips": ["The yeast does the rising, and the discard adds flavor. See Focaccia toppings for more ideas."], "for": []}];
-const TOP = {"fathead": [["Sauce (no sugar added)", 120], ["Mozzarella", 150], ["Pepperoni or cooked chicken/beef", 70]], "neapolitan": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "neap-home": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "ny": [["Sauce", 170], ["Low-moisture mozzarella", 200], ["Parmesan", 10], ["Pepperoni (optional)", 60]], "detroit": [["Brick or Jack + mozzarella cubes", 250], ["Pepperoni (optional)", 60], ["Sauce stripes, after baking", 180]], "sicilian": [["Sauce", 250], ["Low-moisture mozzarella", 300], ["Parmesan", 15]], "roman": [["Sauce", 200], ["Mozzarella", 250]], "tavern": [["Sauce", 140], ["Low-moisture mozzarella", 180], ["Italian sausage, raw (optional)", 150]], "deepdish": [["Sliced low-moisture mozzarella", 350], ["Italian sausage (optional)", 250], ["Chunky sauce", 350], ["Parmesan", 15]], "pinsa": [["Sauce", 70], ["Fresh mozzarella", 90]], "pide": [["Filling", 120]], "lahmacun": [["Meat topping", 60]], "focaccia": [["Olive oil in the pan", 60]], "naan": [["Garlic butter", 10]], "bazlama": [["Garlic butter", 10]]};
-const REF = {"fathead": {"r": 12}, "neapolitan": {"r": 11}, "neap-home": {"r": 11}, "ny": {"r": 14}, "tavern": {"r": 14}, "deepdish": {"r": 12}, "lahmacun": {"r": 10}, "detroit": {"w": 10, "h": 14}, "sicilian": {"w": 13, "h": 18}, "roman": {"w": 12, "h": 16}, "focaccia": {"w": 13, "h": 18}};
-const PROFILE = {"keto": ["psyllium", "fathead", "fbagel", "mug"], "ball": ["neapolitan", "neap-home", "ny", "pide", "tavern", "pinsa", "lahmacun", "pita", "naan", "bazlama"], "pan": ["detroit", "sicilian", "roman", "deepdish", "focaccia"], "loaf": ["sandwich", "baguette", "rustic", "ciabatta", "wholewheat", "simit", "ketoyeast"], "enriched": ["brioche", "rolls", "challah"], "sour": ["sourdough"], "bagel": ["bagel"]};
-const BAKE_MIN = {"psyllium": 55, "fathead": 18, "fbagel": 14, "mug": 2, "ketoyeast": 38, "neapolitan": 2, "neap-home": 7, "ny": 6, "pide": 8, "tavern": 12, "pinsa": 8, "lahmacun": 6, "pita": 4, "naan": 3, "bazlama": 6, "detroit": 14, "sicilian": 20, "roman": 17, "deepdish": 35, "focaccia": 25, "sandwich": 35, "baguette": 25, "rustic": 45, "ciabatta": 25, "wholewheat": 40, "simit": 20, "brioche": 35, "rolls": 18, "challah": 35, "sourdough": 45, "bagel": 22};
-const COOL_MIN = {"psyllium": 60, "fathead": 5, "fbagel": 10, "mug": 2, "ketoyeast": 60, "detroit": 5, "sicilian": 5, "roman": 5, "deepdish": 10, "focaccia": 10, "sandwich": 60, "baguette": 30, "rustic": 60, "ciabatta": 30, "wholewheat": 60, "simit": 10, "brioche": 60, "rolls": 10, "challah": 30, "sourdough": 60, "bagel": 15};
+const TOP = {"fathead": [["Sauce (no sugar added)", 120], ["Mozzarella", 150], ["Pepperoni or cooked chicken/beef", 70]], "hh-pizza": [["Sauce (no sugar added)", 110], ["Mozzarella", 130], ["Pepperoni, sucuk, or cooked chicken", 60]], "neapolitan": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "neap-home": [["Sauce", 80], ["Fresh mozzarella", 100], ["Olive oil", 5]], "ny": [["Sauce", 170], ["Low-moisture mozzarella", 200], ["Parmesan", 10], ["Pepperoni (optional)", 60]], "detroit": [["Brick or Jack + mozzarella cubes", 250], ["Pepperoni (optional)", 60], ["Sauce stripes, after baking", 180]], "sicilian": [["Sauce", 250], ["Low-moisture mozzarella", 300], ["Parmesan", 15]], "roman": [["Sauce", 200], ["Mozzarella", 250]], "tavern": [["Sauce", 140], ["Low-moisture mozzarella", 180], ["Italian sausage, raw (optional)", 150]], "deepdish": [["Sliced low-moisture mozzarella", 350], ["Italian sausage (optional)", 250], ["Chunky sauce", 350], ["Parmesan", 15]], "pinsa": [["Sauce", 70], ["Fresh mozzarella", 90]], "pide": [["Filling", 120]], "lahmacun": [["Meat topping", 60]], "focaccia": [["Olive oil in the pan", 60]], "naan": [["Garlic butter", 10]], "bazlama": [["Garlic butter", 10]]};
+const REF = {"hh-pizza": {"r": 12}, "fathead": {"r": 12}, "neapolitan": {"r": 11}, "neap-home": {"r": 11}, "ny": {"r": 14}, "tavern": {"r": 14}, "deepdish": {"r": 12}, "lahmacun": {"r": 10}, "detroit": {"w": 10, "h": 14}, "sicilian": {"w": 13, "h": 18}, "roman": {"w": 12, "h": 16}, "focaccia": {"w": 13, "h": 18}};
+const PROFILE = {"keto": ["psyllium", "fathead", "fbagel", "mug"], "ball": ["hh-pizza", "neapolitan", "neap-home", "ny", "pide", "tavern", "pinsa", "lahmacun", "pita", "naan", "bazlama"], "pan": ["detroit", "sicilian", "roman", "deepdish", "focaccia"], "loaf": ["hh-loaf", "sandwich", "baguette", "rustic", "ciabatta", "wholewheat", "simit", "ketoyeast"], "enriched": ["brioche", "rolls", "challah"], "sour": ["sourdough"], "bagel": ["bagel"]};
+const BAKE_MIN = {"hh-loaf": 38, "hh-pizza": 9, "psyllium": 55, "fathead": 18, "fbagel": 14, "mug": 2, "ketoyeast": 38, "neapolitan": 2, "neap-home": 7, "ny": 6, "pide": 8, "tavern": 12, "pinsa": 8, "lahmacun": 6, "pita": 4, "naan": 3, "bazlama": 6, "detroit": 14, "sicilian": 20, "roman": 17, "deepdish": 35, "focaccia": 25, "sandwich": 35, "baguette": 25, "rustic": 45, "ciabatta": 25, "wholewheat": 40, "simit": 20, "brioche": 35, "rolls": 18, "challah": 35, "sourdough": 45, "bagel": 22};
+const COOL_MIN = {"hh-loaf": 60, "psyllium": 60, "fathead": 5, "fbagel": 10, "mug": 2, "ketoyeast": 60, "detroit": 5, "sicilian": 5, "roman": 5, "deepdish": 10, "focaccia": 10, "sandwich": 60, "baguette": 30, "rustic": 60, "ciabatta": 30, "wholewheat": 60, "simit": 10, "brioche": 60, "rolls": 10, "challah": 30, "sourdough": 60, "bagel": 15};
 /* ---------- Helpers: units, sharing, toast ---------- */
-const GPT = {flour:2.6, water:4.93, milk:5, salt:6, yeast:3.1, sugar:4.2, oil:4.5, butter:4.7, honey:7, yogurt:5.1, levain:5, discard:5, psyllium:2.4, bp:4, vinegar:5, mozz:2.35, cream:4.8, almond:2.0, oatfiber:1.8};
+const GPT = {flour:2.6, water:4.93, milk:5, salt:6, yeast:3.1, sugar:4.2, oil:4.5, butter:4.7, honey:7, yogurt:5.1, levain:5, discard:5, psyllium:2.4, bp:4, vinegar:5, mozz:2.35, cream:4.8, almond:2.0, oatfiber:1.8, gluten:2.6};
 // Estimated net carbs, grams per 100 g (check your own labels)
-const CARB = {water:0, milk:5, eggs:0.7, whites:0.7, salt:0, yeast:12, levain:36, oil:0, sugar:100, butter:0, yogurt:4.7, honey:82, discard:36, psyllium:4, bp:28, vinegar:1, mozz:3, cream:5, almond:10, oatfiber:0};
+const CARB = {water:0, milk:5, eggs:0.7, whites:0.7, salt:0, yeast:12, levain:36, oil:0, sugar:100, butter:0, yogurt:4.7, honey:82, discard:36, psyllium:4, bp:28, vinegar:1, mozz:3, cream:5, almond:10, oatfiber:0, gluten:14};
 const flourCarb = st => st.carb != null ? st.carb : st.cat === "keto" ? (/gluten/i.test(st.flour) ? 14 : 10) : st.id === "wholewheat" ? 62 : 72;
 const FR = {1:"⅛", 2:"¼", 3:"⅜", 4:"½", 5:"⅝", 6:"¾", 7:"⅞"};
 function frac(x, den){
@@ -1149,9 +1194,12 @@ function findFits(st, ferm, max){
     for(const h of EAT_HOURS){
       const d = new Date(); d.setDate(d.getDate() + dd); d.setHours(Math.floor(h), Math.round(h % 1 * 60), 0, 0);
       const T = d.getTime(); if(T < now + HR) continue;
-      const p = buildPlan(st, T, ferm);
-      if(p.steps[0][0] < now + 10 * MN || !planFree(p)) continue;
-      out.push({T, ferm}); break;
+      let ok = null;
+      for(const w of (profileOf(st.id) === "ball" && ferm ? [3, 1.5] : [null])){
+        const p = buildPlan(st, T, ferm, w);
+        if(p.steps[0][0] >= now + 10 * MN && planFree(p)){ ok = {T, ferm, warm:w || 3}; break; }
+      }
+      if(ok){ out.push(ok); break; }
     }
   }
   return out;
@@ -1159,7 +1207,7 @@ function findFits(st, ferm, max){
 function defaultEat(){
   if(state.plan.away && state.plan.away.on){
     const f = findFits(style(), +state.plan.ferm || 0, 1)[0];
-    if(f) return localISO(new Date(f.T));
+    if(f){ state.plan.warm = f.warm; return localISO(new Date(f.T)); }
   }
   const d = new Date();
   d.setDate(d.getDate() + Math.ceil((+state.plan.ferm || 0) / 24));
@@ -1167,7 +1215,7 @@ function defaultEat(){
   while(d.getTime() < Date.now() + ((+state.plan.ferm || 0) + 6) * HR) d.setDate(d.getDate() + 1);
   return localISO(d);
 }
-function buildPlan(st, eatT, fermH){
+function buildPlan(st, eatT, fermH, warmH){
   const pl = state.plan;
   const T = eatT != null ? eatT : new Date(pl.eat || defaultEat()).getTime();
   const prof = profileOf(st.id);
@@ -1185,8 +1233,9 @@ function buildPlan(st, eatT, fermH){
     mix = B - 25 * MN;
     if(st.id === "fathead") add(B - 10 * MN, "Roll the crust out between parchment.");
   } else if(prof === "ball"){
-    const out = B - 3 * HR;
-    if(Hc){ const fin = out - Hc * HR; mix = fin - HR; add(fin, `Divide and shape into ${pieces}. Cover and refrigerate.`); add(out, "Take the dough out of the fridge to warm up."); }
+    const W = Hc ? (warmH != null ? warmH : (+pl.warm || 3)) : 3;
+    const out = B - W * HR;
+    if(Hc){ const fin = out - Hc * HR; mix = fin - HR; add(fin, `Divide and shape into ${pieces}. Cover and refrigerate.`); add(out, W < 3 ? "Take the dough out of the fridge. Quick warm-up: keep it covered in a warm spot (the oven with just the light on), then stretch gently." : "Take the dough out of the fridge to warm up."); }
     else { mix = out - 2 * HR; add(out, `Divide and shape into ${pieces}. Cover and let them proof.`); }
   } else if(prof === "pan"){
     const pan = B - 2 * HR;
@@ -1216,7 +1265,7 @@ function buildPlan(st, eatT, fermH){
   add(T, "Eat!");
   steps.sort((a, b) => a[0] - b[0]);
   const roomH = Math.max(0.5, (B - mix) / HR - Hc);
-  return {steps, mix, roomH, fridgeH:Hc, note, prof};
+  return {steps, mix, roomH, fridgeH:Hc, note, prof, warm:prof === "ball" && Hc ? (warmH != null ? warmH : (+pl.warm || 3)) : 0};
 }
 function suggestYeast(plan){
   const f = t => Math.pow(2, (t - 75) / 12);
@@ -1237,8 +1286,8 @@ function renderPlan(st, flour){
     let f = findFits(st, cur, 1)[0];
     if(!f && !keto) for(const alt of [24, 0, 48, 72]){ if(alt !== cur && (f = findFits(st, alt, 1)[0])) break; }
     if(f){
-      state.plan.eat = localISO(new Date(f.T)); state.plan.ferm = f.ferm;
-      $("eatAt").value = state.plan.eat; $("ferm").value = String(f.ferm);
+      state.plan.eat = localISO(new Date(f.T)); state.plan.ferm = f.ferm; state.plan.warm = f.warm;
+      $("eatAt").value = state.plan.eat; $("ferm").value = String(f.ferm); $("warmSel").value = String(f.warm);
       plan = buildPlan(st);
       moved = `Moved to ${new Date(f.T).toLocaleString("en-US", {weekday:"long", hour:"numeric", minute:"2-digit", hour12:true})}${f.ferm !== cur ? ` (${FERM_LABEL[f.ferm]})` : ""} so every step fits your week.`;
       save();
@@ -1263,6 +1312,7 @@ function renderPlan(st, flour){
     : busyN ? `${busyN === 1 ? "One step lands" : busyN + " steps land"} while you're at work or asleep. Tap a time above that fits your week.`
     : (plan.note || "Yeast estimate assumes your kitchen and fridge temperatures. Times are approximate; watch the dough.");
   hint.classList.toggle("warn", plan.mix < now || busyN > 0);
+  try{ renderWeekend(); }catch(e){ console.warn(e); }
 }
 const FERM_LABEL = {0:"same day", 24:"24 h in the fridge", 48:"48 h in the fridge", 72:"72 h in the fridge"};
 function renderFits(st, plan, busyN){
@@ -1276,10 +1326,10 @@ function renderFits(st, plan, busyN){
   if(fits.length < 3) for(const f of others){ extra = extra.concat(findFits(st, f, 3 - fits.length - extra.length)); if(fits.length + extra.length >= 3) break; }
   extra.sort((a, b) => a.T - b.T);
   const fl = f => sour && f ? "fridge overnight" : FERM_LABEL[f];
-  const lbl = f => `${new Date(f.T).toLocaleString("en-US", {weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit", hour12:true})}${keto || same(f.ferm, cur) ? "" : ` · ${fl(f.ferm)}`}`;
+  const lbl = f => `${new Date(f.T).toLocaleString("en-US", {weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit", hour12:true})}${keto || same(f.ferm, cur) ? "" : ` · ${fl(f.ferm)}`}${f.warm && f.warm < 3 ? " · quick warm-up" : ""}`;
   const all = fits.concat(extra);
   box.innerHTML = all.length
-    ? `<p class="hint" style="margin:0">${busyN ? "<b>Times that fit your week:</b>" : "Other times that fit your week:"}</p><div class="chips reclinks">${all.map(f => `<button type="button" data-fit="${f.T}|${f.ferm}">${lbl(f)}</button>`).join("")}</div>`
+    ? `<p class="hint" style="margin:0">${busyN ? "<b>Times that fit your week:</b>" : "Other times that fit your week:"}</p><div class="chips reclinks">${all.map(f => `<button type="button" data-fit="${f.T}|${f.ferm}|${f.warm || 3}">${lbl(f)}</button>`).join("")}</div>`
     : `<p class="hint warn" style="margin:0">Nothing fits your week in the next 10 days with these settings. Try another fridge time.</p>`;
 }
 
@@ -2023,7 +2073,7 @@ const YEAST_MULT = {instant:1, active:1.25, fresh:3};
 const YEAST_NAME = {instant:"Instant yeast", active:"Active dry yeast", fresh:"Fresh yeast"};
 
 let state = {cat:"pizza", styleId:"neapolitan", count:4, unit:250, waste:2, yeast:"instant", discard:0, people:0, oven:"electric", view:"dough", lastLevain:0, starter:null, units:"g", saved:[], log:[], plan:null, pcts:{}, gone:{}, lastSync:0, videos:[], freeze:null, freezer:[], practice:[], ltab:"bakes", chaffle:null, pantry:[], impOnly:true};
-const STARTER_DEFAULTS = () => ({keep:20, ratio:1, need:0, lratio:1, revive:[], jar:[]});
+const STARTER_DEFAULTS = () => ({keep:20, ratio:1, need:0, lratio:1, revive:[], jar:[], feeds:[], feedAt:"19:00"});
 const $ = id => document.getElementById(id);
 const style = () => STYLES[state.cat].find(s => s.id === state.styleId) || STYLES[state.cat][0];
 
@@ -2036,9 +2086,10 @@ function load(){
   }catch(e){ applyDefaults(); }
   state.starter = Object.assign(STARTER_DEFAULTS(), state.starter || {});
   if(state.oven === "pizza" || !["home", "electric", "gas"].includes(state.oven)) state.oven = "electric";
-  state.plan = Object.assign({eat:"", ferm:24, tk:72, tf:38}, state.plan || {});
+  state.plan = Object.assign({eat:"", ferm:24, tk:72, tf:38, warm:3}, state.plan || {});
   const oldAw = state.plan.away;
   state.plan.away = Object.assign(AWAY_DEFAULT(), oldAw || {});
+  state.weekend = Object.assign({items:["", "", ""], have:[]}, state.weekend || {});
   if(oldAw && !oldAw.v){ if(oldAw.bed === "23:00" && oldAw.wake === "06:00"){ state.plan.away.bed = "21:00"; state.plan.away.wake = "05:00"; } state.plan.away.v = 2; }
   if(state.plan.eat && new Date(state.plan.eat).getTime() < Date.now()) state.plan.eat = "";
   state.saved = state.saved || []; state.log = state.log || [];
@@ -2082,6 +2133,8 @@ function renderForm(){
   $("oven").value = state.oven;
   $("units").value = state.units;
   $("ferm").value = String(state.plan.ferm);
+  $("warmSel").value = String(+state.plan.warm === 1.5 ? 1.5 : 3);
+  $("warmF").hidden = profileOf(st.id) !== "ball" || !(+state.plan.ferm);
   $("eatAt").value = state.plan.eat || defaultEat();
   $("tk").value = state.plan.tk; $("tf").value = state.plan.tf;
   const aw = state.plan.away; $("awayOn").checked = !!aw.on; $("awayFields").hidden = !aw.on;
@@ -2265,7 +2318,7 @@ function renderStarter(){
   $("feedRatio").value = String(s.ratio);
   $("levainNeed").value = s.need || sourdoughLevain();
   $("levainRatio").value = String(s.lratio);
-  calcStarter(); renderRevive(); renderJar();
+  calcStarter(); renderRevive(); renderJar(); renderFeeds();
 }
 function calcStarter(){
   const s = SD();
@@ -2391,16 +2444,17 @@ $("discardRecs").addEventListener("click", e => { const b = e.target.closest("[d
 
 var manualEat = null;
 $("eatAt").addEventListener("change", e => { state.plan.eat = e.target.value; manualEat = {eat:e.target.value, id:state.styleId, ferm:+state.plan.ferm}; update(); });
-$("ferm").addEventListener("change", e => { state.plan.ferm = +e.target.value; if(!state.plan.eat){ $("eatAt").value = ""; } update(); });
+$("ferm").addEventListener("change", e => { state.plan.ferm = +e.target.value; $("warmF").hidden = profileOf(state.styleId) !== "ball" || !state.plan.ferm; if(!state.plan.eat){ $("eatAt").value = ""; } update(); });
+$("warmSel").addEventListener("change", e => { state.plan.warm = +e.target.value; manualEat = null; update(); });
 $("tk").addEventListener("input", e => { state.plan.tk = +e.target.value || 72; update(); });
 $("tf").addEventListener("input", e => { state.plan.tf = +e.target.value || 38; update(); });
 $("awayOn").addEventListener("change", e => { state.plan.away.on = e.target.checked; $("awayFields").hidden = !e.target.checked; if(!state.plan.eat) $("eatAt").value = ""; update(); });
 [["awWs", "ws"], ["awWe", "we"], ["awBed", "bed"], ["awWake", "wake"]].forEach(([id, k]) => $(id).addEventListener("change", e => { if(e.target.value){ state.plan.away[k] = e.target.value; if(!state.plan.eat) $("eatAt").value = ""; update(); } }));
 $("fits").addEventListener("click", e => {
   const b = e.target.closest("[data-fit]"); if(!b) return;
-  const [T, f] = b.dataset.fit.split("|").map(Number);
-  state.plan.eat = localISO(new Date(T)); state.plan.ferm = f;
-  $("eatAt").value = state.plan.eat; $("ferm").value = String(f); update();
+  const [T, f, w] = b.dataset.fit.split("|").map(Number);
+  state.plan.eat = localISO(new Date(T)); state.plan.ferm = f; state.plan.warm = w || 3;
+  $("eatAt").value = state.plan.eat; $("ferm").value = String(f); $("warmSel").value = String(state.plan.warm); update();
 });
 $("plan").addEventListener("click", e => {
   const b = e.target.closest("#applyYeast"); if(!b) return;
@@ -2900,6 +2954,8 @@ const PANTRY_NEED = {
   fbagel:["almond", "mozz", "cream", "eggs", "bp"],
   ketoyeast:["gluten", "yeast", "oatfiber", "almond", "eggs"],
   mug:["almond", "eggs", "butter", "bp"],
+  "hh-loaf":["gluten", "oatfiber", "almond", "yeast"],
+  "hh-pizza":["gluten", "oatfiber", "almond", "yeast"],
   chaffle:["eggs", "mozz"]
 };
 const PANTRY_NAME = {almond:"almond flour", coconut:"coconut flour", psyllium:"psyllium", gluten:"vital wheat gluten", oatfiber:"oat fiber", flax:"flaxseed meal", lupin:"lupin flour", ewp:"egg white protein", bp:"baking powder", yeast:"yeast", eggs:"eggs", mozz:"mozzarella", cream:"cream cheese", butter:"butter"};
@@ -2993,8 +3049,202 @@ window.addEventListener("hashchange", openSharedLink);
 recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); pPhoto = photoPicker("p"); initTidy(); renderVideoForm(); initDoughFilter();
 loadMine(); load(); renderChips(); renderForm(); showView(); openSharedLink();
 
+/* ---------- Calendar files (.ics) ---------- */
+const icsEsc = t => String(t).replace(/<[^>]+>/g, "").replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1").replace(/\n/g, "\\n");
+const icsT = t => new Date(t).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+function icsFold(line){ const out = []; while(line.length > 74){ out.push(line.slice(0, 74)); line = " " + line.slice(74); } out.push(line); return out.join("\r\n"); }
+function makeICS(events){
+  const now = icsT(Date.now()), L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Dough calculator//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH"];
+  events.forEach((e, i) => {
+    L.push("BEGIN:VEVENT", `UID:${Date.now()}-${i}-${Math.random().toString(36).slice(2, 8)}@dough-calculator`, `DTSTAMP:${now}`, `DTSTART:${icsT(e.t)}`, `DTEND:${icsT(e.t + (e.min || 15) * MN)}`,
+      icsFold(`SUMMARY:${icsEsc(e.title)}`));
+    if(e.desc) L.push(icsFold(`DESCRIPTION:${icsEsc(e.desc)}`));
+    if(e.rrule) L.push(`RRULE:${e.rrule}`);
+    L.push("BEGIN:VALARM", "ACTION:DISPLAY", icsFold(`DESCRIPTION:${icsEsc(e.title)}`), "TRIGGER:-PT0M", "END:VALARM", "END:VEVENT");
+  });
+  L.push("END:VCALENDAR");
+  return L.join("\r\n") + "\r\n";
+}
+async function deliverICS(text, name){
+  const file = new File([text], name, {type:"text/calendar"});
+  if(/iPhone|iPad|Android/i.test(navigator.userAgent) && navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:name}); return; }catch(e){ if(e && e.name === "AbortError") return; }
+  }
+  const url = URL.createObjectURL(file), a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  toast("Calendar file ready. Open it and tap Add to put the steps in your calendar.");
+}
+function planEvents(plan, label){
+  const now = Date.now();
+  return plan.steps.filter(([t, txt]) => t > now && !/^Eat!/.test(txt)).map(([t, txt]) => ({t, title:`${label}: ${String(txt).replace(/<[^>]+>/g, "").split(". ")[0].replace(/\.$/, "")}`, desc:String(txt).replace(/<[^>]+>/g, "")}));
+}
+$("calPlan").addEventListener("click", () => {
+  if(!lastPlan) return;
+  const ev = planEvents(lastPlan, style().name);
+  if(!ev.length){ toast("All the steps are already past. Pick a later time first."); return; }
+  deliverICS(makeICS(ev), `${style().name.replace(/[^A-Za-z0-9]+/g, "-")}-schedule.ics`);
+});
+
+/* ---------- Weekend planner + shopping list ---------- */
+function stById(v){ if(!v) return null; const [c, id] = v.split(":"); const st = STYLES[c] && STYLES[c].find(x => x.id === id); return st ? {c, st} : null; }
+function fillWkPicks(){
+  const w = state.weekend;
+  ["wk0", "wk1", "wk2"].forEach((id, i) => {
+    const sel = $(id);
+    sel.innerHTML = `<option value="">${i ? "Nothing else" : "Choose…"}</option>` + ["pizza", "bread", "keto"].map(c => `<optgroup label="${CAT_LABEL[c]}">` + STYLES[c].map(x => `<option value="${c}:${x.id}">${esc(x.name)}</option>`).join("") + `</optgroup>`).join("");
+    sel.value = w.items[i] || "";
+  });
+}
+function weekends(){
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  const out = [];
+  for(let i = 0; i < 16 && out.length < 2; i++){
+    const x = new Date(d); x.setDate(d.getDate() + i);
+    if(x.getDay() === 6){ const y = new Date(x); y.setDate(x.getDate() + 1); out.push([x, y]); }
+    else if(x.getDay() === 0 && i === 0) out.push([x]);
+  }
+  return out;
+}
+function bakeWindow(st, p, T){ const bake = BAKE_MIN[st.id] || 30; const B = p.steps.find(([, s]) => /^Start baking|^Into the oven/.test(s)); const b0 = B ? B[0] : T - bake * MN; return [b0 - 60 * MN, b0 + bake * MN]; }
+function planDays(chosen, days){
+  const now = Date.now(), res = [], ovens = [];
+  for(const {c, st} of chosen){
+    const prof = profileOf(st.id);
+    const ferms = prof === "keto" ? [0] : [24, 0];
+    let found = null;
+    outer: for(const ferm of ferms) for(const day of days) for(const h of EAT_HOURS){
+      const d = new Date(day); d.setHours(Math.floor(h), Math.round(h % 1 * 60), 0, 0);
+      const T = d.getTime(); if(T < now + HR) continue;
+      for(const w of (prof === "ball" && ferm ? [3, 1.5] : [null])){
+        const p = buildPlan(st, T, ferm, w);
+        if(p.steps[0][0] < now + 10 * MN || !planFree(p)) continue;
+        const win = bakeWindow(st, p, T);
+        if(ovens.some(([a, b]) => win[0] < b && a < win[1])) continue;
+        found = {st, c, p, T, ferm}; ovens.push(win); break outer;
+      }
+    }
+    res.push(found || {st, c, none:true});
+  }
+  return res;
+}
+function planWeekend(){
+  const chosen = state.weekend.items.map(stById).filter(Boolean);
+  if(!chosen.length) return [];
+  let best = null;
+  for(const days of weekends()){
+    const r = planDays(chosen, days), n = r.filter(x => !x.none).length;
+    if(!best || n > best.n) best = {r, n};
+    if(n === chosen.length) break;
+  }
+  return best.r;
+}
+var lastWeekend = [];
+function renderWeekend(){
+  if(!state.weekend) return;
+  fillWkPicks();
+  const res = planWeekend(); lastWeekend = res;
+  const ok = res.filter(r => !r.none);
+  $("wkBtns").hidden = !ok.length;
+  if(!res.length){ $("wkOut").innerHTML = `<p class="empty">Choose what you want to bake this weekend.</p>`; $("wkList").hidden = true; return; }
+  const steps = [];
+  ok.forEach(r => r.p.steps.forEach(([t, s]) => steps.push([t, r.st.name, s])));
+  steps.sort((a, b) => a[0] - b[0]);
+  let html = res.filter(r => r.none).map(r => `<p class="hint warn" style="padding:10px 18px;margin:0">${esc(r.st.name)} doesn't fit this weekend with your hours. Try it on its own above.</p>`).join("");
+  let lastDay = "";
+  steps.forEach(([t, name, s]) => {
+    const day = new Date(t).toLocaleDateString("en-US", {weekday:"long", month:"short", day:"numeric"});
+    if(day !== lastDay){ html += `<div class="frow head"><span>${day}</span><span></span></div>`; lastDay = day; }
+    html += `<div class="prow${t < Date.now() ? " past" : ""}"><time>${new Date(t).toLocaleTimeString("en-US", {hour:"numeric", minute:"2-digit"})}</time><span><b>${esc(name)}:</b> ${s}</span></div>`;
+  });
+  $("wkOut").innerHTML = html;
+  if(!$("wkList").hidden) renderShop();
+}
+function gramsFor(st){
+  const same = st.id === state.styleId;
+  const pc = same ? state.pcts : Object.fromEntries(Object.keys(st.ing).map(k => [k, st.ing[k][0]]));
+  const count = same ? state.count : st.count, unit = same ? state.unit : st.unit;
+  let sum = 100; for(const k in st.ing) sum += pc[k] || 0;
+  const flour = count * unit * 1.02 / (sum / 100), g = {};
+  for(const k in st.ing) g[k] = flour * (pc[k] || 0) / 100;
+  return {flour, g, count, unit};
+}
+function shopItems(){
+  const m = new Map();
+  const add = (k, label, grams) => { k = k.startsWith("flour:") ? k : (k === "eggs" ? k : label.toLowerCase()); const e = m.get(k) || {label, g:0}; e.g += grams; m.set(k, e); };
+  lastWeekend.filter(r => !r.none).forEach(({st}) => {
+    const {flour, g} = gramsFor(st);
+    const fl = st.flour.split(/[;(,]/)[0].trim();
+    add("flour:" + fl.toLowerCase(), fl, flour);
+    for(const k in g){ if(!(g[k] > 0) || k === "water") continue; add(k, k === "yeast" ? "Instant yeast" : (ING[k] ? ING[k].label : k), g[k]); }
+    (TOP[st.id] || []).forEach(([l, gg]) => { const n = (st.id === state.styleId ? state.count : st.count); add("top:" + l.toLowerCase(), l, gg * n); });
+  });
+  return [...m.entries()].map(([k, e]) => ({k, ...e}));
+}
+function renderShop(){
+  const items = shopItems(), have = new Set(state.weekend.have || []);
+  $("wkList").innerHTML = items.length ? `<div class="frow head"><span>Shopping list</span><span class="hint">tap what you have</span></div>` + items.map(it => `<label class="check${have.has(it.k) ? " done" : ""}"><input type="checkbox" data-shop="${esc(it.k)}"${have.has(it.k) ? " checked" : ""}><span>${esc(it.label)} <em>${it.k === "eggs" ? Math.ceil(it.g / 50) + " eggs" : fmtW(it.g)}</em></span></label>`).join("") + `<div class="actions" style="padding:10px 18px"><button type="button" class="linkbtn" id="wkShare">Share the list</button><button type="button" class="linkbtn" id="wkClear">Clear ticks</button></div>` : `<p class="empty">Nothing to buy.</p>`;
+}
+document.querySelectorAll(".wkpick").forEach((sel, i) => sel.addEventListener("change", e => { state.weekend.items[i] = e.target.value; save(); renderWeekend(); }));
+$("wkCal").addEventListener("click", () => {
+  const ev = []; lastWeekend.filter(r => !r.none).forEach(r => ev.push(...planEvents(r.p, r.st.name)));
+  if(!ev.length){ toast("Nothing left to add."); return; }
+  ev.sort((a, b) => a.t - b.t); deliverICS(makeICS(ev), "weekend-baking.ics");
+});
+$("wkShop").addEventListener("click", () => { const l = $("wkList"); l.hidden = !l.hidden; if(!l.hidden){ renderShop(); l.scrollIntoView({behavior:"smooth", block:"nearest"}); } });
+$("wkList").addEventListener("change", e => {
+  const k = e.target.dataset.shop; if(!k) return;
+  const h = new Set(state.weekend.have || []); e.target.checked ? h.add(k) : h.delete(k); state.weekend.have = [...h]; save(); renderShop();
+});
+$("wkList").addEventListener("click", e => {
+  if(e.target.id === "wkClear"){ state.weekend.have = []; save(); renderShop(); }
+  if(e.target.id === "wkShare"){ const have = new Set(state.weekend.have || []); shareText("Shopping list", shopItems().filter(it => !have.has(it.k)).map(it => `- ${it.label}: ${it.k === "eggs" ? Math.ceil(it.g / 50) + " eggs" : fmtW(it.g)}`).join("\n")); }
+});
+
+/* ---------- Starter feeding log ---------- */
+const hm = h => { const m = Math.round(h * 60); return `${Math.floor(m / 60)} h${m % 60 ? " " + (m % 60) + " min" : ""}`; };
+const fmtWhen = t => new Date(t).toLocaleString("en-US", {weekday:"short", hour:"numeric", minute:"2-digit", hour12:true});
+function renderFeeds(){
+  const s = SD(); if(!Array.isArray(s.feeds)) s.feeds = [];
+  const f = s.feeds, now = Date.now(), last = f[f.length - 1];
+  $("feedAt").value = s.feedAt || "19:00";
+  const done = f.filter(x => x.dbl).map(x => (new Date(x.dbl) - new Date(x.fed)) / HR);
+  const avg = done.length ? done.slice(-3).reduce((a, b) => a + b, 0) / Math.min(3, done.length) : 0;
+  let html = "";
+  if(!last) html = `<p class="empty">Tap <b>Fed it now</b> right after you feed it, then <b>It doubled</b> when it has doubled.</p>`;
+  else {
+    const since = (now - new Date(last.fed)) / HR;
+    html += `<div class="frow"><span>Last fed</span><b>${fmtWhen(last.fed)} · ${hm(since)} ago</b></div>`;
+    if(last.dbl) html += `<div class="frow"><span>Doubled</span><b>${hm((new Date(last.dbl) - new Date(last.fed)) / HR)} after feeding</b></div>`;
+    else if(avg) html += `<div class="frow"><span>Should double around</span><b>${fmtWhen(new Date(last.fed).getTime() + avg * HR)}</b></div>`;
+    const recent = f.slice(-6).reverse();
+    html += `<div class="frow head"><span>Recent feedings</span><span></span></div>` + recent.map(x => `<div class="frow"><span>${fmtWhen(x.fed)}</span><b>${x.dbl ? "doubled in " + hm((new Date(x.dbl) - new Date(x.fed)) / HR) : "—"}</b></div>`).join("");
+  }
+  $("feedLog").innerHTML = html;
+  const two = f.filter(x => x.dbl).slice(-2), good = two.length === 2 && two.every(x => (new Date(x.dbl) - new Date(x.fed)) / HR <= 8);
+  $("feedReady").textContent = good ? "Ready to bake: it doubled within 8 hours twice in a row." : done.length ? "Not quite ready: aim for doubling within 4–8 hours, two feedings in a row." : "";
+  $("feedReady").classList.toggle("ok", good);
+  $("doubledNow").disabled = !last || !!last.dbl;
+  $("feedUndo").hidden = !last;
+}
+$("fedNow").addEventListener("click", () => { const f = SD().feeds; f.push({fed:new Date().toISOString()}); if(f.length > 30) f.splice(0, f.length - 30); renderFeeds(); save(); toast("Feeding saved. Tap It doubled when it doubles."); });
+$("doubledNow").addEventListener("click", () => { const f = SD().feeds, l = f[f.length - 1]; if(!l || l.dbl) return; l.dbl = new Date().toISOString(); renderFeeds(); save(); toast(`Doubled in ${hm((new Date(l.dbl) - new Date(l.fed)) / HR)}.`); });
+$("feedUndo").addEventListener("click", () => { const f = SD().feeds, l = f[f.length - 1]; if(!l) return; if(l.dbl) delete l.dbl; else f.pop(); renderFeeds(); save(); });
+$("feedAt").addEventListener("change", e => { SD().feedAt = e.target.value || "19:00"; save(); });
+$("calFeed").addEventListener("click", () => {
+  const [h, m] = (SD().feedAt || "19:00").split(":").map(Number), d = new Date();
+  d.setHours(h, m || 0, 0, 0); if(d.getTime() < Date.now()) d.setDate(d.getDate() + 1);
+  deliverICS(makeICS([{t:d.getTime(), title:"Feed the starter", desc:"50 g starter + 50 g flour + 50 g water. Put the rest in the discard jar, then tap Fed it now in the app.", rrule:"FREQ=DAILY"}]), "feed-the-starter.ics");
+});
+$("jarQuick").addEventListener("click", e => {
+  const b = e.target.closest("[data-jq]"); if(!b) return;
+  const g = +b.dataset.jq; $("jarG").value = Math.abs(g); $("jarD").value = localDay(new Date());
+  (g > 0 ? $("addJar") : $("takeJar")).click();
+  if(g > 0) toast(`Added ${g} g to the jar.`);
+});
+
 /* ---------- Update check: phones can hold an old copy for a while ---------- */
-const APP_VERSION = "2026-10-17.7";
+const APP_VERSION = "2026-10-18.1";
 $("appVer").textContent = `App version ${APP_VERSION}`;
 let newVer = null;
 function loadNewVersion(){ location.replace(location.pathname + "?v=" + encodeURIComponent(newVer || Date.now()) + location.hash); }
