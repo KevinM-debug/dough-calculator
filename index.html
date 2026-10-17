@@ -1223,7 +1223,22 @@ function suggestYeast(plan){
 let lastPlan = null;
 function renderPlan(st, flour){
   if(!$("eatAt").value) $("eatAt").value = state.plan.eat || defaultEat();
-  const plan = buildPlan(st); lastPlan = plan;
+  let plan = buildPlan(st), moved = "";
+  const aw = state.plan.away, nowT = Date.now();
+  const manual = manualEat && manualEat.eat === state.plan.eat && manualEat.id === st.id && manualEat.ferm === +state.plan.ferm;
+  if(aw && aw.on && !manual && (plan.mix < nowT || plan.steps.some(([t]) => t >= nowT && busyWhy(t)))){
+    const keto = plan.prof === "keto", cur = keto ? 0 : (+state.plan.ferm || 0);
+    let f = findFits(st, cur, 1)[0];
+    if(!f && !keto) for(const alt of [24, 0, 48, 72]){ if(alt !== cur && (f = findFits(st, alt, 1)[0])) break; }
+    if(f){
+      state.plan.eat = localISO(new Date(f.T)); state.plan.ferm = f.ferm;
+      $("eatAt").value = state.plan.eat; $("ferm").value = String(f.ferm);
+      plan = buildPlan(st);
+      moved = `Moved to ${new Date(f.T).toLocaleString("en-US", {weekday:"long", hour:"numeric", minute:"2-digit", hour12:true})}${f.ferm !== cur ? ` (${FERM_LABEL[f.ferm]})` : ""} so every step fits your week.`;
+      save();
+    }
+  }
+  lastPlan = plan;
   const now = Date.now();
   let busyN = 0;
   let html = plan.steps.map(([t, s]) => { const why = t >= now ? busyWhy(t) : ""; if(why) busyN++;
@@ -1238,7 +1253,7 @@ function renderPlan(st, flour){
   $("plan").innerHTML = html;
   const hint = $("planHint");
   hint.classList.toggle("warn", plan.mix < now);
-  hint.textContent = plan.mix < now ? "The first steps are already past. Pick a later time or a shorter fermentation."
+  hint.textContent = moved ? moved : plan.mix < now ? "The first steps are already past. Pick a later time or a shorter fermentation."
     : busyN ? `${busyN === 1 ? "One step lands" : busyN + " steps land"} while you're at work or asleep. Tap a time above that fits your week.`
     : (plan.note || "Yeast estimate assumes your kitchen and fridge temperatures. Times are approximate; watch the dough.");
   hint.classList.toggle("warn", plan.mix < now || busyN > 0);
@@ -2313,7 +2328,8 @@ $("units").addEventListener("change", e => { state.units = e.target.value; updat
 $("notes").addEventListener("click", e => { const b = e.target.closest("[data-rec]"); if(b) openRecipe(b.dataset.rec); });
 $("discardRecs").addEventListener("click", e => { const b = e.target.closest("[data-rec]"); if(b) openRecipe(b.dataset.rec); });
 
-$("eatAt").addEventListener("change", e => { state.plan.eat = e.target.value; update(); });
+var manualEat = null;
+$("eatAt").addEventListener("change", e => { state.plan.eat = e.target.value; manualEat = {eat:e.target.value, id:state.styleId, ferm:+state.plan.ferm}; update(); });
 $("ferm").addEventListener("change", e => { state.plan.ferm = +e.target.value; if(!state.plan.eat){ $("eatAt").value = ""; } update(); });
 $("tk").addEventListener("input", e => { state.plan.tk = +e.target.value || 72; update(); });
 $("tf").addEventListener("input", e => { state.plan.tf = +e.target.value || 38; update(); });
@@ -2904,7 +2920,7 @@ recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); pPhoto = photoPicker("
 loadMine(); load(); renderChips(); renderForm(); showView(); openSharedLink();
 
 /* ---------- Update check: phones can hold an old copy for a while ---------- */
-const APP_VERSION = "2026-10-17.5";
+const APP_VERSION = "2026-10-17.6";
 $("appVer").textContent = `App version ${APP_VERSION}`;
 let newVer = null;
 function loadNewVersion(){ location.replace(location.pathname + "?v=" + encodeURIComponent(newVer || Date.now()) + location.hash); }
