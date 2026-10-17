@@ -53,6 +53,7 @@ h2{font-size:1.05rem; font-weight:600; margin:0 0 10px}
 .seg button[aria-pressed="true"]{background:var(--basil); color:var(--bg)}
 .chips{display:flex; flex-wrap:wrap; gap:8px}
 .chips button{font:inherit; font-size:.95rem; border:1px solid var(--line); background:var(--surface); color:var(--ink); padding:8px 14px; border-radius:10px; cursor:pointer}
+.qnotes button{font-size:.9rem; padding:7px 12px}
 .chips button[aria-pressed="true"]{border-color:var(--basil); background:var(--basil-soft); box-shadow:inset 0 0 0 1px var(--basil)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--semolina); outline-offset:2px}
 .qty{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
@@ -640,9 +641,11 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
           <div class="field"><label>Rating</label><div class="stars" id="stars">
             <button type="button" data-s="1" aria-label="1 star">★</button><button type="button" data-s="2" aria-label="2 stars">★</button><button type="button" data-s="3" aria-label="3 stars">★</button><button type="button" data-s="4" aria-label="4 stars">★</button><button type="button" data-s="5" aria-label="5 stars">★</button></div></div>
         </div>
-        <div class="field"><label for="lWhat">What you made</label><input id="lWhat" type="text" placeholder="Neapolitan, 4 × 250 g, 62%"></div>
+        <div class="field"><label for="lPick">What you made</label><select id="lPick"></select></div>
+        <div class="field" id="lWhatF" hidden><label for="lWhat">Describe it</label><input id="lWhat" type="text" placeholder="Neapolitan, 4 × 250 g, 62%"></div>
         <div class="snap" id="lSnap" hidden><span id="lSnapText"></span><button type="button" class="x" id="lSnapDel" aria-label="Don't attach the formula">×</button></div>
-        <div class="field"><label for="lNotes">Notes</label><textarea id="lNotes" rows="4" placeholder="How it turned out, what to change next time"></textarea></div>
+        <div class="field"><label>How did it turn out? <span class="hint">Tap all that fit</span></label><div class="chips qnotes" id="lQuick"></div></div>
+        <div class="field"><label for="lNotes">Notes <span class="hint">(optional)</span></label><textarea id="lNotes" rows="3" placeholder="Anything else"></textarea></div>
         <div class="field"><label>Photo</label><div class="photoedit"><img id="lPhotoPrev" alt="" hidden><label class="btn ghost small" for="lPhoto" id="lPhotoLbl">Add photo</label><button type="button" class="linkbtn danger" id="lPhotoDel" hidden>Remove photo</button></div><input type="file" id="lPhoto" accept="image/*" hidden></div>
         <div class="btnrow"><button type="button" class="btn" id="logSave">Save entry</button><button type="button" class="btn ghost" id="logCancel" hidden>Cancel edit</button></div>
       </div>
@@ -665,8 +668,9 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
         </div>
         <div class="two">
           <div class="field"><label for="zDate">Frozen on</label><input id="zDate" type="date"></div>
-          <div class="field"><label for="zNotes">Notes</label><input id="zNotes" type="text" placeholder="0.25% yeast, one night in the fridge"></div>
+          <div class="field"><label for="zNotes">Notes <span class="hint">(optional)</span></label><input id="zNotes" type="text" placeholder="0.25% yeast, one night in the fridge"></div>
         </div>
+        <div class="chips qnotes" id="zQuick" style="margin-bottom:12px"></div>
         <div class="btnrow"><button type="button" class="btn" id="zSave">Add to freezer</button></div>
       </div>
       <div id="zList"></div>
@@ -681,8 +685,10 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
           <div class="field"><label for="pDate">Date</label><input id="pDate" type="date"></div>
           <div class="field"><label>How it went</label><div class="stars" id="pStars"><button type="button" data-s="1" aria-label="1 star">★</button><button type="button" data-s="2" aria-label="2 stars">★</button><button type="button" data-s="3" aria-label="3 stars">★</button><button type="button" data-s="4" aria-label="4 stars">★</button><button type="button" data-s="5" aria-label="5 stars">★</button></div></div>
         </div>
-        <div class="field"><label for="pWhat">What you stretched</label><input id="pWhat" type="text" placeholder="Neapolitan, 250 g ball"></div>
-        <div class="field"><label for="pNotes">Notes</label><textarea id="pNotes" rows="3" placeholder="Thin spot in the middle, rim too thick on one side…"></textarea></div>
+        <div class="field"><label for="pPick">What you stretched</label><select id="pPick"></select></div>
+        <div class="field" id="pWhatF" hidden><label for="pWhat">Describe it</label><input id="pWhat" type="text" placeholder="Neapolitan, 250 g ball"></div>
+        <div class="field"><label>How did it go? <span class="hint">Tap all that fit</span></label><div class="chips qnotes" id="pQuick"></div></div>
+        <div class="field"><label for="pNotes">Notes <span class="hint">(optional)</span></label><textarea id="pNotes" rows="2" placeholder="Anything else"></textarea></div>
         <div class="field"><label>Photo</label><div class="photoedit"><img id="pPhotoPrev" alt="" hidden><label class="btn ghost small" for="pPhoto" id="pPhotoLbl">Add photo</label><button type="button" class="linkbtn danger" id="pPhotoDel" hidden>Remove photo</button></div><input type="file" id="pPhoto" accept="image/*" hidden></div>
         <div class="btnrow"><button type="button" class="btn" id="pSave">Save practice</button><button type="button" class="btn ghost" id="pCancel" hidden>Cancel edit</button></div>
       </div>
@@ -1613,23 +1619,75 @@ function applyFormula(f){
   renderChips(); renderForm(); showView(); window.scrollTo(0, 0);
   return true;
 }
+/* ---------- Pick lists and tap-to-add notes (no typing needed) ---------- */
+const CAT_LABEL = {pizza:"Pizza", bread:"Bread", keto:"Keto"};
+const QUICK = {
+  l:["Great rise", "Light, open crumb", "Crispy crust", "Nice char", "Tasted great", "Make it again", "Too dense", "Too wet and sticky", "Too dry", "Underbaked inside", "Burnt bottom", "Pale crust", "Spread out flat", "Overproofed", "Underproofed", "Too salty", "Bland", "Next time: less yeast", "Next time: more water", "Next time: bake longer"],
+  p:["Nice and round", "Even rim", "No tears", "Thin spot in the middle", "Tore", "Rim too thick", "Rim uneven", "Oval, not round", "Stuck to the peel", "Dough fought back (too cold)", "Too small"],
+  z:["One night in the fridge", "Two nights in the fridge", "Same day", "Low yeast", "Balls in bags", "In a tray"]
+};
+function fillPick(sel, mode){
+  const cur = sel.value;
+  let h = `<option value="">Choose…</option>`;
+  const cats = mode === "p" ? ["pizza"] : ["pizza", "bread", "keto"];
+  for(const c of cats) h += `<optgroup label="${CAT_LABEL[c]}">` + STYLES[c].map(x => `<option value="s:${c}:${x.id}">${esc(x.name)}</option>`).join("") + (c === "keto" && mode !== "p" ? `<option value="t:Chaffles">Chaffles</option>` : "") + `</optgroup>`;
+  if(mode !== "p"){
+    const groups = {};
+    RECIPES.filter(r => /discard/i.test(r.cat)).forEach(r => (groups[r.cat] = groups[r.cat] || []).push(r));
+    for(const g in groups) h += `<optgroup label="${esc(g)}">` + groups[g].map(r => `<option value="t:${esc(r.name)}">${esc(r.name)}</option>`).join("") + `</optgroup>`;
+    if(mine.length) h += `<optgroup label="My recipes">` + mine.slice().sort((a, b) => a.name.localeCompare(b.name)).map(r => `<option value="t:${esc(r.name)}">${esc(r.name)}</option>`).join("") + `</optgroup>`;
+  }
+  h += `<option value="o">Something else (type it)</option>`;
+  sel.innerHTML = h;
+  if([...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+function pickLabel(v){
+  if(v.startsWith("t:")) return v.slice(2);
+  if(v.startsWith("s:")){ const [, c, id] = v.split(":"); const st = STYLES[c] && STYLES[c].find(x => x.id === id); return st ? st.name : ""; }
+  return "";
+}
+function pickFor(text){
+  // best guess of the list value for a saved description
+  for(const c in STYLES) for(const x of STYLES[c]) if(text === x.name || text.startsWith(x.name + ":") || text.startsWith(x.name + ",")) return `s:${c}:${x.id}`;
+  return text ? "o" : "";
+}
+function renderQuick(box, kind, ta){
+  const have = new Set(ta.value.split(ta.tagName === "INPUT" ? "," : "\n").map(t => t.trim()).filter(Boolean));
+  box.innerHTML = QUICK[kind].map(q => `<button type="button" data-q="${esc(q)}" aria-pressed="${have.has(q)}">${esc(q)}</button>`).join("");
+}
+function toggleQuick(box, kind, ta, q){
+  const one = ta.tagName === "INPUT";
+  let lines = ta.value.split(one ? "," : "\n").map(t => t.trim()).filter(Boolean);
+  if(lines.includes(q)) lines = lines.filter(t => t !== q); else lines.push(q);
+  ta.value = lines.join(one ? ", " : "\n"); renderQuick(box, kind, ta);
+}
+function wireQuick(boxId, kind, taId){
+  const box = $(boxId), ta = $(taId);
+  box.addEventListener("click", e => { const b = e.target.closest("[data-q]"); if(b) toggleQuick(box, kind, ta, b.dataset.q); });
+  ta.addEventListener("input", () => renderQuick(box, kind, ta));
+  renderQuick(box, kind, ta);
+}
+function syncPickUI(sel, whatF){ whatF.hidden = sel.value !== "o"; }
 function renderStars(){ $("stars").querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.s <= logRating)); }
-function renderSnap(){ $("lSnap").hidden = !logSnap; if(logSnap) $("lSnapText").textContent = "Formula attached: " + snapText(logSnap); }
+function renderSnap(){ const pv = $("lPick") && $("lPick").value; const show = !!logSnap && (!pv || pv === "o" || pv === `s:${logSnap.cat}:${logSnap.styleId}`); $("lSnap").hidden = !show; if(show) $("lSnapText").textContent = "Formula attached: " + snapText(logSnap); }
 function resetLogForm(){
   editingLog = null; logSnap = null; logRating = 0;
   $("lWhat").value = ""; $("lNotes").value = ""; $("lDate").value = todayISO();
+  fillPick($("lPick"), "l"); $("lPick").value = ""; syncPickUI($("lPick"), $("lWhatF"));
   $("logSave").textContent = "Save entry"; $("logCancel").hidden = true;
-  logPhoto.reset(null); renderSnap(); renderStars();
+  logPhoto.reset(null); renderSnap(); renderStars(); renderQuick($("lQuick"), "l", $("lNotes"));
 }
 function renderBakes(){
   if(!$("lDate").value) $("lDate").value = todayISO();
+  fillPick($("lPick"), "l"); syncPickUI($("lPick"), $("lWhatF")); renderQuick($("lQuick"), "l", $("lNotes"));
   renderStars(); renderSnap();
-  const names = [...new Set(state.log.map(l => l.f && l.f.name).filter(Boolean))].sort();
+  const nameOf = l => (l.f && l.f.name) || l.pick || "";
+  const names = [...new Set(state.log.map(nameOf).filter(Boolean))].sort();
   const sel = $("logStyle"), cur = sel.value;
   sel.innerHTML = `<option value="">All bakes</option>` + names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
   sel.value = names.includes(cur) ? cur : "";
   const best = $("logSort").value === "best";
-  const list = state.log.filter(l => !sel.value || (l.f && l.f.name === sel.value)).sort((a, b) =>
+  const list = state.log.filter(l => !sel.value || nameOf(l) === sel.value).sort((a, b) =>
     (best ? (b.rating || 0) - (a.rating || 0) : 0) || (b.date || "").localeCompare(a.date || "") || (b.t || 0) - (a.t || 0));
   $("logList").innerHTML = list.length ? list.map(l => `<div class="logcard" data-lid="${esc(l.id)}">
       <div class="loghead"><b>${esc(new Date(l.date + "T12:00").toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}))}</b><span class="starsview">${"★".repeat(l.rating || 0)}<span class="dim">${"★".repeat(5 - (l.rating || 0))}</span></span><button type="button" class="x" data-ldel aria-label="Delete entry">×</button></div>
@@ -1645,6 +1703,9 @@ function renderBakes(){
 function editLog(l){
   editingLog = l.id; logSnap = l.f || null; logRating = l.rating || 0;
   $("lDate").value = l.date || todayISO(); $("lWhat").value = l.what || ""; $("lNotes").value = l.notes || "";
+  fillPick($("lPick"), "l"); $("lPick").value = l.pickV && [...$("lPick").options].some(o => o.value === l.pickV) ? l.pickV : (l.f ? `s:${l.f.cat}:${l.f.styleId}` : pickFor(l.what || ""));
+  if(!$("lPick").value) $("lPick").value = "o";
+  syncPickUI($("lPick"), $("lWhatF")); renderQuick($("lQuick"), "l", $("lNotes"));
   $("logSave").textContent = "Save changes"; $("logCancel").hidden = false;
   logPhoto.reset(l.photo ? "l:" + l.id : null); renderSnap(); renderStars();
   $("logView").scrollIntoView({behavior:"smooth", block:"start"});
@@ -2385,7 +2446,8 @@ $("logThis").addEventListener("click", () => {
   resetLogForm();
   logSnap = doughSnapshot();
   $("lWhat").value = snapText(logSnap);
-  state.view = "log"; state.ltab = "bakes"; showView(); save(); $("lNotes").focus();
+  state.view = "log"; state.ltab = "bakes"; showView(); save();
+  fillPick($("lPick"), "l"); $("lPick").value = `s:${state.cat}:${state.styleId}`; syncPickUI($("lPick"), $("lWhatF"));
 });
 
 $("recSearch").addEventListener("input", renderRecipes);
@@ -2480,10 +2542,12 @@ $("syncFile").addEventListener("change", async e => {
 
 $("stars").addEventListener("click", e => { const b = e.target.closest("[data-s]"); if(!b) return; logRating = +b.dataset.s === logRating ? 0 : +b.dataset.s; renderStars(); });
 $("logSave").addEventListener("click", async () => {
-  const what = $("lWhat").value.trim(), notes = $("lNotes").value.trim();
-  if(!what && !notes && logPhoto.blob == null){ toast("Add what you baked or a note."); return; }
+  const pv = $("lPick").value, notes = $("lNotes").value.trim();
+  if(logSnap && pv !== `s:${logSnap.cat}:${logSnap.styleId}`) logSnap = null;
+  const what = pv === "o" || !pv ? $("lWhat").value.trim() : (logSnap ? snapText(logSnap) : pickLabel(pv));
+  if(!what && !notes && logPhoto.blob == null){ toast("Choose what you made, or tap a note."); return; }
   let l = editingLog && state.log.find(x => x.id === editingLog);
-  const fields = {date:$("lDate").value || todayISO(), what, rating:logRating, notes, f:logSnap || null, u:Date.now()};
+  const fields = {date:$("lDate").value || todayISO(), what, pick:pv && pv !== "o" ? pickLabel(pv) : "", pickV:pv, rating:logRating, notes, f:logSnap || null, u:Date.now()};
   if(l) Object.assign(l, fields); else { l = Object.assign({id:uid(), t:Date.now()}, fields); state.log.push(l); }
   try{ const p = await logPhoto.commit("l:" + l.id); if(p !== null) l.photo = p; }
   catch(e){ toast("The photo couldn't be saved on this device."); }
@@ -2491,6 +2555,8 @@ $("logSave").addEventListener("click", async () => {
   resetLogForm(); save(); renderLog(); toast(was ? "Entry updated." : "Bake logged.");
 });
 $("logCancel").addEventListener("click", () => { resetLogForm(); renderLog(); });
+$("lPick").addEventListener("change", e => { if(e.target.value === "o" && !$("lWhat").value && logSnap) $("lWhat").value = snapText(logSnap); syncPickUI(e.target, $("lWhatF")); if(e.target.value === "o") $("lWhat").focus(); renderSnap(); });
+wireQuick("lQuick", "l", "lNotes");
 $("lSnapDel").addEventListener("click", () => { logSnap = null; renderSnap(); });
 $("logStyle").addEventListener("change", renderLog);
 $("logSort").addEventListener("change", renderLog);
@@ -2612,6 +2678,7 @@ function fillFreezerForm(o){
   if(!$("zStyle").options.length) $("zStyle").innerHTML = `<optgroup label="Pizza">${STYLES.pizza.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup><optgroup label="Bread">${STYLES.bread.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup><optgroup label="Keto">${STYLES.keto.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</optgroup>`;
   $("zStyle").value = o.styleId; $("zCount").value = o.count; $("zUnit").value = o.unit; $("zKeep").value = String(o.keep || 1);
   $("zDate").value = o.frozen || todayISO(); $("zNotes").value = o.notes || "";
+  renderQuick($("zQuick"), "z", $("zNotes"));
 }
 function renderFreezer(){
   if(!$("zStyle").options.length) fillFreezerForm({styleId:state.styleId, count:state.count, unit:state.unit, keep:state.freeze.keep});
@@ -2640,7 +2707,7 @@ function sessionStorageSet(k, v){ try{ sessionStorage.setItem(k, v); }catch(e){}
 $("zSave").addEventListener("click", () => {
   const st = styleById($("zStyle").value), count = Math.max(1, parseInt($("zCount").value) || 1), unit = Math.max(1, parseFloat($("zUnit").value) || 250);
   state.freezer.push({id:uid(), t:Date.now(), u:Date.now(), styleId:$("zStyle").value, name:st ? st.name : "", count, unit, frozen:$("zDate").value || todayISO(), keep:+$("zKeep").value || 1, notes:$("zNotes").value.trim()});
-  $("zNotes").value = ""; save(); renderFreezer(); toast(`Added ${count} to the freezer.`);
+  $("zNotes").value = ""; renderQuick($("zQuick"), "z", $("zNotes")); save(); renderFreezer(); toast(`Added ${count} to the freezer.`);
 });
 $("zList").addEventListener("click", e => {
   const row = e.target.closest(".zrow"); if(!row) return;
@@ -2672,6 +2739,7 @@ function renderPStars(){ $("pStars").querySelectorAll("button").forEach(b => b.c
 function resetPractice(){
   editingP = null; pRating = 0; $("pDate").value = todayISO(); $("pNotes").value = "";
   const st = style(); $("pWhat").value = `${st.name}, ${state.unit} g ${st.unitWord}`;
+  fillPick($("pPick"), "p"); $("pPick").value = state.cat === "pizza" ? `s:pizza:${state.styleId}` : ""; syncPickUI($("pPick"), $("pWhatF")); renderQuick($("pQuick"), "p", $("pNotes"));
   $("pSave").textContent = "Save practice"; $("pCancel").hidden = true; pPhoto.reset(null); renderPStars();
 }
 function sparkSVG(vals){
@@ -2703,7 +2771,9 @@ function renderPractice(){
 }
 $("pStars").addEventListener("click", e => { const b = e.target.closest("[data-s]"); if(!b) return; pRating = +b.dataset.s === pRating ? 0 : +b.dataset.s; renderPStars(); });
 $("pSave").addEventListener("click", async () => {
-  const fields = {date:$("pDate").value || todayISO(), what:$("pWhat").value.trim(), notes:$("pNotes").value.trim(), rating:pRating, u:Date.now()};
+  const ppv = $("pPick").value;
+  const pwhat = ppv === "o" || !ppv ? $("pWhat").value.trim() : (ppv === `s:pizza:${state.styleId}` ? `${pickLabel(ppv)}, ${state.unit} g ${style().unitWord}` : pickLabel(ppv));
+  const fields = {date:$("pDate").value || todayISO(), what:pwhat, notes:$("pNotes").value.trim(), rating:pRating, u:Date.now()};
   if(!fields.rating && !fields.notes && pPhoto.blob == null && !editingP){ toast("Add a rating, a note, or a photo."); return; }
   let p = editingP && state.practice.find(x => x.id === editingP);
   if(p) Object.assign(p, fields); else { p = Object.assign({id:uid(), t:Date.now()}, fields); state.practice.push(p); }
@@ -2711,6 +2781,9 @@ $("pSave").addEventListener("click", async () => {
   const was = !!editingP; resetPractice(); save(); renderPractice(); toast(was ? "Updated." : "Practice saved.");
 });
 $("pCancel").addEventListener("click", resetPractice);
+$("pPick").addEventListener("change", e => { syncPickUI(e.target, $("pWhatF")); if(e.target.value === "o") $("pWhat").focus(); });
+wireQuick("pQuick", "p", "pNotes");
+wireQuick("zQuick", "z", "zNotes");
 $("pList").addEventListener("click", e => {
   const c = e.target.closest(".logcard"); if(!c) return;
   const p = state.practice.find(x => x.id === c.dataset.pid); if(!p) return;
@@ -2718,6 +2791,7 @@ $("pList").addEventListener("click", e => {
     if(confirm("Delete this practice entry?")){ state.practice = state.practice.filter(x => x.id !== p.id); state.gone["p:" + p.id] = Date.now(); if(p.photo) setPhoto("p:" + p.id, null).catch(() => {}); save(); renderPractice(); }
   } else if(e.target.closest("[data-pedit]")){
     editingP = p.id; pRating = p.rating || 0; $("pDate").value = p.date; $("pWhat").value = p.what || ""; $("pNotes").value = p.notes || "";
+    fillPick($("pPick"), "p"); $("pPick").value = pickFor(p.what || "") || "o"; syncPickUI($("pPick"), $("pWhatF")); renderQuick($("pQuick"), "p", $("pNotes"));
     $("pSave").textContent = "Save changes"; $("pCancel").hidden = false; pPhoto.reset(p.photo ? "p:" + p.id : null); renderPStars();
     $("lt-practice").scrollIntoView({behavior:"smooth", block:"start"});
   } else if(e.target.matches("img.logphoto")) e.target.classList.toggle("big");
@@ -2920,7 +2994,7 @@ recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); pPhoto = photoPicker("
 loadMine(); load(); renderChips(); renderForm(); showView(); openSharedLink();
 
 /* ---------- Update check: phones can hold an old copy for a while ---------- */
-const APP_VERSION = "2026-10-17.6";
+const APP_VERSION = "2026-10-17.7";
 $("appVer").textContent = `App version ${APP_VERSION}`;
 let newVer = null;
 function loadNewVersion(){ location.replace(location.pathname + "?v=" + encodeURIComponent(newVer || Date.now()) + location.hash); }
