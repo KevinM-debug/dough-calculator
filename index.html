@@ -114,6 +114,8 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .empty{margin:0; padding:14px 18px; color:var(--muted)}
 .addrow{display:flex; gap:10px; align-items:stretch}
 .addrow .field{flex:1}
+.addrow.jar3 .field, .addrow.jar3 input{min-width:0}
+@media (max-width:430px){ .addrow.jar3{flex-wrap:wrap} .addrow.jar3 .field:first-child{flex:1 1 100%} }
 .btn{font:inherit; font-weight:600; border:0; border-radius:12px; padding:10px 18px; background:var(--basil); color:var(--bg); cursor:pointer}
 .btn:disabled{opacity:.45; cursor:default}
 .hint.warn{color:var(--tomato); font-weight:600}
@@ -503,10 +505,16 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
 
     <section>
       <h2>Discard jar</h2>
-      <div class="addrow">
-        <div class="field"><label for="jarG">Discard added today (g)</label><input id="jarG" type="number" inputmode="numeric" min="0" step="5" placeholder="0"></div>
+      <div class="addrow jar3">
+        <div class="field"><label for="jarG">Discard added (g)</label><input id="jarG" type="number" inputmode="numeric" min="0" step="5" placeholder="0"></div>
+        <div class="field"><label for="jarD">On</label><input id="jarD" type="date"></div>
         <button type="button" class="btn" id="addJar">Add</button>
       </div>
+      <div class="addrow" style="margin-top:10px">
+        <div class="field"><label for="jarOut">Discard taken out (g)</label><input id="jarOut" type="number" inputmode="numeric" min="0" step="5" placeholder="0"></div>
+        <button type="button" class="btn" id="takeJar">Take out</button>
+      </div>
+      <p class="hint" style="margin:6px 0 10px">Taking out uses the oldest discard first, so the dates stay right.</p>
       <div class="card result" id="jar"></div>
       <div class="actions"><span class="hint" id="jarWarn"></span></div>
       <div class="actions">
@@ -2085,6 +2093,7 @@ const REVIVE = [
   ["Ready", "Bubbly all the way through and smells pleasantly sour."],
   ["Ready", "A spoonful floats in water."]
 ];
+const localDay = t => `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
 const dfmt = iso => new Date(iso).toLocaleDateString(undefined, {month:"short", day:"numeric"});
 const ageDays = iso => Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
 const resRows = items => items.map(([name, g, color, note]) =>
@@ -2129,6 +2138,8 @@ function renderRevive(){
 }
 function renderJar(){
   const j = SD().jar;
+  if(!$("jarD").value) $("jarD").value = localDay(new Date());
+  $("jarD").max = localDay(new Date());
   const total = j.reduce((a, e) => a + e.g, 0);
   const oldest = j.length ? Math.max(...j.map(e => ageDays(e.d))) : 0;
   let html = j.length
@@ -2159,8 +2170,26 @@ $("reviveReset").addEventListener("click", () => { if(confirm("Clear the revival
 $("addJar").addEventListener("click", () => {
   const g = parseFloat($("jarG").value);
   if(!(g > 0)) return;
-  SD().jar.push({d:new Date().toISOString(), g});
-  $("jarG").value = ""; renderJar(); save();
+  const v = $("jarD").value, now = new Date();
+  let d = now.toISOString();
+  if(v && v !== localDay(now)){ const t = new Date(v + "T12:00:00"); if(!isNaN(t) && t <= now) d = t.toISOString(); }
+  const jar = SD().jar;
+  while(jar.some(e => e.d === d)) d = new Date(new Date(d).getTime() + 1000).toISOString();
+  jar.push({d, g}); jar.sort((x, y) => x.d.localeCompare(y.d));
+  $("jarG").value = ""; $("jarD").value = localDay(now); renderJar(); save();
+});
+$("takeJar").addEventListener("click", () => {
+  let g = parseFloat($("jarOut").value);
+  const jar = SD().jar, total = jar.reduce((a, e) => a + e.g, 0);
+  if(!(g > 0) || !total) return;
+  if(g >= total){ if(!confirm(`That's all ${fmt(total)} g in the jar. Empty it?`)) return; SD().jar = []; }
+  else {
+    jar.sort((x, y) => x.d.localeCompare(y.d));
+    for(const e of jar){ if(g <= 0) break; const t = Math.min(e.g, g); e.g = Math.round((e.g - t) * 10) / 10; g -= t; }
+    SD().jar = jar.filter(e => e.g > 0);
+  }
+  $("jarOut").value = ""; renderJar(); save();
+  toast(`${fmt(SD().jar.reduce((a, e) => a + e.g, 0))} g left in the jar.`);
 });
 $("jar").addEventListener("click", e => {
   const b = e.target.closest(".x"); if(!b) return;
