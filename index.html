@@ -1125,7 +1125,7 @@ const pad2 = n => String(n).padStart(2, "0");
 const localISO = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 const fmtTime = t => new Date(t).toLocaleString("en-US", {weekday:"short", hour:"numeric", minute:"2-digit", hour12:true});
 /* ---------- Work and sleep hours ---------- */
-const AWAY_DEFAULT = () => ({on:true, ws:"06:00", we:"18:00", bed:"23:00", wake:"06:00"});
+const AWAY_DEFAULT = () => ({on:true, ws:"06:00", we:"18:00", bed:"21:00", wake:"05:00", v:2});
 const hmH = s => { const [h, m] = String(s || "0:0").split(":").map(Number); return (h || 0) + (m || 0) / 60; };
 function busyWhy(t){
   const a = state.plan.away; if(!a || !a.on) return "";
@@ -1961,7 +1961,9 @@ function load(){
   state.starter = Object.assign(STARTER_DEFAULTS(), state.starter || {});
   if(state.oven === "pizza" || !["home", "electric", "gas"].includes(state.oven)) state.oven = "electric";
   state.plan = Object.assign({eat:"", ferm:24, tk:72, tf:38}, state.plan || {});
-  state.plan.away = Object.assign(AWAY_DEFAULT(), state.plan.away || {});
+  const oldAw = state.plan.away;
+  state.plan.away = Object.assign(AWAY_DEFAULT(), oldAw || {});
+  if(oldAw && !oldAw.v){ if(oldAw.bed === "23:00" && oldAw.wake === "06:00"){ state.plan.away.bed = "21:00"; state.plan.away.wake = "05:00"; } state.plan.away.v = 2; }
   if(state.plan.eat && new Date(state.plan.eat).getTime() < Date.now()) state.plan.eat = "";
   state.saved = state.saved || []; state.log = state.log || [];
   if(!state.gone || typeof state.gone !== "object") state.gone = {};
@@ -2902,7 +2904,7 @@ recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); pPhoto = photoPicker("
 loadMine(); load(); renderChips(); renderForm(); showView(); openSharedLink();
 
 /* ---------- Update check: phones can hold an old copy for a while ---------- */
-const APP_VERSION = "2026-10-17.4";
+const APP_VERSION = "2026-10-17.5";
 $("appVer").textContent = `App version ${APP_VERSION}`;
 let newVer = null;
 function loadNewVersion(){ location.replace(location.pathname + "?v=" + encodeURIComponent(newVer || Date.now()) + location.hash); }
