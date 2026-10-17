@@ -187,6 +187,7 @@ summary .tag{font-weight:400; color:var(--muted); font-size:.82rem; text-align:r
 .stars button{font-size:1.7rem; line-height:1; background:none; border:0; cursor:pointer; color:var(--line); padding:0 1px; min-width:0}
 @media (max-width:400px){ .stars button{font-size:1.45rem} }
 .stars button.on{color:var(--semolina)}
+.updbar{position:fixed; left:50%; top:calc(12px + env(safe-area-inset-top, 0px)); transform:translateX(-50%); z-index:21; font:inherit; font-weight:600; border:0; border-radius:999px; padding:10px 18px; background:var(--basil); color:var(--bg); box-shadow:0 6px 20px rgba(0,0,0,.2); cursor:pointer; max-width:92vw}
 .toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:999px; font-weight:600; z-index:20; max-width:90vw; text-align:center; box-shadow:0 6px 20px rgba(0,0,0,.2)}
 .notes .hint{margin:0 0 10px}
 .pills{display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex:none; margin-top:10px}
@@ -719,6 +720,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
       <h2>Sync &amp; backup</h2>
       <p class="hint" style="margin-top:0">Everything lives on this device only. To move it to another phone or computer, send a sync file and open it there. Opening a sync file merges it: new things get added, newer edits win, and anything you deleted stays deleted.</p>
       <div class="card" id="syncCounts"></div>
+      <p class="hint" id="appVer"></p>
     </section>
     <section>
       <h2>1. Send from this device</h2>
@@ -748,6 +750,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
   </div>
 </div>
 <div class="toast" id="toast" hidden role="status"></div>
+<button type="button" class="updbar" id="updBar" hidden>A new version is ready. Tap to update.</button>
 <div id="printArea" aria-hidden="true"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -2816,6 +2819,27 @@ window.addEventListener("hashchange", openSharedLink);
 
 recPhoto = photoPicker("r"); logPhoto = photoPicker("l"); pPhoto = photoPicker("p"); initTidy(); renderVideoForm(); initDoughFilter();
 loadMine(); load(); renderChips(); renderForm(); showView(); openSharedLink();
+
+/* ---------- Update check: phones can hold an old copy for a while ---------- */
+const APP_VERSION = "2026-10-17.3";
+$("appVer").textContent = `App version ${APP_VERSION}`;
+let newVer = null;
+function loadNewVersion(){ location.replace(location.pathname + "?v=" + encodeURIComponent(newVer || Date.now()) + location.hash); }
+async function checkUpdate(auto){
+  if(!/^https?:$/.test(location.protocol)) return;
+  try{
+    const t = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"}).then(r => r.ok ? r.text() : "");
+    const m = t.match(/const APP_VERSION = "([^"]+)"/);
+    if(!m || m[1] === APP_VERSION) return;
+    newVer = m[1];
+    let tried = false;
+    try{ tried = sessionStorage.getItem("dc-upd") === newVer; sessionStorage.setItem("dc-upd", newVer); }catch(e){}
+    if(auto && !tried) loadNewVersion(); else $("updBar").hidden = false;
+  }catch(e){}
+}
+$("updBar").addEventListener("click", loadNewVersion);
+setTimeout(() => checkUpdate(true), 1200);
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") checkUpdate(false); });
 if(navigator.storage && navigator.storage.persist && (mine.length || state.log.length)) navigator.storage.persist().catch(() => {});
 </script>
 </body>
