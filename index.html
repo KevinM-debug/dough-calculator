@@ -924,8 +924,8 @@ const STYLES = {
      steps:["Mix everything; rest 15 min.","Do 3 sets of folds, 20 min apart, then cold ferment overnight (optional but better).","Pour into a pan with 3–4 tbsp olive oil and stretch to the corners.","Proof 1.5–2 hours, then dimple deeply with oiled fingers and add flaky salt."],
      bake:"450°F for 22–25 min. 1100 g fits a half-sheet (13×18 inch); use 600 g for a 9×13 pan."},
     {id:"sourdough", pp:0.125, po:{"no": "it needs a Dutch oven and 40+ minutes of steady heat"}, name:"Sourdough", flour:"Bread flour (10–20% whole wheat optional)", unitName:"Loaves", unitWord:"loaf", count:1, unit:900,
-     ing:{water:[72,65,85,.5], salt:[2,1.5,2.5,.1], levain:[20,10,35,1]},
-     steps:["Mix flour and water and rest 1 hour; add levain and salt.","Do 4 sets of stretch-and-folds over 2 hours, then let it bulk until it's 50–75% larger (4–6 hours total at 75°F).","Pre-shape, rest 20 min, shape, and place in a floured basket.","Cold proof 12–16 hours in the fridge. Score straight from the fridge."],
+     ing:{water:[65,60,85,.5], salt:[2,1.5,2.5,.1], levain:[20,10,35,1]},
+     steps:["Mix flour and water and rest 1 hour; add levain and salt. First loaves: keep the water at 65% (about 68% with the levain). Once that feels easy, add 2% at a time.","Do 4 sets of stretch-and-folds over 2 hours, then let it bulk until it's 50–75% larger (4–6 hours total at 75°F).","Pre-shape, rest 20 min, shape, and place in a floured basket.","Cold proof 12–16 hours in the fridge. Score straight from the fridge."],
      bake:"Dutch oven preheated at 500°F: 20 min lid on at 475°F, then 20–25 min lid off."},
     {id:"pita", pp:2, po:"Stone 700–750°F, flame low. Bake 60–90 seconds until puffed. No need to turn.", name:"Pita", flour:"All-purpose or bread flour", unitName:"Pitas", unitWord:"pita", count:8, unit:90,
      ing:{water:[62,55,70,.5], salt:[2,1.5,2.5,.1], yeast:[1,0.5,2,.1], oil:[2.5,0,6,.5]},
@@ -3244,7 +3244,7 @@ $("jarQuick").addEventListener("click", e => {
 });
 
 /* ---------- Update check: phones can hold an old copy for a while ---------- */
-const APP_VERSION = "2026-10-18.1";
+const APP_VERSION = "2026-10-18.2";
 $("appVer").textContent = `App version ${APP_VERSION}`;
 let newVer = null;
 function loadNewVersion(){ location.replace(location.pathname + "?v=" + encodeURIComponent(newVer || Date.now()) + location.hash); }
