@@ -926,7 +926,7 @@ const STYLES = {
      bake:"450°F for 22–25 min. 1100 g fits a half-sheet (13×18 inch); use 600 g for a 9×13 pan."},
     {id:"sourdough", pp:0.125, po:{"no": "it needs a Dutch oven and 40+ minutes of steady heat"}, name:"Sourdough", flour:"Bread flour (10–20% whole wheat optional)", unitName:"Loaves", unitWord:"loaf", count:1, unit:900,
      ing:{water:[65,60,85,.5], salt:[2,1.5,2.5,.1], levain:[20,10,35,1]},
-     steps:["Mix flour and water and rest 1 hour; add levain and salt. First loaves: keep the water at 65% (about 68% with the levain). Once that feels easy, add 2% at a time.","Do 4 sets of stretch-and-folds over 2 hours, then let it bulk until it's about 50% larger: 4–5 hours total at 75°F, only 3–4 hours at 80°F. Don't let it double; over-fermented dough turns slack and soupy.","Pre-shape, rest 20 min, shape, and place in a floured basket.","Cold proof 12–16 hours in the fridge. Score straight from the fridge."],
+     steps:["Mix flour and water and rest 1 hour; add levain and salt. The water amount shown is the one to use (65%, about 68% with the levain).","Do 4 sets of stretch-and-folds over 2 hours, then let it bulk until it's about 50% larger: 4–5 hours total at 75°F, only 3–4 hours at 80°F. Don't let it double; over-fermented dough turns slack and soupy.","Pre-shape, rest 20 min, shape, and place in a floured basket.","Cold proof 12–16 hours in the fridge. Score straight from the fridge."],
      bake:"Dutch oven preheated at 500°F: 20 min lid on at 475°F, then 20–25 min lid off."},
     {id:"pita", pp:2, po:"Stone 700–750°F, flame low. Bake 60–90 seconds until puffed. No need to turn.", name:"Pita", flour:"All-purpose or bread flour", unitName:"Pitas", unitWord:"pita", count:8, unit:90,
      ing:{water:[62,55,70,.5], salt:[2,1.5,2.5,.1], yeast:[1,0.5,2,.1], oil:[2.5,0,6,.5]},
@@ -2091,6 +2091,14 @@ function load(){
   const oldAw = state.plan.away;
   state.plan.away = Object.assign(AWAY_DEFAULT(), oldAw || {});
   state.weekend = Object.assign({items:["", "", ""], have:[]}, state.weekend || {});
+  // Oct 18 water fix: replace the old (too wet) default water wherever it was never changed by hand
+  if(!(state.defaultsV >= 2)){
+    const OLD = {sourdough:72, "neap-home":67, detroit:75, roman:80, pinsa:78, baguette:68, rustic:72, ciabatta:80, focaccia:80, wholewheat:72};
+    const fix = (id, pc) => { if(pc && OLD[id] != null && +pc.water === OLD[id]){ for(const c in STYLES){ const st = STYLES[c].find(x => x.id === id); if(st) pc.water = st.ing.water[0]; } } };
+    fix(state.styleId, state.pcts);
+    (state.saved || []).forEach(f => fix(f.styleId, f.pcts));
+    state.defaultsV = 2;
+  }
   if(oldAw && !oldAw.v){ if(oldAw.bed === "23:00" && oldAw.wake === "06:00"){ state.plan.away.bed = "21:00"; state.plan.away.wake = "05:00"; } state.plan.away.v = 2; }
   if(state.plan.eat && new Date(state.plan.eat).getTime() < Date.now()) state.plan.eat = "";
   state.saved = state.saved || []; state.log = state.log || [];
@@ -3245,7 +3253,7 @@ $("jarQuick").addEventListener("click", e => {
 });
 
 /* ---------- Update check: phones can hold an old copy for a while ---------- */
-const APP_VERSION = "2026-10-18.3";
+const APP_VERSION = "2026-10-18.4";
 $("appVer").textContent = `App version ${APP_VERSION}`;
 let newVer = null;
 function loadNewVersion(){ location.replace(location.pathname + "?v=" + encodeURIComponent(newVer || Date.now()) + location.hash); }
