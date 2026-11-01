@@ -431,7 +431,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
   <section>
     <h2>What's in my pantry</h2>
     <p class="hint" style="margin-top:0">Tick what you have. The app shows what you can make right now.</p>
-    <div class="pchips" id="pantry"><label class="pchip"><input type="checkbox" data-pan="almond"> Almond flour</label><label class="pchip"><input type="checkbox" data-pan="coconut"> Coconut flour</label><label class="pchip"><input type="checkbox" data-pan="psyllium"> Psyllium husk powder</label><label class="pchip"><input type="checkbox" data-pan="gluten"> Vital wheat gluten</label><label class="pchip"><input type="checkbox" data-pan="oatfiber"> Oat fiber</label><label class="pchip"><input type="checkbox" data-pan="flax"> Flaxseed meal</label><label class="pchip"><input type="checkbox" data-pan="lupin"> Lupin flour</label><label class="pchip"><input type="checkbox" data-pan="ewp"> Egg white protein</label><label class="pchip"><input type="checkbox" data-pan="bp"> Baking powder</label><label class="pchip"><input type="checkbox" data-pan="yeast"> Yeast</label><label class="pchip"><input type="checkbox" data-pan="eggs"> Eggs</label><label class="pchip"><input type="checkbox" data-pan="mozz"> Mozzarella</label><label class="pchip"><input type="checkbox" data-pan="cream"> Cream cheese</label><label class="pchip"><input type="checkbox" data-pan="butter"> Butter</label></div>
+    <div class="pchips" id="pantry"><label class="pchip"><input type="checkbox" data-pan="almond"> Almond flour</label><label class="pchip"><input type="checkbox" data-pan="coconut"> Coconut flour</label><label class="pchip"><input type="checkbox" data-pan="psyllium"> Psyllium husk powder</label><label class="pchip"><input type="checkbox" data-pan="gluten"> Vital wheat gluten</label><label class="pchip"><input type="checkbox" data-pan="oatfiber"> Oat fiber</label><label class="pchip"><input type="checkbox" data-pan="flax"> Ground flax / flaxseed meal</label><label class="pchip"><input type="checkbox" data-pan="gflax"> Whole golden flaxseed</label><label class="pchip"><input type="checkbox" data-pan="eryth"> Erythritol</label><label class="pchip"><input type="checkbox" data-pan="xanthan"> Xanthan gum</label><label class="pchip"><input type="checkbox" data-pan="lupin"> Lupin flour</label><label class="pchip"><input type="checkbox" data-pan="ewp"> Egg white protein</label><label class="pchip"><input type="checkbox" data-pan="bp"> Baking powder</label><label class="pchip"><input type="checkbox" data-pan="yeast"> Yeast</label><label class="pchip"><input type="checkbox" data-pan="eggs"> Eggs</label><label class="pchip"><input type="checkbox" data-pan="mozz"> Mozzarella</label><label class="pchip"><input type="checkbox" data-pan="cream"> Cream cheese</label><label class="pchip"><input type="checkbox" data-pan="butter"> Butter</label></div>
     <div class="notes" id="pantryOut" style="margin-top:10px"></div>
   </section>
 
@@ -2967,7 +2967,7 @@ const PANTRY_NEED = {
   "hh-pizza":["gluten", "oatfiber", "almond", "yeast"],
   chaffle:["eggs", "mozz"]
 };
-const PANTRY_NAME = {almond:"almond flour", coconut:"coconut flour", psyllium:"psyllium", gluten:"vital wheat gluten", oatfiber:"oat fiber", flax:"flaxseed meal", lupin:"lupin flour", ewp:"egg white protein", bp:"baking powder", yeast:"yeast", eggs:"eggs", mozz:"mozzarella", cream:"cream cheese", butter:"butter"};
+const PANTRY_NAME = {almond:"almond flour", coconut:"coconut flour", psyllium:"psyllium", gluten:"vital wheat gluten", oatfiber:"oat fiber", flax:"ground flax", gflax:"whole flaxseed", eryth:"erythritol", xanthan:"xanthan gum", lupin:"lupin flour", ewp:"egg white protein", bp:"baking powder", yeast:"yeast", eggs:"eggs", mozz:"mozzarella", cream:"cream cheese", butter:"butter"};
 function renderPantry(){
   const have = new Set(state.pantry);
   $("pantry").querySelectorAll("[data-pan]").forEach(c => { c.checked = have.has(c.dataset.pan); });
@@ -2982,6 +2982,11 @@ function renderPantry(){
     (close.length ? `<p class="bake"><b>One item away:</b> ${close.map(([id, m]) => `${esc(name(id))} (need ${esc(PANTRY_NAME[m])})`).join(" · ")}</p>` : "") +
     (have.has("coconut") && !have.has("almond") ? `<p class="hint">Only coconut flour? Use the swap helper below on any almond-flour recipe.</p>` : "") +
     (have.has("lupin") ? `<p class="hint">Lupin flour can replace up to half the almond flour in the psyllium rolls for a more bread-like crumb.</p>` : "") +
+    (!have.has("eggs") ? `<p class="hint">No eggs? The half-and-half loaf and pizza use none. Everything else above that says "need eggs" waits until you buy some.</p>` : "") +
+    (have.has("gflax") && !have.has("flax") ? `<p class="hint">Whole flaxseed must be ground (a coffee grinder takes 10 seconds) before it goes into any recipe, or it passes through you whole.</p>` : "") +
+    (have.has("flax") || have.has("gflax") ? `<p class="hint">Flax goes bad faster than the flours: ground flax keeps best in the fridge. If it smells bitter or like old paint, throw it out.</p>` : "") +
+    (have.has("eryth") ? `<p class="hint">Erythritol is for sweet things like chaffles. Yeast can't eat it, so keep the small spoon of real sugar in the yeast loaves.</p>` : "") +
+    (have.has("xanthan") && have.has("coconut") ? `<p class="hint">Xanthan gum: add ¼ tsp per cup of coconut flour to stop it crumbling. The yeast loaves don't need it.</p>` : "") +
     (have.has("ewp") ? `<p class="hint">Egg white protein: 1 Tbsp per cup of almond flour makes fathead and chaffles less eggy and more bready.</p>` : "");
 }
 function renderSwap(){
@@ -3253,7 +3258,7 @@ $("jarQuick").addEventListener("click", e => {
 });
 
 /* ---------- Update check: phones can hold an old copy for a while ---------- */
-const APP_VERSION = "2026-10-18.5";
+const APP_VERSION = "2026-11-01.1";
 $("appVer").textContent = `App version ${APP_VERSION}`;
 let newVer = null;
 function loadNewVersion(){ location.replace(location.pathname + "?v=" + encodeURIComponent(newVer || Date.now()) + location.hash); }
