@@ -300,6 +300,7 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
       <button type="button" data-view="starter" aria-pressed="false">Starter</button>
       <button type="button" data-view="recipes" aria-pressed="false">Recipes</button>
       <button type="button" data-view="mine" aria-pressed="false">My recipes</button>
+      <button type="button" data-view="meals" aria-pressed="false">Meals</button>
       <button type="button" data-view="videos" aria-pressed="false">Videos</button>
       <button type="button" data-view="log" aria-pressed="false">Bake log</button>
     </div>
@@ -588,6 +589,8 @@ details.rec > summary .nm span{overflow-wrap:anywhere}
       <div id="recList"></div>
     </section>
   </div>
+
+  <div id="mealsView" hidden><div id="mealsWrap"></div></div>
 
   <div id="mineView" hidden>
     <section>
@@ -2108,6 +2111,9 @@ function load(){
   if(!Array.isArray(state.practice)) state.practice = [];
   state.chaffle = Object.assign({maker:"mini", type:"bread", count:2}, state.chaffle || {});
   if(!Array.isArray(state.pantry)) state.pantry = [];
+  state.meals = Object.assign({pick:["mon","tue","wed","thu","fri","sat","sun"], got:{}, budget:false, target:70}, state.meals || {});
+  if(!Array.isArray(state.meals.pick)) state.meals.pick = [];
+  if(!state.meals.got || typeof state.meals.got !== "object") state.meals.got = {};
   state.freeze = Object.assign({mix:"", thaw:"fridge", keep:1, fridge:"14"}, state.freeze || {});
   if(state.freeze.mix && new Date(state.freeze.mix).getTime() < Date.now() - 7 * 864e5) state.freeze.mix = "";
   if(state.view === "sync") state.view = "dough";
@@ -2276,12 +2282,83 @@ document.querySelector(".seg").addEventListener("click", e => {
   showView(); save();
 });
 
-const VIEWS = {dough:"doughView", starter:"starterView", recipes:"recipesView", mine:"mineView", videos:"videosView", log:"logView", sync:"syncView"};
+/* ---------- Meals (weekly dinners + grocery list) ---------- */
+const M_ITEMS = {
+  thighs:{n:"Chicken thighs, bone-in (~5 lb)",p:9.00,c:"Meat & eggs"}, breast:{n:"Chicken breast (~3 lb)",p:9.50,c:"Meat & eggs"},
+  beef:{n:"Ground beef (2 lb)",p:12.50,c:"Meat & eggs"}, eggs:{n:"Eggs (18)",p:5.50,c:"Meat & eggs"},
+  rice:{n:"Rice (5 lb)",p:4.50,c:"Pantry"}, bulgur:{n:"Bulgur",p:3.50,c:"Pantry"}, lentils:{n:"Red lentils",p:2.00,c:"Pantry"},
+  chickpeas:{n:"Canned chickpeas (2)",p:2.20,c:"Pantry"}, flour:{n:"Flour (10 lb)",p:5.50,c:"Pantry"}, yeast:{n:"Yeast",p:5.50,c:"Pantry"},
+  oil:{n:"Cooking oil",p:4.50,c:"Pantry"}, paste:{n:"Tomato paste (2)",p:2.40,c:"Pantry"}, spices:{n:"Spices (paprika, cumin, pul biber, salt)",p:6.50,c:"Pantry"},
+  herbs:{n:"Dried mint and oregano",p:2.00,c:"Pantry"},
+  onions:{n:"Onions",p:3.00,c:"Produce"}, potatoes:{n:"Potatoes",p:4.00,c:"Produce"}, tomatoes:{n:"Tomatoes",p:3.00,c:"Produce"},
+  peppers:{n:"Peppers",p:3.00,c:"Produce"}, zucchini:{n:"Zucchini",p:2.50,c:"Produce"}, eggplant:{n:"Eggplant",p:2.00,c:"Produce"},
+  carrots:{n:"Carrots",p:2.00,c:"Produce"}, cabbage:{n:"Cabbage",p:2.50,c:"Produce"}, garlic:{n:"Garlic",p:1.00,c:"Produce"},
+  frozen:{n:"Frozen mixed vegetables (2)",p:3.00,c:"Produce"}, yogurt:{n:"Plain yogurt",p:3.50,c:"Dairy"}, butter:{n:"Butter",p:4.50,c:"Dairy"}
+};
+const M_MEALS = [
+  {id:"mon",day:"Mon",name:"Tavuk sote with rice pilaf",need:["breast","peppers","tomatoes","onions","paste","rice","butter","spices"],
+   steps:["Cut 1 lb chicken breast into small cubes. Brown in 1 tbsp oil on high heat, 5 min.","Add 1 sliced onion and 2 sliced peppers. Cook 5 min.","Add 2 chopped tomatoes, 1 tbsp tomato paste, 1 tsp paprika, salt. Simmer 15 min.","Pilaf: toast 1 cup rice in 1 tbsp butter, add 1.5 cups hot water and salt, cover on low 15 min, rest 10 min."]},
+  {id:"tue",day:"Tue",name:"Mercimek çorbası (red lentil soup) with fresh bread",need:["lentils","onions","carrots","potatoes","butter","spices","flour","yeast"],
+   steps:["Sauté 1 diced onion in 1 tbsp butter. Add 1 diced carrot and 1 diced potato.","Add 1 cup red lentils, 6 cups water, 1 tsp cumin, salt. Simmer 25 min.","Blend smooth. Finish with butter, pul biber and a squeeze of lemon if you have it.","Serve with your own bread."]},
+  {id:"wed",day:"Wed",name:"İnegöl-style köfte, potatoes, cabbage salad",need:["beef","onions","potatoes","cabbage","spices","flour","garlic"],
+   steps:["Mix 1 lb ground beef, 1 grated onion (squeezed dry), 2 tbsp breadcrumbs or flour, 1 tsp salt, 1 tsp cumin, pepper. Rest 30 min in the fridge.","Shape into small oval patties. Cook in a hot pan or under the broiler, 4 min a side.","Potatoes: cube, toss in oil and salt, roast at 425 F for 30 min.","Salad: shred cabbage, salt, a little oil and vinegar or lemon."]},
+  {id:"thu",day:"Thu",name:"Oven chicken thighs with potatoes and carrots",need:["thighs","potatoes","carrots","oil","spices","garlic","yogurt"],
+   steps:["Rub 6 thighs with 1 tbsp oil, 1 tsp paprika, 1 tsp salt, garlic, pul biber.","Place on a tray with 3 cubed potatoes and 2 carrots in chunks. Drizzle oil and salt.","Bake at 425 F for 45 to 50 min until skin is crisp. Serve with yogurt."]},
+  {id:"fri",day:"Fri",name:"Menemen with bread",need:["eggs","peppers","tomatoes","onions","oil","flour","yeast"],
+   steps:["Sauté 1 onion and 1 pepper in 1 tbsp oil until soft.","Add 2 chopped tomatoes, cook 8 min until saucy. Salt, pul biber.","Crack in 4 eggs, stir gently, take off the heat while still soft. Eat with bread."]},
+  {id:"sat",day:"Sat",name:"Köfte burger on homemade bun, slaw",need:["beef","onions","flour","yeast","cabbage","carrots","yogurt","spices"],
+   steps:["Use the köfte mix from Wednesday, shaped into flat patties. 4 min a side.","Buns: your usual dough, shaped into 4 to 6 buns.","Slaw: shred cabbage and carrot, stir in 2 tbsp yogurt, salt, a little oil."]},
+  {id:"sun",day:"Sun",name:"Chickpea and chicken pilav",need:["thighs","chickpeas","rice","onions","paste","butter","spices"],
+   steps:["Simmer 3 thighs in salted water 25 min. Pull the meat off the bone, keep the broth.","Sauté 1 onion in butter, add 1 tbsp paste, 1 cup rice, toast 2 min.","Add 1.5 cups broth, 1 can chickpeas and the chicken. Cover on low 15 min, rest 10 min."]},
+  {id:"alt1",day:"Extra",name:"Bulgur pilav with vegetables",need:["bulgur","tomatoes","peppers","onions","paste","frozen","oil"],
+   steps:["Sauté 1 onion and 1 pepper in oil. Add 1 tbsp paste and 1 chopped tomato.","Add 1 cup bulgur, 2 cups hot water, salt. Cover on low 12 min, rest 10 min."]},
+  {id:"alt2",day:"Extra",name:"Eggplant and zucchini bake with yogurt",need:["eggplant","zucchini","garlic","yogurt","oil","herbs","onions"],
+   steps:["Slice eggplant, zucchini and 1 onion. Toss with oil, salt, dried oregano.","Roast at 425 F for 30 min.","Serve with yogurt mixed with crushed garlic and dried mint."]}
+];
+const mCost = n => "$" + n.toFixed(2);
+function renderMeals(){
+  const S = state.meals, W = $("mealsWrap");
+  const picked = M_MEALS.filter(m => S.pick.includes(m.id));
+  const need = new Set(); picked.forEach(m => m.need.forEach(k => need.add(k)));
+  const cats = ["Meat & eggs","Pantry","Produce","Dairy"];
+  let total = 0, left = 0;
+  const pickHtml = M_MEALS.map(m => `<label class="check2" style="display:flex;gap:8px;align-items:center;padding:6px 0"><input type="checkbox" data-mpick="${m.id}" ${S.pick.includes(m.id) ? "checked" : ""}><span><b>${esc(m.day)}</b> ${esc(m.name)}</span></label>`).join("");
+  const listHtml = cats.map(c => {
+    const keys = [...need].filter(k => M_ITEMS[k].c === c);
+    if(!keys.length) return "";
+    return `<h3 style="margin:14px 0 4px">${c}</h3>` + keys.map(k => {
+      const it = M_ITEMS[k], got = !!S.got[k]; total += it.p; if(!got) left += it.p;
+      return `<label style="display:flex;gap:8px;align-items:center;padding:6px 0${got ? ";opacity:.55;text-decoration:line-through" : ""}"><input type="checkbox" data-mgot="${k}" ${got ? "checked" : ""}><span>${esc(it.n)}${S.budget ? ` <span class="hint">${mCost(it.p)}</span>` : ""}</span></label>`;
+    }).join("");
+  }).join("");
+  const budgetLine = S.budget ? `<p class="hint"><b>Week total: ${mCost(total)}</b> · still to buy: ${mCost(left)} · the first week is a pantry stock-up; after that, aim for about ${mCost(S.target)} a week</p>` : "";
+  const recipes = picked.map(m => `<details style="margin:8px 0"><summary><b>${esc(m.day)}</b> ${esc(m.name)}</summary><ol style="margin:6px 0 0 18px">${m.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol></details>`).join("");
+  W.innerHTML = `<section><h2>Meals</h2><p class="hint">Pick the dinners for the week. The grocery list below builds itself from your picks. Items already in your pantry: just check them off.</p>${pickHtml}</section>
+  <section><h2>Grocery list</h2>${budgetLine}${listHtml || '<p class="hint">Pick at least one dinner.</p>'}
+  <div class="btnrow"><button type="button" class="btn ghost small" data-mact="reset">Clear checks</button><button type="button" class="btn ghost small" data-mact="budget">${S.budget ? "Hide" : "Show"} prices</button></div></section>
+  <section><h2>Recipes</h2>${recipes || '<p class="hint">No dinners picked.</p>'}<p class="hint">Bread, buns and pizza: use the dough tabs.</p></section>`;
+}
+document.addEventListener("change", e => {
+  const t = e.target;
+  if(!t.dataset) return;
+  if(t.dataset.mpick){ const S = state.meals, i = S.pick.indexOf(t.dataset.mpick); if(i < 0) S.pick.push(t.dataset.mpick); else S.pick.splice(i, 1); save(); renderMeals(); }
+  if(t.dataset.mgot){ state.meals.got[t.dataset.mgot] = t.checked; save(); renderMeals(); }
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("[data-mact]");
+  if(!b) return;
+  if(b.dataset.mact === "reset"){ state.meals.got = {}; }
+  if(b.dataset.mact === "budget"){ state.meals.budget = !state.meals.budget; }
+  save(); renderMeals();
+});
+
+const VIEWS = {meals:"mealsView", dough:"doughView", starter:"starterView", recipes:"recipesView", mine:"mineView", videos:"videosView", log:"logView", sync:"syncView"};
 function showView(){
   if(!VIEWS[state.view]) state.view = "dough";
   document.querySelectorAll(".seg button").forEach(b =>
     b.setAttribute("aria-pressed", b.dataset.view ? b.dataset.view === state.view : (state.view === "dough" && b.dataset.cat === state.cat)));
   for(const v in VIEWS) $(VIEWS[v]).hidden = v !== state.view;
+  if(state.view === "meals") renderMeals();
   if(state.view === "starter") renderStarter();
   if(state.view === "recipes") renderRecipes();
   if(state.view === "mine") renderMine();
@@ -3258,7 +3335,7 @@ $("jarQuick").addEventListener("click", e => {
 });
 
 /* ---------- Update check: phones can hold an old copy for a while ---------- */
-const APP_VERSION = "2026-11-01.1";
+const APP_VERSION = "2026-11-04.1";
 $("appVer").textContent = `App version ${APP_VERSION}`;
 let newVer = null;
 function loadNewVersion(){ location.replace(location.pathname + "?v=" + encodeURIComponent(newVer || Date.now()) + location.hash); }
